@@ -16,7 +16,7 @@ A personal finance tracker in the spirit of MS Money / Quicken / Buxfer / Mint /
 | D5 | Platforms | Web app (Vercel) + cross-platform native Android app (React Native / Expo), sharing logic. |
 | D6 | Statement formats | CSV, Excel (XLS/XLSX), PDF (incl. password-protected). |
 | D7 | Hosting | Free tiers: Vercel (web), Supabase (Postgres + Auth + Storage). |
-| D8 | Migration | Import from Ivy Wallet–based apps (e.g., MyWallet): full backup `.zip` (primary) and CSV export (fallback). |
+| D8 | Migration | Import from Ivy Wallet–based apps (e.g., MyWallet): full backup `.zip` (primary) and CSV export (fallback). **Final phase (5)** — phases 1–4 run on demo data. |
 | D9 | Categorization | User-managed categories with **unlimited parent/child nesting** (reports roll up) + optional free-form tags. One category per transaction or per split line. |
 | D10 | Payees | Payee list: default category, match patterns for statement text, notes, hide, merge/relocate. Same merge/relocate for categories. |
 | D11 | Transaction features | Split transactions, receipt/photo attachments, payees, notes. |
@@ -42,11 +42,13 @@ A personal finance tracker in the spirit of MS Money / Quicken / Buxfer / Mint /
 | D31 | Category mapping on import | Import wizard lets the user mark imported categories as **reimbursable** (→ Reimbursements) or ordinary. |
 | D32 | Parity with Ivy-style apps | Transfers between accounts, app lock (PIN / fingerprint), hide-balances privacy toggle, safe-to-spend buffer. Transfers excluded from income/expense totals. |
 | D33 | Historical reconciliation | **Backlog reconciliation mode**: set an account's opening balance from its earliest statement, then work statement-by-statement carrying the closing balance forward, with bulk add/fix of missing or wrong historic entries. |
+| D34 | Demo-first delivery | Phase 1 is a demo version on synthetic data for owner/tester evaluation; real-data migration is the final phase. Every module extends the demo dataset. Invites managed by a single owner-admin. |
+| D35 | Environments | **Demo** environment (synthetic data, testers; used for phases 1–4 and kept afterwards) and a separate, empty **live** environment created at go-live, where real history begins with the wallet-app import. Real statements may be trial-uploaded in demo; they are not carried over. All config is per-environment (separate backend project, web deployment and Android build profile). |
 
 ## 3. Phasing
 
-**Phase 1 — Daily driver**
-Invite-only auth · accounts (bank, cash, credit card, wallet) · nested categories + tags · payees · transactions (splits, transfers, notes, receipt attachments, status, reference no., warranty flag) · quick-add templates · offline-first Android + web · Ivy/MyWallet import · dashboard + drill-down spending/income charts · app lock, hide balances, safe-to-spend · full export · audit trail captured from day 1
+**Phase 1 — Demo version (synthetic demo data)**
+Invite-only auth (single owner-admin) · accounts (bank, cash, credit card, wallet) · nested categories + tags · payees · transactions (splits, transfers, notes, receipt attachments, status, reference no., warranty flag) · quick-add templates · offline-first Android + web · **load / reset demo data** · dashboard + drill-down spending/income charts · app lock, hide balances, safe-to-spend · full export · audit trail captured from day 1. Ends with a demo review whose findings may add or change features. Detailed module breakdown: [ROADMAP.md](../ROADMAP.md).
 
 **Phase 2a — Statement import & backlog reconciliation**
 Bank-account statement import (CSV / Excel) with per-bank presets · Match & fix + balance-tally reconciliation · backlog mode · credit-card PDF statements (password-protected) · payee match patterns & rules
@@ -60,7 +62,12 @@ FD / RD · PPF / EPF / NPS · MF / stocks / gold with prices · property valuati
 **Phase 4 — Insight & polish**
 Forecast · goals · retirement projection · custom report builder · custom fields · undo UI · Google Drive auto-backup · admin DB backup automation
 
+**Phase 5 — Go-live: migration (final)**
+Create the empty live environment · Ivy Wallet / MyWallet import (backup `.zip` primary, CSV fallback) incl. planned payments → schedules, reimbursable-category mapping, loan-history re-map · historical backlog reconciliation against real statements. The existing wallet app stays in daily use until this phase; imports are idempotent so the latest export can be re-imported at cut-over.
+
 **Later** — Bank-SMS draft capture · multi-currency
+
+> Principle: phases 1–4 are built and validated on synthetic demo data; every module extends the demo dataset for the records it introduces.
 
 ## 4. Known risks / constraints
 - **Supabase free tier**: 500 MB DB, 1 GB file storage (compress receipt images client-side); projects pause after ~7 days of inactivity.
