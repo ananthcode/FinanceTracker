@@ -1,0 +1,28 @@
+name: Guard against real data
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  no-data-files:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Fail if data files exist outside tests/fixtures/
+        run: |
+          offenders=$(git ls-files | grep -Ei '\.(csv|zip|xls|xlsx|pdf)$' | grep -v '^tests/fixtures/' || true)
+          if [ -n "$offenders" ]; then
+            echo "::error::Data files must not be committed outside tests/fixtures/:"
+            echo "$offenders"
+            exit 1
+          fi
+          echo "No data files found outside tests/fixtures/."
+      - name: Fail if a private/ folder or .env file is tracked
+        run: |
+          offenders=$(git ls-files | grep -E '^private/|(^|/)\.env($|\.)' | grep -v '\.env\.example$' || true)
+          if [ -n "$offenders" ]; then
+            echo "::error::Private notes or env files must not be committed:"
+            echo "$offenders"
+            exit 1
+          fi

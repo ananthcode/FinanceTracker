@@ -1,0 +1,53 @@
+# ---- Personal / financial data: never commit ----
+# Personal notes and real exports live here, on this machine only
+private/
+# Real statements, exports and backups (only synthetic fixtures are allowed)
+*.csv
+*.zip
+*.xls
+*.xlsx
+*.pdf
+*.json.bak
+!tests/fixtures/**
+
+# ---- Secrets ----
+.env
+.env.*
+!.env.example
+
+# ---- Claude Code local settings ----
+.claude/settings.local.json
+
+# ---- Node / build output ----
+node_modules/
+.pnpm-store/
+.turbo/
+.next/
+out/
+dist/
+build/
+coverage/
+*.tsbuildinfo
+
+# ---- Expo / Android ----
+.expo/
+.expo-shared/
+android/
+ios/
+*.apk
+*.aab
+*.keystore
+*.jks
+
+# ---- Supabase local ----
+supabase/.branches/
+supabase/.temp/
+
+# ---- OS / editor ----
+.DS_Store
+Thumbs.db
+desktop.ini
+.vscode/*
+!.vscode/extensions.json
+.idea/
+*.log
