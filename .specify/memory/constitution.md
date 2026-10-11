@@ -14,7 +14,9 @@ Product scope: `docs/SCOPE.md`. Module roadmap: `ROADMAP.md`. The repository is 
   user-owned table, with default-deny policies. Application-code checks alone are never
   sufficient.
 - The only elevated role is a single owner-admin who manages invites. The admin MUST NOT be
-  able to read or modify other users' financial data through the application.
+  able to read or modify other users' financial data through the application, except to
+  permanently erase another user under Principle III; erasure MUST NOT reveal any of that
+  user's data to the owner-admin at any step.
 
 Rationale: users trust the app with private money data; a single missed `WHERE` clause in
 application code must not be able to leak it.
@@ -41,8 +43,15 @@ against bank statements is a core feature and requires exact arithmetic.
   categories, payees, tags, and later budgets, loans, holdings, valuations) MUST be captured
   in an append-only change history recording who, when, and the before/after state — from
   the first release.
-- Records MUST be soft-deleted, never hard-deleted, except through an explicit
-  user-initiated "erase all my data" action (and demo-data reset in the demo environment).
+- Records MUST be soft-deleted, never hard-deleted, except through:
+  (a) a user's own explicit "erase all my data" action;
+  (b) owner-admin erasure of another user (never themselves) with dual confirmation — a warning
+  describing what will be erased and that it cannot be undone, then typing that user's email
+  exactly;
+  (c) demo-data reset in the demo environment.
+- Erasure under (a) or (b) MUST also remove the user's personal identifiers from earlier audit
+  events and leave only a minimal erasure record (who erased, when, and a non-identifying
+  reference to the erased user).
 - Reconciled records MUST be immutable unless the user explicitly un-reconciles them; the
   un-reconcile action is itself audited.
 
@@ -210,4 +219,4 @@ engine, test runners) are made per module in its plan and MUST satisfy the princ
 - Product scope and sequencing live in `docs/SCOPE.md` and `ROADMAP.md`; where they conflict
   with this constitution, this constitution wins until amended.
 
-**Version**: 1.0.0 | **Ratified**: 2026-10-10 | **Last Amended**: 2026-10-10
+**Version**: 1.1.0 | **Ratified**: 2026-10-10 | **Last Amended**: 2026-10-11
