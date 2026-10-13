@@ -17,6 +17,11 @@
 - Q: Should hide-balances mode apply per device or to all of the user's devices? → A: Per device — each phone or browser has its own independent switch.
 - Q: When an invitation is opened on an Android phone, where should the person complete joining? → A: In the Android app if it is installed; otherwise on a web page that also explains how to get the Android app.
 
+### Session 2026-10-13 (security checklist review)
+
+- Q: While app lock is on, should screenshots of the app be allowed? → A: Yes — screenshots stay allowed; only the recent-apps preview is hidden (reliable on Android 13+, best effort on older versions).
+- Q: After 5 wrong PINs, what happens to offline entries not yet sent? → A: Keep them sealed on the device and upload them only after the same user signs back in on that device; all other locally stored data is removed.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Invited person joins the app (Priority: P1)
@@ -140,9 +145,9 @@ information.
    link stops working immediately.
 3. **Given** a pending or expired invitation, **When** the owner-admin resends it, **Then** a new
    invitation is issued with a fresh expiry and any earlier link for it stops working.
-4. **Given** an active user, **When** the owner-admin disables them, **Then** all the user's
-   sessions end at their next interaction with the service and they cannot sign in until
-   re-enabled; their data is retained untouched.
+4. **Given** an active user, **When** the owner-admin disables them, **Then** the user's next
+   request to the service from any device is refused and that device is signed out (SC-007); they
+   cannot sign in until re-enabled; their data is retained untouched.
 5. **Given** the owner-admin tries to disable their own access, **When** they confirm, **Then**
    the action is refused (the single owner-admin cannot lock themselves out).
 6. **Given** a non-admin user, **When** they try to reach user management by any route, **Then**
@@ -206,11 +211,14 @@ failure and unlock with PIN; use "Forgot PIN" and confirm a full sign-in is requ
 3. **Given** the lock screen, **When** fingerprint fails or is unavailable, **Then** the user can
    unlock with the PIN.
 4. **Given** 5 consecutive wrong PIN entries, **When** the 5th fails, **Then** the user is signed
-   out on this device and must sign in fully (and set a new PIN) to continue.
+   out on this device, locally cached data is removed except entries not yet sent (kept sealed),
+   and the user must sign in fully (and set a new PIN) to continue; after the same user signs in
+   again on that device, the kept entries are sent.
 5. **Given** the user chooses "Forgot PIN", **When** they sign in again successfully, **Then** the
    old PIN is cleared and they can set a new one.
 6. **Given** the lock is on, **When** the app appears in the device's recent-apps switcher,
-   **Then** its preview does not reveal financial content.
+   **Then** its preview does not reveal financial content, while the user can still take
+   screenshots inside the app.
 
 ---
 
@@ -239,17 +247,30 @@ user is unaffected.
 
 ### Edge Cases
 
-- An invitation is sent to an email that already belongs to an active or disabled user → the
-  owner-admin is told the person already has access; no duplicate user is created.
+- An invitation is sent to an email that already belongs to an active or disabled user —
+  including the owner-admin's own email → refused with "this person already has access"; no
+  duplicate user is created. An erased user's email can be invited again as a new user.
+- A user's Google account email changes after joining, or Google reports the email as unverified →
+  Google sign-in is refused for that user; they can still sign in with email + password (or ask the
+  owner-admin for a new invitation after erasure).
+- Concurrent admin actions → erase and disable take precedence over any action the affected user
+  is performing (it fails and the device is signed out); when a revoke and an acceptance race, the
+  first to complete wins and the other party sees a clear message (invitation no longer valid /
+  person already has access).
+- The hosted environment is temporarily paused or unreachable → apps show a clear "service
+  temporarily unavailable" state (Android keeps working on locally held data); the owner-admin
+  restores the environment through the hosting provider (see quickstart runbook).
 - Email addresses differing only in letter case (`Asha.Test@Example.com`) are treated as the same
   person.
 - The same person later signs in with the other method (Google vs email/password) for the same
   email → it reaches the same user, never a second user.
 - An invitation is accepted on one device while open on another → the second attempt is directed
   to sign in.
-- A user is disabled while their Android app is offline → they keep local, view-only access until
-  the device next reaches the service, at which point they are signed out; nothing they did offline
-  is uploaded while disabled, and it is not discarded from the device until they sign out.
+- A user is disabled while their Android app is offline → they keep local, view-only access to data
+  already on that device until the device next reaches the service, at which point they are signed
+  out; nothing they did offline is uploaded while disabled, and it is not discarded from the device
+  until they sign out. Accepted: data already held on a device is outside server enforcement; the
+  service itself never serves a disabled user (Principle I).
 - A user signs out on Android while changes made offline have not yet been sent → they are warned
   with the number of unsent changes and offered "Send now" or "Sign out anyway (discard unsent
   changes)"; nothing is discarded without that explicit confirmation.
@@ -259,7 +280,8 @@ user is unaffected.
   is altered.
 - Network failure during invitation acceptance or setup → the user can retry without creating
   duplicates and resumes where they left off.
-- The owner-admin's own account: cannot be disabled, revoked, demoted or erased through the app.
+- The owner-admin's own account: cannot be disabled, revoked, demoted or erased through the app; if
+  the owner-admin loses every sign-in method, recovery follows FR-013a.
 - A user is erased while their Android app is offline → when the device next reaches the service
   the user is signed out, local data on that device is removed, and nothing is uploaded.
 - An erased user's earlier audit events → their identifying details are removed with the user;
@@ -273,11 +295,20 @@ user is unaffected.
 
 - **FR-001**: The system MUST allow access to be created only by accepting a valid, unexpired,
   unrevoked invitation addressed to the joining person's email.
+- **FR-001a**: For the email + password path, possession of a valid invitation link MUST be the
+  proof that the person controls the invited email; no separate verification email is sent.
 - **FR-002**: Only the owner-admin MUST be able to create, resend and revoke invitations.
 - **FR-003**: An invitation MUST expire 7 days after it is issued; resending issues a new
   invitation with a fresh 7-day expiry and invalidates the previous one.
+- **FR-003a**: Invitation links MUST be single-use and unguessable (at least 128 bits of
+  randomness), MUST be delivered only by email to the invitee, MUST NOT be shown to the
+  owner-admin, and MUST NOT appear in audit details or application logs.
+- **FR-003b**: If an invitation email cannot be sent (e.g., sending limit reached or sender
+  credentials rejected), the invitation MUST still be recorded and the owner-admin MUST see that
+  delivery failed, with the option to resend.
 - **FR-004**: When joining with Google, the Google account's email MUST match the invited email
-  (case-insensitive); otherwise access MUST be refused.
+  (case-insensitive) and Google MUST report that email as verified; otherwise access MUST be
+  refused. The same rule applies to every later Google sign-in.
 - **FR-004a**: Opening an invitation on an Android device MUST continue joining in the Android app
   when it is installed, and otherwise on the web, with guidance on obtaining the Android app;
   on other devices joining happens on the web.
@@ -287,14 +318,23 @@ user is unaffected.
 **Sign-in & sessions**
 
 - **FR-006**: Users MUST be able to sign in on web and Android with Google or with email + password.
-- **FR-007**: Passwords MUST be at least 8 characters; the system MUST reject passwords found in a
-  list of commonly used passwords.
-- **FR-008**: Users MUST be able to reset a forgotten password via a time-limited link sent to
-  their email; the response MUST NOT reveal whether the email has access.
-- **FR-009**: After 5 consecutive failed password attempts for an email, further attempts MUST be
-  blocked for at least 15 minutes.
+- **FR-007**: Passwords MUST be at least 8 characters; the system MUST reject any password that
+  appears in a published list of the 10,000 most commonly used passwords (case-insensitive) or
+  equals the part of the user's email before the "@".
+- **FR-008**: Users MUST be able to reset a forgotten password via a single-use link sent to
+  their email and valid for 1 hour; the response MUST NOT reveal whether the email has access.
+- **FR-008a**: Unauthenticated actions MUST be limited to prevent enumeration and email flooding:
+  at most 3 password-reset emails per email address per hour, and at most 20 invitation look-ups
+  per minute from one network address; excess requests receive the same neutral response or a
+  "try again later" message without revealing account existence.
+- **FR-009**: After 5 consecutive failed email + password attempts for an email address — counted
+  across all devices and networks since that address's last successful sign-in — further password
+  attempts for that address MUST be blocked for 15 minutes; a successful sign-in resets the count.
+  Google sign-in is not affected by this lockout.
 - **FR-010**: Signed-in sessions MUST persist across app restarts until the user signs out, the
-  session is ended by the owner-admin disabling the user, or the password is reset. On the web,
+  session is ended by the owner-admin disabling the user, or the password is reset — a completed
+  password reset MUST end all of the user's other sessions on every device, while the session that
+  completed the reset stays signed in. On the web,
   sign-in MUST offer a "Keep me signed in" choice (unticked by default); when unticked, the session
   MUST end after 30 minutes of inactivity or when the browser is closed.
 - **FR-011**: Sign-out MUST end the session on the current device only.
@@ -305,20 +345,29 @@ user is unaffected.
 
 - **FR-013**: Each environment MUST have exactly one owner-admin, designated when the environment is
   set up; the owner-admin role cannot be granted, removed or transferred in the app.
+- **FR-013a**: If the owner-admin loses every sign-in method, recovery MUST be possible only
+  outside the app by the person operating the environment, using the documented environment setup
+  procedure to move the owner-admin role to a new email; the recovery MUST be audited and MUST NOT
+  grant access to any other user's data.
 - **FR-014**: The owner-admin MUST be able to view invitations (email, status, issued and expiry
   dates) and users (display name, email, access status, last sign-in time).
 - **FR-015**: The owner-admin MUST be able to disable and re-enable any user except themselves.
-  Disabling MUST end all of that user's sessions and prevent sign-in; re-enabling MUST restore
-  access with all their data intact.
+  Disabling MUST cause the user's next request to the service from any device to be refused (and
+  that device to sign out) and MUST prevent sign-in; re-enabling MUST restore access with all their
+  data intact.
 - **FR-016**: The owner-admin MUST NOT be able to view, change or export any other user's financial
-  data or preferences through the app; admin views MUST show only the fields listed in FR-014.
+  data or preferences (base currency, number and date format, financial-year start, timezone)
+  through the app; admin views MUST show only the fields listed in FR-014 (display name is a
+  profile field, not a preference).
 - **FR-016a**: The owner-admin MUST be able to permanently erase any user other than themselves,
   removing that user's access, preferences and all data they own. Erasure MUST require dual
   confirmation: (1) a warning describing exactly what will be erased and that it cannot be undone,
   then (2) typing the user's email exactly. Erasure MUST end all of the user's sessions
   immediately, MUST NOT reveal any of the erased data to the owner-admin at any step, and MUST
   leave only a minimal audit record (who erased, when, and a non-identifying reference to the
-  erased user). The email MAY later be invited again as a new user with no link to the erased data.
+  erased user). Erasure MUST also remove every invitation record for that email and the user's
+  identifiers from earlier audit events. The email MAY later be invited again as a new user with no
+  link to the erased data.
 
 **Data isolation**
 
@@ -327,6 +376,9 @@ user is unaffected.
 - **FR-018**: Non-admin users MUST NOT be able to see any other user, invitation or admin screen.
 - **FR-019**: The demo and live environments MUST have separate users, invitations and data; an
   identity in one environment grants nothing in the other.
+- **FR-019a**: Every web deployment and Android build MUST know which environment it belongs to and
+  MUST refuse to operate (showing a configuration error) if the backend it connects to reports a
+  different environment.
 
 **First-run setup & preferences**
 
@@ -347,18 +399,31 @@ user is unaffected.
 
 - **FR-026**: Users MUST be able to enable app lock on Android with a 4–6 digit PIN and optionally
   device fingerprint/biometrics, with a timeout of immediately (default), 1, 5 or 15 minutes.
-- **FR-027**: When locked, the app MUST hide all content, including the recent-apps preview, until
-  unlocked.
-- **FR-028**: After 5 consecutive wrong PIN entries, the app MUST sign the user out on that device.
+- **FR-026a**: App lock with PIN MUST be available whether or not the device has its own screen
+  lock; fingerprint unlock MUST be offered only when the device has enrolled biometrics.
+- **FR-026b**: If the device's enrolled biometrics change after fingerprint unlock was enabled,
+  fingerprint unlock MUST be suspended until the user unlocks once with their PIN and re-confirms
+  fingerprint use.
+- **FR-027**: While app lock is enabled, the app MUST hide all content when locked and MUST keep its
+  screens out of the recent-apps preview (guaranteed on Android 13 and later; best effort on older
+  versions). Screenshots taken by the user inside the app MUST remain allowed. When app lock is
+  disabled, no recent-apps restriction applies.
+- **FR-028**: After 5 consecutive wrong PIN entries, the app MUST sign the user out on that device
+  and remove all of that user's locally stored data from it **except changes not yet sent**, which
+  MUST be kept sealed (not viewable in the app) and sent only after the same user signs in again on
+  that device; if a different user signs in on that device, the kept changes MUST NOT be sent under
+  that user. The app-lock setup screen MUST explain this behaviour.
 - **FR-029**: "Forgot PIN" MUST require a full sign-in, after which the old PIN is cleared.
 - **FR-030**: App-lock settings MUST apply to the device on which they were set.
 
 **Hide-balances mode**
 
 - **FR-031**: A hide-balances toggle MUST be reachable from the main navigation on web and Android.
-- **FR-032**: When on, every monetary amount on every screen MUST be masked with a fixed-length mask
-  that does not reveal digit count; the mechanism MUST be shared so that newly added screens are
-  masked without extra work.
+- **FR-032**: When on, every monetary amount the app displays on its own screens — including
+  titles, lists, tables, charts, totals and in-app messages — MUST be masked with a fixed-length
+  mask that does not reveal digit count; the mechanism MUST be shared so that newly added screens
+  are masked without extra work. Content the user deliberately generates to share or export
+  (later modules) is outside this toggle and is specified by those modules.
 - **FR-033**: The hide-balances choice MUST persist on the device where it was set and MUST NOT
   change the setting on the user's other devices.
 
@@ -372,16 +437,37 @@ user is unaffected.
 - **FR-036**: The Android app MUST show an online/offline indicator that updates within 5 seconds
   of a connectivity change.
 
+**Security baseline**
+
+- **FR-036a**: All communication between the apps and the service MUST be encrypted in transit;
+  unencrypted access to any environment MUST be refused or redirected.
+- **FR-036b**: Web session credentials MUST NOT be readable by page scripts, MUST be sent only over
+  encrypted connections, and state-changing requests (especially owner-admin actions) MUST be
+  protected against cross-site request forgery.
+- **FR-036c**: The privileged service key and the email-sender credential MUST be replaceable per
+  environment through configuration alone (no code change), following a documented rotation
+  procedure. Rotating these MUST NOT sign users out; if the secret that signs user sessions is
+  suspected compromised, the procedure MUST rotate it, which signs every user out on every device.
+- **FR-036d**: Application logs (distinct from audit events) MUST NOT contain email addresses,
+  passwords, PINs, invitation or session tokens, or financial details; errors MUST carry a
+  reference id so a reported problem can be traced.
+- **FR-036e**: When joining, the person MUST be shown a short privacy notice — what is stored about
+  them, that the owner-admin can see their name, email, access status and last sign-in time but no
+  financial data, and that they can ask the owner-admin to erase them — on every joining path
+  (email + password and Google) before access is created, and the system MUST record that it was
+  shown.
+
 **Audit**
 
 - **FR-037**: The system MUST record an audit event — actor, time, action, target — for:
-  invitation created/resent/revoked/accepted/expired, user disabled/re-enabled, user erased, sign-in success,
-  sign-in failure, password reset requested/completed, sign-out, preference changed, and app lock
-  enabled/disabled. Audit events MUST NOT contain passwords, PINs or financial data.
+  invitation created/resent/revoked/accepted/expired, invitation email delivery failed, user
+  disabled/re-enabled, user erased, owner-admin recovered, sign-in success, sign-in failure,
+  sign-in locked, password reset requested/completed, sign-out, setup completed, preference
+  changed, and app lock enabled/disabled. Audit events MUST NOT contain passwords, PINs or financial data.
 - **FR-038**: Audit events MUST be append-only (not editable or deletable through the app).
 - **FR-039**: The owner-admin MUST be able to view invitation and access-change events for all
-  users; each user MUST be able to view their own recent sign-in activity (time, method, device
-  type).
+  users; each user MUST be able to view their own recent sign-in activity — successful and failed
+  sign-ins and lockouts — with time, method and device type.
 
 ### Key Entities
 
@@ -406,17 +492,26 @@ user is unaffected.
   including first-run setup, in under 3 minutes.
 - **SC-002**: 100% of attempts to create access without a valid invitation (uninvited email,
   expired, revoked, mismatched Google email) are refused in acceptance testing.
-- **SC-003**: Automated isolation tests show 0 cases in which one user — including the
-  owner-admin — can read or change another user's data.
+- **SC-003**: Automated tests covering the agreed isolation rule set (maintained with the plan's
+  database contract; at minimum FR-016, FR-017, FR-018 and FR-038) show 0 cases in which one user —
+  including the owner-admin — can read or change another user's data.
 - **SC-004**: A signed-in returning user reaches the home screen within 3 seconds of opening the
   Android app (lock off), and within 2 seconds of a successful fingerprint unlock (lock on).
 - **SC-005**: After a preference change, 100% of amounts and dates on screen use the new format
   without restarting the app.
-- **SC-006**: With hide-balances on, a screen-by-screen review finds 0 unmasked amounts.
-- **SC-007**: Revoking an invitation or disabling a user takes effect for the affected person
-  within 1 minute (immediately for any new sign-in attempt).
+- **SC-006**: With hide-balances on, a review of every screen in the navigation (in R1: Settings
+  preview and shell; each later module adds its screens to the review list) finds 0 unmasked
+  amounts.
+- **SC-007**: Measured from the owner-admin's confirmation: a revoked invitation link and any new
+  sign-in attempt by a disabled user are refused immediately, and every request from an
+  already-signed-in device of a disabled user is refused within 1 minute; a device that makes no
+  request is signed out at its next request (and, on Android, when the app returns to the
+  foreground).
 - **SC-008**: 100% of the events listed in FR-037 appear in the audit history during acceptance
   testing, and none contains a password, PIN or financial data.
+- **SC-009**: After a user is erased, a search of all stored data for the erased email or user id
+  finds nothing except the minimal erasure record, and any of their devices removes its local data
+  at its next contact with the service.
 
 ## Assumptions
 
@@ -430,6 +525,20 @@ user is unaffected.
   inactivity). On the web, inactivity expiry applies only when "Keep me signed in" is not ticked.
 - Display name is the only profile field in Phase 1 (no avatar, phone number or address).
 - Language is English only in Phase 1.
+- Retention: audit events and disabled users' data are kept for the life of the environment in
+  Phase 1 (no automatic purge); erasure is the deletion path.
+- Owner-admin alerts for security events (e.g., repeated lockouts) are intentionally out of scope
+  in Phase 1; users see their own failed sign-ins (FR-039).
+- Accepted residual risks (documented in the plan): (1) the per-email lockout counts attempts made
+  through the app; attempts made directly against the authentication provider are limited only by
+  the provider's per-network-address limits; (2) a signed-in user could deliberately set a common
+  password on their own account by bypassing the app.
+- Invitation and reset emails depend on one free mailbox account; if its sending limit or
+  credential fails, invitations show "delivery failed" (FR-003b) and resets keep their neutral
+  message — the owner-admin fixes the sender and resends.
+- The security features relied on from the hosting provider's free plan (sign-up hook, token hook,
+  rate limits) were verified on 2026-10-11; the owner re-verifies them before creating each
+  environment and whenever the provider announces plan changes.
 - Self-service account deletion and "erase all my data" by the user are out of scope (later
   modules); disabled users' data is retained until they are re-enabled or erased by the owner-admin.
 - Admin-initiated erasure is permitted by constitution v1.1.0 (Principles I and III, amended
