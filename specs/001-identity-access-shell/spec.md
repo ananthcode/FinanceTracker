@@ -473,9 +473,10 @@ user is unaffected.
 
 - **User**: A person with access in one environment. Email (unique, case-insensitive), display
   name, sign-in methods linked (Google, email/password), access status (active, disabled), role
-  (owner-admin or user), last sign-in time, setup-complete flag.
+  (owner — the owner-admin — or member), last sign-in time, setup-complete flag.
 - **Invitation**: An offer of access to one email. Email, issued by, issued at, expires at, status
-  (pending, accepted, expired, revoked), accepted at. At most one pending invitation per email.
+  (pending, accepted, revoked, superseded; "expired" = still pending after its expiry time),
+  accepted at, email delivery status. At most one pending invitation per email.
 - **User Preferences**: Owned by one user. Base currency (fixed after setup), number format, date
   format, financial-year start month, timezone.
 - **Device Settings** (kept on the device): app-lock enabled, PIN (stored securely), fingerprint

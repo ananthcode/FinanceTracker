@@ -8,7 +8,7 @@ tests in `supabase/tests/` (pgTAP) must prove.
 | Hook | Function | Behaviour |
 |------|----------|-----------|
 | Before User Created | `app.hook_before_user_created(event jsonb)` | Allow only if a `pending`, unexpired invitation exists for the email (case-insensitive); else return error `INVITE_REQUIRED`. |
-| Custom Access Token | `app.hook_custom_access_token(event jsonb)` | Refuse to issue/refresh tokens when the user's profile is `disabled` or the email is locked in `private.sign_in_attempts`; add claim `app_role` (`owner`/`member`). |
+| Custom Access Token | `app.hook_custom_access_token(event jsonb)` | Refuse to issue/refresh tokens when the user's profile is `disabled`, the email is locked in `private.sign_in_attempts`, or — for a Google sign-in — the Google identity's email no longer matches the user's email (case-insensitive) or is unverified (FR-004); add claim `app_role` (`owner`/`member`). |
 
 ## Triggers
 

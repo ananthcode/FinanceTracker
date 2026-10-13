@@ -78,6 +78,8 @@ Expected: all green. `db:test` runs the pgTAP suite proving the 10 access rules 
 | S1-d | Google sign-in with a different email than invited | Refused; invite still pending |
 | S1-e | Open revoked / expired / accepted invite link | Correct message per spec; accepted → sign-in |
 | S1-f | Android with app installed: tap invite link in phone mail | Opens app at `/invite/…`; without app → web page with install guidance |
+| S1-g | Join via Google from an invitation (web and Android) | Privacy notice shown before Google; recorded after setup |
+| S1-h | Join with email + password, later sign in with Google using the same email (and vice versa) | Same user id; preferences intact; no second user (FR-005) |
 | S2-a | Sign in on web (Keep me signed in ticked) and Android; restart both | Still signed in |
 | S2-b | Web without "Keep me signed in"; idle 30 min (or set `IDLE_MINUTES=1` locally) | Signed out after warning |
 | S2-c | 5 wrong passwords | 6th attempt `LOCKED`, retry time shown; `sign_in_locked` audited |
@@ -95,8 +97,8 @@ Expected: all green. `db:test` runs the pgTAP suite proving the 10 access rules 
 | S6-a | Enable lock (PIN + fingerprint, 1 min); background 30 s / 2 min | No prompt / prompt |
 | S6-b | Fail fingerprint → PIN; 5 wrong PINs | PIN works; 5th wrong → signed out on device; cached data removed (unsent-entry rule verified in R2) |
 | S6-c | Recent-apps switcher while lock on; take a screenshot in the app | Preview is blank (Android 13+); screenshot succeeds |
-| S6-d | Join via Google from an invitation | Privacy notice shown before Google; recorded after setup |
 | S7-a | Toggle hide-balances on web | Every amount `₹••••`; persists on reload; Android unaffected |
+| PERF-a | Physical Android device: cold-start a signed-in app (lock off); then with lock on, unlock with fingerprint | Home screen < 3 s; < 2 s after fingerprint (SC-004) |
 | SEC-a | Request 4 password resets for one email within an hour | Same neutral message each time; only 3 emails in Mailpit |
 | SEC-b | Point a demo build at a backend whose environment is `live` | Configuration error screen; app refuses to run |
 | SEC-c | Add a new fingerprint on the device while biometric lock is on | Fingerprint unlock suspended until PIN entered |

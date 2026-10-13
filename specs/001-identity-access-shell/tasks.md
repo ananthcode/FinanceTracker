@@ -37,8 +37,8 @@ independently. R1 is the first module, so Setup and Foundational also create the
 - [ ] T001 Create root workspace files `package.json` (scripts: dev, build, lint, typecheck, test, db:reset, db:test, db:types, e2e, env:bootstrap, env:recover-owner), `pnpm-workspace.yaml` (apps/*, packages/*), `turbo.json`, `.nvmrc` (Node 24 LTS), `.npmrc`
 - [ ] T002 [P] Create shared tooling package `packages/config/` with `tsconfig.base.json` (strict: true, noUncheckedIndexedAccess), `eslint.config.mjs` (flat config) and `tailwind-preset.ts` (shared design tokens)
 - [ ] T003 [P] Create `.env.example` with every key from contracts/client-shell.md §Configuration (placeholder values only; `SUPABASE_SERVICE_ROLE_KEY` marked server-only)
-- [ ] T004 Scaffold Next.js 16 App Router app in `apps/web/` (TypeScript, Tailwind CSS 4 using `packages/config/tailwind-preset.ts`, `npx shadcn init`), extending `packages/config/tsconfig.base.json`
-- [ ] T005 Scaffold Expo SDK 57 app with expo-router in `apps/mobile/` (NativeWind with the shared preset), `apps/mobile/app.config.ts` reading `APP_ENV`, and `apps/mobile/eas.json` with build profiles `demo` and `live` using different Android application IDs
+- [ ] T004 Scaffold Next.js 16 App Router app in `apps/web/` (TypeScript, Tailwind CSS 4 using `packages/config/tailwind-preset.ts`, `npx shadcn init`, TanStack Query, react-hook-form + Zod resolver), extending `packages/config/tsconfig.base.json`
+- [ ] T005 Scaffold Expo SDK 57 app with expo-router in `apps/mobile/` (NativeWind with the shared preset, TanStack Query, react-hook-form + Zod resolver), `apps/mobile/app.config.ts` reading `APP_ENV`, and `apps/mobile/eas.json` with build profiles `demo` and `live` using different Android application IDs
 - [ ] T006 [P] Create `packages/core/` (package.json, `src/index.ts`, `vitest.config.ts`) — no React or Supabase imports allowed
 - [ ] T007 [P] Create `packages/db/` (package.json, `src/index.ts`, `vitest.config.ts`) depending on `@supabase/supabase-js` and `@supabase/ssr`
 - [ ] T008 Initialise Supabase local stack in `supabase/config.toml`: auth minimum password length 8, recovery/OTP expiry 3600 s, Google provider (env placeholders), local SMTP → Mailpit, Auth hooks pointing at `app.hook_before_user_created` and `app.hook_custom_access_token`
@@ -66,9 +66,9 @@ independently. R1 is the first module, so Setup and Foundational also create the
 - [ ] T019 Create migration `supabase/migrations/<ts>_audit.sql`: `public.audit_events` per data-model.md (no UPDATE/DELETE grants or policies for any client role); `app.write_audit(...)` SECURITY DEFINER with pinned `search_path`; generic `audit.capture_change()` trigger storing before/after JSON (never copies token columns); SELECT policy: own `sign_in_*`/`signed_out` events only
 - [ ] T020 Create migration `supabase/migrations/<ts>_access_rules.sql`: `app.is_active_user()`; RLS on `profiles` (select/update own row, active only; `role`/`status` not client-updatable via column grants) and `user_preferences` (select/update own row, active only); `capture_change` trigger on `user_preferences` UPDATE; `app.health()` returning `{status:'ok', environment}` executable by `anon`
 - [ ] T021 Create migration `supabase/migrations/<ts>_on_auth_user_created.sql`: AFTER INSERT trigger on `auth.users` → insert `profiles` (role from the pending invitation) and default `user_preferences`, mark invitation `accepted` (`accepted_at`, `accepted_user_id`), write `invitation_accepted`
-- [ ] T022 Create migration `supabase/migrations/<ts>_auth_hooks.sql`: `app.hook_before_user_created(event jsonb)` — allow only with a `pending`, unexpired invitation for the email (case-insensitive) and, for Google identities, a verified email; otherwise error `INVITE_REQUIRED`; `app.hook_custom_access_token(event jsonb)` — refuse when profile `disabled` or email locked in `private.sign_in_attempts`, add claim `app_role`; grant execute only to `supabase_auth_admin`
+- [ ] T022 Create migration `supabase/migrations/<ts>_auth_hooks.sql`: `app.hook_before_user_created(event jsonb)` — allow only with a `pending`, unexpired invitation for the email (case-insensitive) and, for Google identities, a verified email; otherwise error `INVITE_REQUIRED`; `app.hook_custom_access_token(event jsonb)` — refuse when profile `disabled`, email locked in `private.sign_in_attempts`, or (for a Google sign-in) the Google identity's email no longer matches the user's email case-insensitively or is not verified (FR-004, every later Google sign-in); add claim `app_role`; grant execute only to `supabase_auth_admin`
 - [ ] T023 Create pgTAP helpers `supabase/tests/00_helpers.sql` (create test users, impersonate `authenticated` with a given `sub`, reset state)
-- [ ] T024 [P] Write pgTAP isolation suite `supabase/tests/rls_isolation.test.sql` covering contracts/database.md rules 1–6 and 11 (user A vs B vs owner; disabled user gets zero rows; no client access to `invitations`/`private.*`; `audit_events` not updatable/deletable)
+- [ ] T024 Write pgTAP isolation suite `supabase/tests/rls_isolation.test.sql` covering contracts/database.md rules 1–6 and 11 (user A vs B vs owner; disabled user gets zero rows; no client access to `invitations`/`private.*`; `audit_events` not updatable/deletable)
 - [ ] T025 Add `pnpm db:types` generating `packages/db/src/types.gen.ts` from the local schema; commit generated types
 
 ### Shared domain code (packages/core)
@@ -81,22 +81,22 @@ independently. R1 is the first module, so Setup and Foundational also create the
 
 ### Web foundation (apps/web)
 
-- [ ] T031 [P] Implement env loading + validation in `apps/web/lib/env.ts` (Zod; `APP_ENV`, public vs server-only keys) and environment guard calling `app.health()` that renders `apps/web/app/config-error/page.tsx` on mismatch (FR-019a)
+- [ ] T031 [P] Implement env loading + validation in `apps/web/lib/env.ts` (Zod; `APP_ENV`, public vs server-only keys; reject any Supabase/web base URL that is not `https://` unless the host is `localhost`/`127.0.0.1` — FR-036a) and environment guard calling `app.health()` that renders `apps/web/app/config-error/page.tsx` on mismatch (FR-019a)
 - [ ] T032 [P] Implement Supabase helpers `apps/web/lib/supabase/server.ts`, `browser.ts`, `admin.ts` (`import 'server-only'` in admin) using `packages/db`
 - [ ] T033 Implement route wrapper `apps/web/lib/api/handler.ts`: Zod body/params validation, error shape `{error:{code,message}}` with `errorId`, auth from cookies or `Authorization: Bearer`, `401 USER_INACTIVE` for disabled callers, owner guard helper, `Origin` check against `WEB_BASE_URL` for cookie-authenticated mutations (FR-036b), redacting logger (FR-036d)
 - [ ] T034 [P] Write tests `apps/web/lib/api/handler.test.ts` proving logs contain no emails, tokens or passwords and errors carry `errorId`
 - [ ] T035 [P] Implement rate limiter `apps/web/lib/rate-limit.ts` (SHA-256 bucket keys, calls `app.rate_limit_hit`) and mailer `apps/web/lib/mailer.ts` (nodemailer SMTP from env; returns `sent`/`failed`)
 - [ ] T036 Implement `apps/web/middleware.ts`: session refresh via `@supabase/ssr`, unauthenticated → `/sign-in`, setup incomplete → `/setup`, non-owner → 403 for `/admin`
 - [ ] T037 Create minimal signed-in frame `apps/web/app/(app)/layout.tsx` and placeholder `apps/web/app/(app)/setup/page.tsx` (completed in US3)
-- [ ] T038 [P] Implement per-device `HideBalancesProvider` (localStorage, default off) and the only amount renderer `apps/web/components/Money.tsx` using `formatMoney`/`maskMoney`; `apps/web/components/DateText.tsx` using `formatDate`
+- [ ] T038 Implement per-device `HideBalancesProvider` (localStorage, default off) and the only amount renderer `apps/web/components/Money.tsx` using `formatMoney`/`maskMoney`; `apps/web/components/DateText.tsx` using `formatDate` (after T026, T027)
 
 ### Mobile foundation (apps/mobile)
 
 - [ ] T039 [P] Implement `apps/mobile/lib/supabase.ts` with a chunked `expo-secure-store` storage adapter (session persisted securely, opens offline with cached session — FR-012)
-- [ ] T040 [P] Implement `apps/mobile/lib/env.ts` + environment guard screen `apps/mobile/app/config-error.tsx` (FR-019a)
+- [ ] T040 [P] Implement `apps/mobile/lib/env.ts` (reject non-`https://` Supabase/API URLs except local dev hosts — FR-036a) + environment guard screen `apps/mobile/app/config-error.tsx` (FR-019a)
 - [ ] T041 Implement API client `apps/mobile/lib/api.ts` (Bearer token, error mapping to contracts, `USER_INACTIVE`/user-not-found → central sign-out handler)
 - [ ] T042 Implement auth gate `apps/mobile/app/_layout.tsx` (no session → sign-in, setup incomplete → setup, else tabs) and define `apps/mobile/lib/local-data.ts` interface `LocalDataStore` with `wipeAll(userId)`, `wipeExceptPending(userId)`, `pendingCount(userId)` (R1: no pending queue — returns 0; implemented by R2)
-- [ ] T043 [P] Implement per-device `HideBalancesProvider` (AsyncStorage) and `apps/mobile/components/Money.tsx` + `apps/mobile/components/DateText.tsx`
+- [ ] T043 Implement per-device `HideBalancesProvider` (AsyncStorage) and `apps/mobile/components/Money.tsx` + `apps/mobile/components/DateText.tsx` (after T026, T027)
 
 ### Environment scripts
 
@@ -117,9 +117,9 @@ reaches setup; `ravi.test@example.com` cannot create access by any route (quicks
 
 ### Tests for User Story 1
 
-- [ ] T046 [P] [US1] pgTAP `supabase/tests/hooks.test.sql`: before-user-created accepts pending (case-insensitive), rejects uninvited/expired/revoked/superseded and unverified Google emails; trigger creates profile + preferences and marks accepted (database rule 7)
+- [ ] T046 [P] [US1] pgTAP `supabase/tests/hooks.test.sql`: before-user-created accepts pending (case-insensitive), rejects uninvited/expired/revoked/superseded and unverified Google emails; trigger creates profile + preferences and marks accepted (database rule 7); token hook refuses a Google sign-in whose identity email no longer matches or is unverified (FR-004); accepting a just-revoked invitation fails (revoke-vs-accept race, Edge Cases)
 - [ ] T047 [P] [US1] Route tests `apps/web/app/api/invitations/[token]/accept/route.test.ts`: `ALREADY_ACCEPTED`, `INVITE_EXPIRED`, `INVITE_REVOKED`, `EMAIL_MISMATCH`, `WEAK_PASSWORD`, idempotent retry
-- [ ] T048 [P] [US1] Playwright `apps/web/e2e/us1-invitations.spec.ts`: invite → Mailpit link → accept → `/setup`; uninvited sign-up refused; expired/revoked/accepted link messages; token never visible in admin UI
+- [ ] T048 [P] [US1] Playwright `apps/web/e2e/us1-invitations.spec.ts`: invite → Mailpit link → accept → `/setup`; uninvited sign-up refused; expired/revoked/accepted link messages; token never visible in admin UI; a password user signing in again by any route stays the same user id. Google ↔ password linking (FR-005) is verified manually via quickstart S1-h because the local stack has no Google provider
 
 ### Implementation for User Story 1
 
@@ -167,7 +167,7 @@ passwords, are locked out after repeated failures and can sign out per device.
 - [ ] T073 [US2] Implement `GET /api/me/sign-in-activity` in `apps/web/app/api/me/sign-in-activity/route.ts` (own successful/failed sign-ins and lockouts with time, method, device — FR-039)
 - [ ] T074 [US2] Implement web pages `apps/web/app/(public)/sign-in/page.tsx` (Google + email/password, "Keep me signed in" unticked by default, lockout message with retry time), `forgot-password/page.tsx`, `reset-password/page.tsx`
 - [ ] T075 [US2] Implement mobile `apps/mobile/app/sign-in.tsx` and `apps/mobile/app/forgot-password.tsx` (password sign-in via API, Google via `lib/oauth.ts`)
-- [ ] T076 [US2] Implement mobile sign-out `apps/mobile/lib/sign-out.ts`: warn with `LocalDataStore.pendingCount`, offer "Send now" / "Sign out anyway (discard unsent changes)"; never discard without confirmation
+- [ ] T076 [US2] Implement mobile sign-out `apps/mobile/lib/sign-out.ts`: warn with `LocalDataStore.pendingCount`, offer "Send now" / "Sign out anyway (discard unsent changes)"; never discard without confirmation; call `POST /api/auth/sign-out` with `device: "android"` (audit `signed_out`) before clearing the local session
 - [ ] T077 [US2] Add "Sign-in activity" section to web `apps/web/app/(app)/settings/page.tsx` and mobile `apps/mobile/app/(tabs)/settings/index.tsx`
 
 **Checkpoint**: US1 + US2 = MVP (invite, join, sign in/out, reset, lockout)
@@ -178,7 +178,7 @@ passwords, are locked out after repeated failures and can sign out per device.
 
 **Goal**: Users complete setup once and control number/date formats, FY start and timezone.
 
-**Independent Test**: quickstart S3-a, S3-b, S6-d.
+**Independent Test**: quickstart S3-a, S3-b, S1-g.
 
 ### Tests for User Story 3
 
@@ -193,7 +193,7 @@ passwords, are locked out after repeated failures and can sign out per device.
 - [ ] T083 [P] [US3] Implement mobile `PreferencesProvider` in `apps/mobile/components/providers/PreferencesProvider.tsx` (cache in AsyncStorage for offline open)
 - [ ] T084 [US3] Implement web setup `apps/web/app/(app)/setup/page.tsx` (defaults INR, Indian grouping, `dd-MMM-yyyy`, April, Asia/Kolkata; privacy notice if not yet shown)
 - [ ] T085 [US3] Implement web preferences + live preview in `apps/web/app/(app)/settings/page.tsx`
-- [ ] T086 [US3] Implement mobile `apps/mobile/app/setup.tsx` and preferences + live preview in `apps/mobile/app/(tabs)/settings/index.tsx`
+- [ ] T086 [US3] Implement mobile `apps/mobile/app/setup.tsx` (same defaults as web; show `components/PrivacyNotice.tsx` and send `privacyNoticeShown` when not yet recorded — Google path, FR-036e) and preferences + live preview in `apps/mobile/app/(tabs)/settings/index.tsx`
 
 **Checkpoint**: US3 works independently on top of the MVP
 
@@ -208,14 +208,14 @@ without seeing financial data.
 
 ### Tests for User Story 4
 
-- [ ] T087 [P] [US4] pgTAP `supabase/tests/admin.test.sql`: `admin_list_users` returns only FR-014 columns; owner cannot be disabled/erased; second owner rejected (rule 10); after erase no audit row or invitation contains the email/id (rule 8); `details` never contains tokens (rule 12)
+- [ ] T087 [P] [US4] pgTAP `supabase/tests/admin.test.sql`: `admin_list_users` returns only FR-014 columns; owner cannot be disabled/erased; second owner rejected (rule 10); after erase no audit row or invitation contains the email/id (rule 8); `details` never contains tokens (rule 12); a user disabled or erased mid-setup can no longer update their profile or preferences (erase/disable precedence, Edge Cases)
 - [ ] T088 [P] [US4] Playwright `apps/web/e2e/us4-admin.spec.ts`: revoke → link fails; resend supersedes; disable → requests refused within 1 minute; enable restores data; erase wrong email → nothing erased, correct email → user gone and email re-invitable; member denied `/admin`
 
 ### Implementation for User Story 4
 
 - [ ] T089 [US4] Create migration `supabase/migrations/<ts>_admin.sql`: `app.admin_list_users()`, `app.admin_audit_feed(cursor)`, `app.set_user_status(user_id, status)` (refuses owner; audits `user_disabled`/`user_enabled`), `app.scrub_user_from_audit(user_id)` (replace refs with `erased:<uuid>`, delete all invitations for the email) — service role only
 - [ ] T090 [US4] Implement `GET /api/admin/overview` and `GET /api/admin/audit` in `apps/web/app/api/admin/`
-- [ ] T091 [US4] Implement `POST /api/admin/invitations/[id]/resend` and `/revoke` in `apps/web/app/api/admin/invitations/[id]/resend/route.ts` and `apps/web/app/api/admin/invitations/[id]/revoke/route.ts` (`409 NOT_RESENDABLE`, `409 NOT_PENDING`)
+- [ ] T091 [US4] Implement `POST /api/admin/invitations/[id]/resend` and `/revoke` in `apps/web/app/api/admin/invitations/[id]/resend/route.ts` and `apps/web/app/api/admin/invitations/[id]/revoke/route.ts` (`409 NOT_RESENDABLE`, `409 NOT_PENDING`; audit `invitation_resent` / `invitation_revoked`; resend sends the new link and records `delivery_status`)
 - [ ] T092 [US4] Implement `POST /api/admin/users/[id]/disable` and `/enable` in `apps/web/app/api/admin/users/[id]/disable/route.ts` and `apps/web/app/api/admin/users/[id]/enable/route.ts` (status + auth ban; `409 CANNOT_TARGET_OWNER`, `409 NOT_DISABLED`)
 - [ ] T093 [US4] Implement `POST /api/admin/users/[id]/erase` in `apps/web/app/api/admin/users/[id]/erase/route.ts` (`confirmEmail` case-insensitive match else `422 CONFIRMATION_MISMATCH`; scrub audit → delete invitations → audit `user_erased` → delete auth user; never returns user data)
 - [ ] T094 [US4] Complete web admin `apps/web/app/(app)/admin/page.tsx`: invitations table (status, delivery failed + resend, revoke), users table, disable/enable, erase dialog with dual confirmation, audit feed
@@ -302,7 +302,7 @@ indicator.
 - [ ] T119 [P] Update `README.md` with developer setup pointing to `specs/001-identity-access-shell/quickstart.md`
 - [ ] T120 Accessibility pass on `apps/web/components/shell/`, `apps/web/app/(app)/settings/`, `apps/web/app/(app)/admin/` and `apps/mobile/app/(tabs)/` (labels, focus order, status not by colour alone — Principle XIII)
 - [ ] T121 Prepare owner review notes `specs/001-identity-access-shell/review-notes.md` listing the files needing explicit review (auth hooks, RLS policies, erase flow, sign-in endpoint, PIN storage) per constitution workflow
-- [ ] T122 Run full quickstart validation (S1-a…S7-a, SEC-a…SEC-e) and record results in `specs/001-identity-access-shell/validation.md`
+- [ ] T122 Add `apps/web/e2e/audit-coverage.spec.ts` (drives the story flows and asserts each of the 20 FR-037 actions is recorded and no event `details` contains a password, PIN, token or amount — SC-008); then run full quickstart validation (S1-a…S7-a, SEC-a…SEC-e, PERF-a on a physical Android device for SC-004) and record results in `specs/001-identity-access-shell/validation.md`
 - [ ] T123 Owner-assisted: create hosted demo environment (Supabase Free project, Vercel project, Gmail SMTP, Google OAuth, EAS `demo` build, `pnpm env:bootstrap`) following `specs/001-identity-access-shell/quickstart.md` §Hosted demo environment; record outcomes in `specs/001-identity-access-shell/validation.md`
 
 ---
@@ -331,7 +331,7 @@ Tests first (fail) → migrations/repositories → API routes → web UI → mob
 ### Parallel Opportunities
 
 - Setup: T002, T003, T006, T007, T009–T012
-- Foundational: T024, T026–T029 (pure core), T031, T032, T034, T035, T038–T040, T043, T045
+- Foundational: T026–T029 (pure core), T031, T032, T034, T035, T039, T040, T045 (T024 after T023; T038/T043 after T026–T027)
 - US1: tests T046–T048 together; T054, T058, T060 alongside routes
 - US3: T082 and T083; US5: T101 with T100; US6: T106–T108; US7: T116 and T117
 - With two developers after Foundational: one on web-heavy stories (US1, US4), one on mobile-heavy (US6, then US5 mobile)
