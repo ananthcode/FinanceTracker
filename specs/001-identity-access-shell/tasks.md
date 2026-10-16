@@ -28,24 +28,33 @@ independently. R1 is the first module, so Setup and Foundational also create the
 `apps/web` (Next.js) · `apps/mobile` (Expo) · `packages/core` · `packages/db` · `packages/config` ·
 `supabase/` (migrations, tests, config) · `scripts/` · `.github/workflows/`
 
+**Mobile path mapping (decided at implementation, 2026-10-13)**: the Expo SDK 57 template keeps
+sources under `src/` with the `@/*` alias. Task paths `apps/mobile/app/…`, `apps/mobile/lib/…` and
+`apps/mobile/components/…` therefore live at `apps/mobile/src/app/…`, `apps/mobile/src/lib/…` and
+`apps/mobile/src/components/…`; tests at `apps/mobile/src/__tests__/…`.
+
+**Web path mapping (Next.js 16)**: the `middleware.ts` convention is renamed to `proxy.ts` in Next.js 16
+(Node.js runtime; `params`, `cookies()`, `headers()` are async). Tasks T036 and T069 therefore use
+`apps/web/proxy.ts`.
+
 ---
 
 ## Phase 1: Setup (Shared Infrastructure)
 
 **Purpose**: Monorepo, tooling, local backend and CI skeleton
 
-- [ ] T001 Create root workspace files `package.json` (scripts: dev, build, lint, typecheck, test, db:reset, db:test, db:types, e2e, env:bootstrap, env:recover-owner), `pnpm-workspace.yaml` (apps/*, packages/*), `turbo.json`, `.nvmrc` (Node 24 LTS), `.npmrc`
-- [ ] T002 [P] Create shared tooling package `packages/config/` with `tsconfig.base.json` (strict: true, noUncheckedIndexedAccess), `eslint.config.mjs` (flat config) and `tailwind-preset.ts` (shared design tokens)
-- [ ] T003 [P] Create `.env.example` with every key from contracts/client-shell.md §Configuration (placeholder values only; `SUPABASE_SERVICE_ROLE_KEY` marked server-only)
-- [ ] T004 Scaffold Next.js 16 App Router app in `apps/web/` (TypeScript, Tailwind CSS 4 using `packages/config/tailwind-preset.ts`, `npx shadcn init`, TanStack Query, react-hook-form + Zod resolver), extending `packages/config/tsconfig.base.json`
-- [ ] T005 Scaffold Expo SDK 57 app with expo-router in `apps/mobile/` (NativeWind with the shared preset, TanStack Query, react-hook-form + Zod resolver), `apps/mobile/app.config.ts` reading `APP_ENV`, and `apps/mobile/eas.json` with build profiles `demo` and `live` using different Android application IDs
-- [ ] T006 [P] Create `packages/core/` (package.json, `src/index.ts`, `vitest.config.ts`) — no React or Supabase imports allowed
-- [ ] T007 [P] Create `packages/db/` (package.json, `src/index.ts`, `vitest.config.ts`) depending on `@supabase/supabase-js` and `@supabase/ssr`
-- [ ] T008 Initialise Supabase local stack in `supabase/config.toml`: auth minimum password length 8, recovery/OTP expiry 3600 s, Google provider (env placeholders), local SMTP → Mailpit, Auth hooks pointing at `app.hook_before_user_created` and `app.hook_custom_access_token`
-- [ ] T009 [P] Configure Playwright in `apps/web/playwright.config.ts` with a Mailpit helper `apps/web/e2e/helpers/mailpit.ts` (read latest email for an address)
-- [ ] T010 [P] Configure Jest + React Native Testing Library in `apps/mobile/jest.config.js` and `apps/mobile/jest.setup.ts`
-- [ ] T011 [P] Add ESLint rule in `packages/config/eslint.config.mjs` forbidding imports of `formatMoney`/`formatDate` from `@ft/core` in `apps/**` except `components/Money.tsx` and `components/DateText.tsx` (research R-11)
-- [ ] T012 [P] Create CI workflow `.github/workflows/ci.yml`: pnpm install, lint, typecheck, unit tests, `supabase start` + `pnpm db:test`, Playwright e2e — alongside existing `guard-data.yml`
+- [X] T001 Create root workspace files `package.json` (scripts: dev, build, lint, typecheck, test, db:reset, db:test, db:types, e2e, env:bootstrap, env:recover-owner), `pnpm-workspace.yaml` (apps/*, packages/*), `turbo.json`, `.nvmrc` (Node 24 LTS), `.npmrc`
+- [X] T002 [P] Create shared tooling package `packages/config/` with `tsconfig.base.json` (strict: true, noUncheckedIndexedAccess), `eslint.config.mjs` (flat config) and `tailwind-preset.cjs` (shared design tokens; CommonJS so both Tailwind 4 web and NativeWind/Tailwind 3 mobile can load it)
+- [X] T003 [P] Create `.env.example` with every key from contracts/client-shell.md §Configuration (placeholder values only; `SUPABASE_SERVICE_ROLE_KEY` marked server-only)
+- [X] T004 Scaffold Next.js 16 App Router app in `apps/web/` (TypeScript, Tailwind CSS 4 using `packages/config/tailwind-preset.cjs`, `npx shadcn init`, TanStack Query, react-hook-form + Zod resolver), extending `packages/config/tsconfig.base.json`
+- [X] T005 Scaffold Expo SDK 57 app with expo-router in `apps/mobile/` (NativeWind with the shared preset, TanStack Query, react-hook-form + Zod resolver), `apps/mobile/app.config.ts` reading `APP_ENV`, and `apps/mobile/eas.json` with build profiles `demo` and `live` using different Android application IDs
+- [X] T006 [P] Create `packages/core/` (package.json, `src/index.ts`, `vitest.config.ts`) — no React or Supabase imports allowed
+- [X] T007 [P] Create `packages/db/` (package.json, `src/index.ts`, `vitest.config.ts`) depending on `@supabase/supabase-js` and `@supabase/ssr`
+- [X] T008 Initialise Supabase local stack in `supabase/config.toml`: auth minimum password length 8, recovery/OTP expiry 3600 s, Google provider (env placeholders), local SMTP → Mailpit, Auth hooks pointing at `app.hook_before_user_created` and `app.hook_custom_access_token`
+- [X] T009 [P] Configure Playwright in `apps/web/playwright.config.ts` with a Mailpit helper `apps/web/e2e/helpers/mailpit.ts` (read latest email for an address)
+- [X] T010 [P] Configure Jest + React Native Testing Library in `apps/mobile/jest.config.js` and `apps/mobile/jest.setup.ts`
+- [X] T011 [P] Add ESLint rule in `packages/config/eslint.config.mjs` forbidding imports of `formatMoney`/`formatDate` from `@ft/core` in `apps/**` except `components/Money.tsx` and `components/DateText.tsx` (research R-11)
+- [X] T012 [P] Create CI workflow `.github/workflows/ci.yml`: pnpm install, lint, typecheck, unit tests, `supabase start` + `pnpm db:test`, Playwright e2e — alongside existing `guard-data.yml`
 
 ---
 
@@ -57,51 +66,51 @@ independently. R1 is the first module, so Setup and Foundational also create the
 
 ### Database foundation
 
-- [ ] T013 Create migration `supabase/migrations/<ts>_foundation.sql`: extensions `citext`, `pgcrypto`; schemas `app`, `audit`, `private` (no grants on `private` to `anon`/`authenticated`); revoke default execute on new functions from `public`
-- [ ] T014 Create migration `supabase/migrations/<ts>_enums.sql`: `user_role` (`owner`, `member`); `access_status` (`active`, `disabled`); `invitation_status` (`pending`, `accepted`, `revoked`, `superseded`); `number_format` (`indian`, `international`); `date_format` (`dd-MMM-yyyy`, `dd/MM/yyyy`, `yyyy-MM-dd`); `audit_action` with the 20 actions listed in data-model.md §Audit Event
-- [ ] T015 Create migration `supabase/migrations/<ts>_profiles.sql`: `public.profiles` — `user_id` uuid PK FK `auth.users(id)` ON DELETE CASCADE; `email` citext NOT NULL UNIQUE; `display_name` text NULL, "1–50 chars after trim" check; `role` default `member`; partial unique index `WHERE role = 'owner'`; `status` default `active`; `setup_completed_at`, `last_sign_in_at`, `privacy_notice_shown_at` timestamptz; `created_at`/`updated_at` default `now()`; RLS enabled, no policies yet
-- [ ] T016 Create migration `supabase/migrations/<ts>_user_preferences.sql`: `public.user_preferences` — `user_id` PK FK ON DELETE CASCADE; `base_currency` char(3) NOT NULL default `INR` with ISO 4217 check; `number_format` default `indian`; `date_format` default `dd-MMM-yyyy`; `fy_start_month` smallint 1–12 default 4; `timezone` text default `Asia/Kolkata` validated against `pg_timezone_names`; `updated_at`; trigger `lock_base_currency` rejecting `base_currency` change once `profiles.setup_completed_at` is set; RLS enabled
-- [ ] T017 Create migration `supabase/migrations/<ts>_invitations.sql`: `public.invitations` — `id` uuid PK; `email` citext NOT NULL; `role` default `member`; `token_hash` bytea UNIQUE (raw token never stored); `status` default `pending`; `invited_by` FK ON DELETE SET NULL; `created_at`; `expires_at` = `created_at + 7 days`; `accepted_at`, `revoked_at`; `accepted_user_id` FK ON DELETE SET NULL; `superseded_by` FK `invitations(id)`; `delivery_status` (`sent`, `failed`); partial unique index one `pending` row per `email`; RLS enabled with **no** client policies
-- [ ] T018 Create migration `supabase/migrations/<ts>_private_tables.sql`: `private.sign_in_attempts` (`email` citext PK, `failed_count` int, `first_failed_at`, `locked_until`); `private.rate_limits` (`bucket` text PK — SHA-256 keys only, `window_start`, `count`) with `app.rate_limit_hit(bucket text, window_seconds int, max int) returns boolean`; `private.environment` single row (`name` `demo`|`live`)
-- [ ] T019 Create migration `supabase/migrations/<ts>_audit.sql`: `public.audit_events` per data-model.md (no UPDATE/DELETE grants or policies for any client role); `app.write_audit(...)` SECURITY DEFINER with pinned `search_path`; generic `audit.capture_change()` trigger storing before/after JSON (never copies token columns); SELECT policy: own `sign_in_*`/`signed_out` events only
-- [ ] T020 Create migration `supabase/migrations/<ts>_access_rules.sql`: `app.is_active_user()`; RLS on `profiles` (select/update own row, active only; `role`/`status` not client-updatable via column grants) and `user_preferences` (select/update own row, active only); `capture_change` trigger on `user_preferences` UPDATE; `app.health()` returning `{status:'ok', environment}` executable by `anon`
-- [ ] T021 Create migration `supabase/migrations/<ts>_on_auth_user_created.sql`: AFTER INSERT trigger on `auth.users` → insert `profiles` (role from the pending invitation) and default `user_preferences`, mark invitation `accepted` (`accepted_at`, `accepted_user_id`), write `invitation_accepted`
-- [ ] T022 Create migration `supabase/migrations/<ts>_auth_hooks.sql`: `app.hook_before_user_created(event jsonb)` — allow only with a `pending`, unexpired invitation for the email (case-insensitive) and, for Google identities, a verified email; otherwise error `INVITE_REQUIRED`; `app.hook_custom_access_token(event jsonb)` — refuse when profile `disabled`, email locked in `private.sign_in_attempts`, or (for a Google sign-in) the Google identity's email no longer matches the user's email case-insensitively or is not verified (FR-004, every later Google sign-in); add claim `app_role`; grant execute only to `supabase_auth_admin`
-- [ ] T023 Create pgTAP helpers `supabase/tests/00_helpers.sql` (create test users, impersonate `authenticated` with a given `sub`, reset state)
-- [ ] T024 Write pgTAP isolation suite `supabase/tests/rls_isolation.test.sql` covering contracts/database.md rules 1–6 and 11 (user A vs B vs owner; disabled user gets zero rows; no client access to `invitations`/`private.*`; `audit_events` not updatable/deletable)
-- [ ] T025 Add `pnpm db:types` generating `packages/db/src/types.gen.ts` from the local schema; commit generated types
+- [X] T013 Create migration `supabase/migrations/<ts>_foundation.sql`: extensions `citext`, `pgcrypto`; schemas `app`, `audit`, `private` (no grants on `private` to `anon`/`authenticated`); revoke default execute on new functions from `public`
+- [X] T014 Create migration `supabase/migrations/<ts>_enums.sql`: `user_role` (`owner`, `member`); `access_status` (`active`, `disabled`); `invitation_status` (`pending`, `accepted`, `revoked`, `superseded`); `number_format` (`indian`, `international`); `date_format` (`dd-MMM-yyyy`, `dd/MM/yyyy`, `yyyy-MM-dd`); `audit_action` with the 20 actions listed in data-model.md §Audit Event
+- [X] T015 Create migration `supabase/migrations/<ts>_profiles.sql`: `public.profiles` — `user_id` uuid PK FK `auth.users(id)` ON DELETE CASCADE; `email` citext NOT NULL UNIQUE; `display_name` text NULL, "1–50 chars after trim" check; `role` default `member`; partial unique index `WHERE role = 'owner'`; `status` default `active`; `setup_completed_at`, `last_sign_in_at`, `privacy_notice_shown_at` timestamptz; `created_at`/`updated_at` default `now()`; RLS enabled, no policies yet
+- [X] T016 Create migration `supabase/migrations/<ts>_user_preferences.sql`: `public.user_preferences` — `user_id` PK FK ON DELETE CASCADE; `base_currency` char(3) NOT NULL default `INR` with ISO 4217 check; `number_format` default `indian`; `date_format` default `dd-MMM-yyyy`; `fy_start_month` smallint 1–12 default 4; `timezone` text default `Asia/Kolkata` validated against `pg_timezone_names`; `updated_at`; trigger `lock_base_currency` rejecting `base_currency` change once `profiles.setup_completed_at` is set; RLS enabled
+- [X] T017 Create migration `supabase/migrations/<ts>_invitations.sql`: `public.invitations` — `id` uuid PK; `email` citext NOT NULL; `role` default `member`; `token_hash` bytea UNIQUE (raw token never stored); `status` default `pending`; `invited_by` FK ON DELETE SET NULL; `created_at`; `expires_at` = `created_at + 7 days`; `accepted_at`, `revoked_at`; `accepted_user_id` FK ON DELETE SET NULL; `superseded_by` FK `invitations(id)`; `delivery_status` (`sent`, `failed`); partial unique index one `pending` row per `email`; RLS enabled with **no** client policies
+- [X] T018 Create migration `supabase/migrations/<ts>_private_tables.sql`: `private.sign_in_attempts` (`email` citext PK, `failed_count` int, `first_failed_at`, `locked_until`); `private.rate_limits` (`bucket` text PK — SHA-256 keys only, `window_start`, `count`) with `app.rate_limit_hit(bucket text, window_seconds int, max int) returns boolean`; `private.environment` single row (`name` `demo`|`live`)
+- [X] T019 Create migration `supabase/migrations/<ts>_audit.sql`: `public.audit_events` per data-model.md (no UPDATE/DELETE grants or policies for any client role); `app.write_audit(...)` SECURITY DEFINER with pinned `search_path`; generic `audit.capture_change()` trigger storing before/after JSON (never copies token columns); SELECT policy: own `sign_in_*`/`signed_out` events only
+- [X] T020 Create migration `supabase/migrations/<ts>_access_rules.sql`: `app.is_active_user()`; RLS on `profiles` (select/update own row, active only; `role`/`status` not client-updatable via column grants) and `user_preferences` (select/update own row, active only); `capture_change` trigger on `user_preferences` UPDATE; `app.health()` returning `{status:'ok', environment}` executable by `anon`
+- [X] T021 Create migration `supabase/migrations/<ts>_on_auth_user_created.sql`: AFTER INSERT trigger on `auth.users` → insert `profiles` (role from the pending invitation) and default `user_preferences`, mark invitation `accepted` (`accepted_at`, `accepted_user_id`), write `invitation_accepted`
+- [X] T022 Create migration `supabase/migrations/<ts>_auth_hooks.sql`: `app.hook_before_user_created(event jsonb)` — allow only with a `pending`, unexpired invitation for the email (case-insensitive) and, for Google identities, a verified email; otherwise error `INVITE_REQUIRED`; `app.hook_custom_access_token(event jsonb)` — refuse when profile `disabled`, email locked in `private.sign_in_attempts`, or (for a Google sign-in) the Google identity's email no longer matches the user's email case-insensitively or is not verified (FR-004, every later Google sign-in); add claim `app_role`; grant execute only to `supabase_auth_admin`
+- [X] T023 Create pgTAP helpers `supabase/tests/00_helpers.sql` (create test users, impersonate `authenticated` with a given `sub`, reset state)
+- [X] T024 Write pgTAP isolation suite `supabase/tests/rls_isolation.test.sql` covering contracts/database.md rules 1–6 and 11 (user A vs B vs owner; disabled user gets zero rows; no client access to `invitations`/`private.*`; `audit_events` not updatable/deletable)
+- [X] T025 Add `pnpm db:types` generating `packages/db/src/types.gen.ts` from the local schema; commit generated types
 
 ### Shared domain code (packages/core)
 
-- [ ] T026 [P] Write tests then implement `formatMoney(minor: bigint, currency, prefs)` and `maskMoney(currency)` in `packages/core/src/money/format.ts` + `packages/core/test/money.test.ts` (zero, negative, very large, `₹12,34,567.00` Indian vs `₹1,234,567.00` international, mask always `₹••••`, no floating point)
-- [ ] T027 [P] Write tests then implement `formatDate`, `fiscalYearOf(date, startMonth)`, `isValidTimezone` in `packages/core/src/dates/` + `packages/core/test/dates.test.ts` (all three date formats, Apr–Mar boundary on 31-Mar/01-Apr, UTC vs Asia/Kolkata midnight)
-- [ ] T028 [P] Write tests then implement `passwordPolicy` in `packages/core/src/auth/password-policy.ts` with a bundled list `packages/core/src/auth/common-passwords-10k.txt` (published 10,000-entry list, licence noted in file header): min 8 chars, reject list entries case-insensitively, reject the email local part (FR-007)
-- [ ] T029 [P] Implement Zod contracts for every request/response and error code in contracts/http-api.md in `packages/core/src/schemas/` (`InvitationLookup`, `AcceptInvitationRequest`, `PasswordSignInRequest`, `SessionResponse`, `SetupRequest`, `MeResponse`, `PreferencesUpdate`, admin schemas, `ErrorResponse`)
-- [ ] T030 Implement client factories in `packages/db/src/clients.ts`: browser, server (cookie adapter via `@supabase/ssr`), service-role (throws if imported in a browser bundle), mobile (accepts a storage adapter)
+- [X] T026 [P] Write tests then implement `formatMoney(minor: bigint, currency, prefs)` and `maskMoney(currency)` in `packages/core/src/money/format.ts` + `packages/core/test/money.test.ts` (zero, negative, very large, `₹12,34,567.00` Indian vs `₹1,234,567.00` international, mask always `₹••••`, no floating point)
+- [X] T027 [P] Write tests then implement `formatDate`, `fiscalYearOf(date, startMonth)`, `isValidTimezone` in `packages/core/src/dates/` + `packages/core/test/dates.test.ts` (all three date formats, Apr–Mar boundary on 31-Mar/01-Apr, UTC vs Asia/Kolkata midnight)
+- [X] T028 [P] Write tests then implement `passwordPolicy` in `packages/core/src/auth/password-policy.ts` with a bundled list `packages/core/src/auth/common-passwords-10k.ts` (published 10,000-entry SecLists list, MIT licence noted in file header; stored as a TypeScript module so web, server and Android bundlers can all import it): min 8 chars, reject list entries case-insensitively, reject the email local part (FR-007)
+- [X] T029 [P] Implement Zod contracts for every request/response and error code in contracts/http-api.md in `packages/core/src/schemas/` (`InvitationLookup`, `AcceptInvitationRequest`, `PasswordSignInRequest`, `SessionResponse`, `SetupRequest`, `MeResponse`, `PreferencesUpdate`, admin schemas, `ErrorResponse`)
+- [X] T030 Implement client factories in `packages/db/src/clients.ts`: browser, server (cookie adapter via `@supabase/ssr`), service-role (throws if imported in a browser bundle), mobile (accepts a storage adapter)
 
 ### Web foundation (apps/web)
 
-- [ ] T031 [P] Implement env loading + validation in `apps/web/lib/env.ts` (Zod; `APP_ENV`, public vs server-only keys; reject any Supabase/web base URL that is not `https://` unless the host is `localhost`/`127.0.0.1` — FR-036a) and environment guard calling `app.health()` that renders `apps/web/app/config-error/page.tsx` on mismatch (FR-019a)
-- [ ] T032 [P] Implement Supabase helpers `apps/web/lib/supabase/server.ts`, `browser.ts`, `admin.ts` (`import 'server-only'` in admin) using `packages/db`
-- [ ] T033 Implement route wrapper `apps/web/lib/api/handler.ts`: Zod body/params validation, error shape `{error:{code,message}}` with `errorId`, auth from cookies or `Authorization: Bearer`, `401 USER_INACTIVE` for disabled callers, owner guard helper, `Origin` check against `WEB_BASE_URL` for cookie-authenticated mutations (FR-036b), redacting logger (FR-036d)
-- [ ] T034 [P] Write tests `apps/web/lib/api/handler.test.ts` proving logs contain no emails, tokens or passwords and errors carry `errorId`
-- [ ] T035 [P] Implement rate limiter `apps/web/lib/rate-limit.ts` (SHA-256 bucket keys, calls `app.rate_limit_hit`) and mailer `apps/web/lib/mailer.ts` (nodemailer SMTP from env; returns `sent`/`failed`)
-- [ ] T036 Implement `apps/web/middleware.ts`: session refresh via `@supabase/ssr`, unauthenticated → `/sign-in`, setup incomplete → `/setup`, non-owner → 403 for `/admin`
-- [ ] T037 Create minimal signed-in frame `apps/web/app/(app)/layout.tsx` and placeholder `apps/web/app/(app)/setup/page.tsx` (completed in US3)
-- [ ] T038 Implement per-device `HideBalancesProvider` (localStorage, default off) and the only amount renderer `apps/web/components/Money.tsx` using `formatMoney`/`maskMoney`; `apps/web/components/DateText.tsx` using `formatDate` (after T026, T027)
+- [X] T031 [P] Implement env loading + validation in `apps/web/lib/env.ts` (Zod; `APP_ENV`, public vs server-only keys; reject any Supabase/web base URL that is not `https://` unless the host is `localhost`/`127.0.0.1` — FR-036a) and environment guard calling `app.health()` that renders `apps/web/app/config-error/page.tsx` on mismatch (FR-019a)
+- [X] T032 [P] Implement Supabase helpers `apps/web/lib/supabase/server.ts`, `browser.ts`, `admin.ts` (`import 'server-only'` in admin) using `packages/db`
+- [X] T033 Implement route wrapper `apps/web/lib/api/handler.ts`: Zod body/params validation, error shape `{error:{code,message}}` with `errorId`, auth from cookies or `Authorization: Bearer`, `401 USER_INACTIVE` for disabled callers, owner guard helper, `Origin` check against `WEB_BASE_URL` for cookie-authenticated mutations (FR-036b), redacting logger (FR-036d)
+- [X] T034 [P] Write tests `apps/web/lib/api/handler.test.ts` proving logs contain no emails, tokens or passwords and errors carry `errorId`
+- [X] T035 [P] Implement rate limiter `apps/web/lib/rate-limit.ts` (SHA-256 bucket keys, calls `app.rate_limit_hit`) and mailer `apps/web/lib/mailer.ts` (nodemailer SMTP from env; returns `sent`/`failed`)
+- [X] T036 Implement `apps/web/middleware.ts`: session refresh via `@supabase/ssr`, unauthenticated → `/sign-in`, setup incomplete → `/setup`, non-owner → 403 for `/admin`
+- [X] T037 Create minimal signed-in frame `apps/web/app/(app)/layout.tsx` and placeholder `apps/web/app/(app)/setup/page.tsx` (completed in US3)
+- [X] T038 Implement per-device `HideBalancesProvider` (localStorage, default off) and the only amount renderer `apps/web/components/Money.tsx` using `formatMoney`/`maskMoney`; `apps/web/components/DateText.tsx` using `formatDate` (after T026, T027)
 
 ### Mobile foundation (apps/mobile)
 
-- [ ] T039 [P] Implement `apps/mobile/lib/supabase.ts` with a chunked `expo-secure-store` storage adapter (session persisted securely, opens offline with cached session — FR-012)
-- [ ] T040 [P] Implement `apps/mobile/lib/env.ts` (reject non-`https://` Supabase/API URLs except local dev hosts — FR-036a) + environment guard screen `apps/mobile/app/config-error.tsx` (FR-019a)
-- [ ] T041 Implement API client `apps/mobile/lib/api.ts` (Bearer token, error mapping to contracts, `USER_INACTIVE`/user-not-found → central sign-out handler)
-- [ ] T042 Implement auth gate `apps/mobile/app/_layout.tsx` (no session → sign-in, setup incomplete → setup, else tabs) and define `apps/mobile/lib/local-data.ts` interface `LocalDataStore` with `wipeAll(userId)`, `wipeExceptPending(userId)`, `pendingCount(userId)` (R1: no pending queue — returns 0; implemented by R2)
-- [ ] T043 Implement per-device `HideBalancesProvider` (AsyncStorage) and `apps/mobile/components/Money.tsx` + `apps/mobile/components/DateText.tsx` (after T026, T027)
+- [X] T039 [P] Implement `apps/mobile/lib/supabase.ts` with a chunked `expo-secure-store` storage adapter (session persisted securely, opens offline with cached session — FR-012)
+- [X] T040 [P] Implement `apps/mobile/lib/env.ts` (reject non-`https://` Supabase/API URLs except local dev hosts — FR-036a) + environment guard screen `apps/mobile/app/config-error.tsx` (FR-019a)
+- [X] T041 Implement API client `apps/mobile/lib/api.ts` (Bearer token, error mapping to contracts, `USER_INACTIVE`/user-not-found → central sign-out handler)
+- [X] T042 Implement auth gate `apps/mobile/app/_layout.tsx` (no session → sign-in, setup incomplete → setup, else tabs) and define `apps/mobile/lib/local-data.ts` interface `LocalDataStore` with `wipeAll(userId)`, `wipeExceptPending(userId)`, `pendingCount(userId)` (R1: no pending queue — returns 0; implemented by R2)
+- [X] T043 Implement per-device `HideBalancesProvider` (AsyncStorage) and `apps/mobile/components/Money.tsx` + `apps/mobile/components/DateText.tsx` (after T026, T027)
 
 ### Environment scripts
 
-- [ ] T044 Implement `scripts/env-bootstrap.ts`: set `private.environment.name` from `APP_ENV`, create an `owner` invitation for `OWNER_EMAIL`, send it via SMTP (FR-013)
-- [ ] T045 [P] Create `supabase/seed.sql` (local only: environment row `demo`; no users, synthetic data only)
+- [X] T044 Implement `scripts/env-bootstrap.ts`: set `private.environment.name` from `APP_ENV`, create an `owner` invitation for `OWNER_EMAIL`, send it via SMTP (FR-013)
+- [X] T045 [P] Create `supabase/seed.sql` (local only: environment row `demo`; no users, synthetic data only)
 
 **Checkpoint**: `pnpm db:reset && pnpm db:test && pnpm test` green; web and mobile start and show sign-in
 
