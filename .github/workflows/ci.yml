@@ -64,5 +64,6 @@ jobs:
             --override-name api.url=NEXT_PUBLIC_SUPABASE_URL \
             --override-name auth.anon_key=NEXT_PUBLIC_SUPABASE_ANON_KEY \
             --override-name auth.service_role_key=SUPABASE_SERVICE_ROLE_KEY >> "$GITHUB_ENV"
+      - run: pnpm --filter @ft/web test:int
       - run: pnpm --filter @ft/web exec playwright install --with-deps chromium
       - run: pnpm e2e

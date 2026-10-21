@@ -126,26 +126,26 @@ reaches setup; `ravi.test@example.com` cannot create access by any route (quicks
 
 ### Tests for User Story 1
 
-- [ ] T046 [P] [US1] pgTAP `supabase/tests/hooks.test.sql`: before-user-created accepts pending (case-insensitive), rejects uninvited/expired/revoked/superseded and unverified Google emails; trigger creates profile + preferences and marks accepted (database rule 7); token hook refuses a Google sign-in whose identity email no longer matches or is unverified (FR-004); accepting a just-revoked invitation fails (revoke-vs-accept race, Edge Cases)
-- [ ] T047 [P] [US1] Route tests `apps/web/app/api/invitations/[token]/accept/route.test.ts`: `ALREADY_ACCEPTED`, `INVITE_EXPIRED`, `INVITE_REVOKED`, `EMAIL_MISMATCH`, `WEAK_PASSWORD`, idempotent retry
-- [ ] T048 [P] [US1] Playwright `apps/web/e2e/us1-invitations.spec.ts`: invite → Mailpit link → accept → `/setup`; uninvited sign-up refused; expired/revoked/accepted link messages; token never visible in admin UI; a password user signing in again by any route stays the same user id. Google ↔ password linking (FR-005) is verified manually via quickstart S1-h because the local stack has no Google provider
+- [X] T046 [P] [US1] pgTAP `supabase/tests/hooks.test.sql`: before-user-created accepts pending (case-insensitive), rejects uninvited/expired/revoked/superseded and unverified Google emails; trigger creates profile + preferences and marks accepted (database rule 7); token hook refuses a Google sign-in whose identity email no longer matches or is unverified (FR-004); accepting a just-revoked invitation fails (revoke-vs-accept race, Edge Cases)
+- [X] T047 [P] [US1] Route tests `apps/web/app/api/invitations/[token]/accept/route.test.ts`: `ALREADY_ACCEPTED`, `INVITE_EXPIRED`, `INVITE_REVOKED`, `EMAIL_MISMATCH`, `WEAK_PASSWORD`, idempotent retry
+- [X] T048 [P] [US1] Playwright `apps/web/e2e/us1-invitations.spec.ts`: invite → Mailpit link → accept → `/setup`; uninvited sign-up refused; expired/revoked/accepted link messages; token never visible in admin UI; a password user signing in again by any route stays the same user id. Google ↔ password linking (FR-005) is verified manually via quickstart S1-h because the local stack has no Google provider
 
 ### Implementation for User Story 1
 
-- [ ] T049 [US1] Implement `apps/web/lib/invitations.ts`: 32-byte random token, store only SHA-256 hash, `expires_at = created_at + 7 days`, send link `${WEB_BASE_URL}/invite/<token>`, set `delivery_status`, audit `invitation_created` / `invitation_delivery_failed`; never return or log the token (FR-003, FR-003a, FR-003b)
-- [ ] T050 [US1] Implement `POST /api/admin/invitations` in `apps/web/app/api/admin/invitations/route.ts` (owner only; `409 USER_EXISTS` incl. owner's own email, `409 INVITE_PENDING`, `422 INVALID_EMAIL`; returns `{id, expiresAt, deliveryStatus}`)
-- [ ] T051 [US1] Implement `GET /api/invitations/[token]` in `apps/web/app/api/invitations/[token]/route.ts` (status + masked email; `404 INVITE_NOT_FOUND` incl. superseded; `429 TRY_LATER` above 20 look-ups/min per address; lazily audit `invitation_expired`)
-- [ ] T052 [US1] Implement `POST /api/invitations/[token]/accept` in `apps/web/app/api/invitations/[token]/accept/route.ts` (validate token/email/password policy, require `privacyNoticeShown`, create confirmed auth user via admin API, set `privacy_notice_shown_at`, sign in server-side, return cookies on web / tokens on Android)
-- [ ] T053 [US1] Create migration `supabase/migrations/<ts>_record_sign_in.sql`: `app.record_sign_in(method text, device text)` for authenticated users (audit `sign_in_succeeded`, update `last_sign_in_at`)
-- [ ] T054 [P] [US1] Implement web `apps/web/components/PrivacyNotice.tsx` with the FR-036e text (what is stored; owner sees name, email, access status, last sign-in, never financial data; ask the owner to erase)
-- [ ] T055 [US1] Implement web invite page `apps/web/app/(public)/invite/[token]/page.tsx`: status messages, privacy notice before either path, email + password form with live policy hints, "Continue with Google"
-- [ ] T056 [US1] Implement OAuth callback `apps/web/app/auth/callback/route.ts`: exchange code; map hook error `INVITE_REQUIRED` to "invitation is for a different email / no invitation" message; call `app.record_sign_in('google','web')`
-- [ ] T057 [US1] Implement minimal owner invite form in `apps/web/app/(app)/admin/page.tsx` (email field + result incl. delivery failed; extended in US4)
-- [ ] T058 [P] [US1] Implement `apps/web/app/.well-known/assetlinks.json/route.ts` from `ANDROID_APP_ID` and `ANDROID_CERT_SHA256` (research R-03)
-- [ ] T059 [US1] Configure Android App Links in `apps/mobile/app.config.ts` (`intentFilters` with `autoVerify` for `https://<WEB_BASE_URL host>/invite/*` per profile) and map route `apps/mobile/app/invite/[token].tsx`
-- [ ] T060 [P] [US1] Implement mobile `apps/mobile/components/PrivacyNotice.tsx` (same text as web)
-- [ ] T061 [US1] Implement mobile OAuth helper `apps/mobile/lib/oauth.ts` (Supabase OAuth with PKCE via `expo-web-browser` auth session, code exchange, `app.record_sign_in('google','android')`)
-- [ ] T062 [US1] Implement mobile invite screen `apps/mobile/app/invite/[token].tsx` (lookup, privacy notice, email + password accept via API, Google via `lib/oauth.ts`)
+- [X] T049 [US1] Implement `apps/web/lib/invitations.ts`: 32-byte random token, store only SHA-256 hash, `expires_at = created_at + 7 days`, send link `${WEB_BASE_URL}/invite/<token>`, set `delivery_status`, audit `invitation_created` / `invitation_delivery_failed`; never return or log the token (FR-003, FR-003a, FR-003b)
+- [X] T050 [US1] Implement `POST /api/admin/invitations` in `apps/web/app/api/admin/invitations/route.ts` (owner only; `409 USER_EXISTS` incl. owner's own email, `409 INVITE_PENDING`, `422 INVALID_EMAIL`; returns `{id, expiresAt, deliveryStatus}`)
+- [X] T051 [US1] Implement `GET /api/invitations/[token]` in `apps/web/app/api/invitations/[token]/route.ts` (status + masked email; `404 INVITE_NOT_FOUND` incl. superseded; `429 TRY_LATER` above 20 look-ups/min per address; lazily audit `invitation_expired`)
+- [X] T052 [US1] Implement `POST /api/invitations/[token]/accept` in `apps/web/app/api/invitations/[token]/accept/route.ts` (validate token/email/password policy, require `privacyNoticeShown`, create confirmed auth user via admin API, set `privacy_notice_shown_at`, sign in server-side, return cookies on web / tokens on Android)
+- [X] T053 [US1] Create migration `supabase/migrations/<ts>_record_sign_in.sql`: `app.record_sign_in(method text, device text)` for authenticated users (audit `sign_in_succeeded`, update `last_sign_in_at`)
+- [X] T054 [P] [US1] Implement web `apps/web/components/PrivacyNotice.tsx` with the FR-036e text (what is stored; owner sees name, email, access status, last sign-in, never financial data; ask the owner to erase)
+- [X] T055 [US1] Implement web invite page `apps/web/app/(public)/invite/[token]/page.tsx`: status messages, privacy notice before either path, email + password form with live policy hints, "Continue with Google"
+- [X] T056 [US1] Implement OAuth callback `apps/web/app/auth/callback/route.ts`: exchange code; map hook error `INVITE_REQUIRED` to "invitation is for a different email / no invitation" message; call `app.record_sign_in('google','web')`
+- [X] T057 [US1] Implement minimal owner invite form in `apps/web/app/(app)/admin/page.tsx` (email field + result incl. delivery failed; extended in US4)
+- [X] T058 [P] [US1] Implement `apps/web/app/.well-known/assetlinks.json/route.ts` from `ANDROID_APP_ID` and `ANDROID_CERT_SHA256` (research R-03)
+- [X] T059 [US1] Configure Android App Links in `apps/mobile/app.config.ts` (`intentFilters` with `autoVerify` for `https://<WEB_BASE_URL host>/invite/*` per profile) and map route `apps/mobile/app/invite/[token].tsx`
+- [X] T060 [P] [US1] Implement mobile `apps/mobile/components/PrivacyNotice.tsx` (same text as web)
+- [X] T061 [US1] Implement mobile OAuth helper `apps/mobile/lib/oauth.ts` (Supabase OAuth with PKCE via `expo-web-browser` auth session, code exchange, `app.record_sign_in('google','android')`)
+- [X] T062 [US1] Implement mobile invite screen `apps/mobile/app/invite/[token].tsx` (lookup, privacy notice, email + password accept via API, Google via `lib/oauth.ts`)
 
 **Checkpoint**: US1 passes T046–T048 and quickstart S1-a…S1-f
 

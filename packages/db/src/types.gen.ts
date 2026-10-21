@@ -26,8 +26,14 @@ export type Database = {
 "rate_limit_hit":
 { Args: { "p_bucket": string,"p_max_hits": number,"p_window_seconds": number }; Returns: boolean
                            },
+"record_sign_in":
+{ Args: { "p_device": string,"p_method": string }; Returns: undefined
+                           },
 "redact_details":
 { Args: { "p_details": Json }; Returns: Json
+                           },
+"set_environment":
+{ Args: { "p_name": string }; Returns: string
                            },
 "write_audit":
 { Args: { "p_action": Database["public"]['Enums']["audit_action"],"p_actor_id": string,"p_actor_ref": string,"p_details"?: Json,"p_device_type"?: string,"p_target_id": string,"p_target_ref": string,"p_target_type": string }; Returns: undefined
