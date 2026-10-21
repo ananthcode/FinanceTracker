@@ -13,7 +13,7 @@ SplashScreen.preventAutoHideAsync().catch(() => undefined);
  * Stack.Protected. Invitation links stay reachable in every state (FR-004a).
  */
 function Gate() {
-  const { ready, config, session, profile } = useSession();
+  const { ready, config, session, me } = useSession();
 
   useEffect(() => {
     if (ready) SplashScreen.hideAsync().catch(() => undefined);
@@ -23,7 +23,7 @@ function Gate() {
 
   const configBad = config === "invalid" || config === "mismatch";
   const signedIn = !configBad && session !== null;
-  const setupDone = signedIn && profile?.setupComplete === true;
+  const setupDone = signedIn && me?.setupComplete === true;
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
@@ -47,14 +47,20 @@ function Gate() {
   );
 }
 
+/** T083: saved preferences (cached for offline) drive every amount and date. */
+function DisplayFromSession({ children }: { children: React.ReactNode }) {
+  const { me } = useSession();
+  return <DisplayProvider preferences={me?.preferences}>{children}</DisplayProvider>;
+}
+
 export default function RootLayout() {
   const colorScheme = useColorScheme();
   return (
     <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
       <SessionProvider>
-        <DisplayProvider>
+        <DisplayFromSession>
           <Gate />
-        </DisplayProvider>
+        </DisplayFromSession>
       </SessionProvider>
     </ThemeProvider>
   );

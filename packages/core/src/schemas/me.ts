@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidTimezone } from "../dates";
 import {
   CurrencyCode,
   DateFormatSchema,
@@ -8,7 +9,7 @@ import {
   NumberFormatSchema,
 } from "./common";
 
-export const Timezone = z.string().min(1).max(64);
+export const Timezone = z.string().min(1).max(64).refine(isValidTimezone, "Unknown timezone");
 export const FyStartMonth = z.number().int().min(1).max(12);
 
 export const Preferences = z.object({
@@ -54,6 +55,8 @@ export const MeResponse = z.object({
   displayName: z.string().nullable(),
   role: z.enum(["owner", "member"]),
   setupComplete: z.boolean(),
+  /** False only on the Google joining path until setup records it (FR-036e). */
+  privacyNoticeShown: z.boolean(),
   preferences: Preferences,
   environment: Environment,
 });

@@ -1,4 +1,7 @@
+import { DEFAULT_PREFERENCES } from "@ft/core";
+import { getPreferences, getProfile } from "@ft/db";
 import { DateText } from "@/components/DateText";
+import { PreferencesForm } from "@/components/PreferencesForm";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { SignOutButton } from "./SignOutButton";
 
@@ -10,11 +13,14 @@ const LABELS: Record<string, string> = {
 };
 
 /**
- * Settings (US2 part): your own sign-in activity (FR-039) and sign-out (FR-011).
- * Preferences arrive with US3 (T085) and app lock (Android) with US6.
+ * Settings: preferences with live preview (US3, FR-022–FR-024), your own sign-in activity (FR-039)
+ * and sign-out (FR-011). App lock (Android) arrives with US6.
  */
 export default async function SettingsPage() {
   const supabase = await createServerSupabase();
+  const { data: auth } = await supabase.auth.getUser();
+  const userId = auth.user?.id ?? "";
+  const [profile, preferences] = await Promise.all([getProfile(supabase, userId), getPreferences(supabase, userId)]);
   const { data } = await supabase
     .from("audit_events")
     .select("id, occurred_at, action, device_type, details")
@@ -27,6 +33,18 @@ export default async function SettingsPage() {
       <h1 id="settings-title" className="text-2xl font-semibold">
         Settings
       </h1>
+
+      <section aria-labelledby="preferences-title" className="flex flex-col gap-2">
+        <h2 id="preferences-title" className="text-lg font-medium">
+          Preferences
+        </h2>
+        <PreferencesForm
+          mode="settings"
+          initial={preferences ?? DEFAULT_PREFERENCES}
+          initialDisplayName={profile?.displayName ?? ""}
+          nowIso={new Date().toISOString()}
+        />
+      </section>
 
       <section aria-labelledby="activity-title" className="flex flex-col gap-2">
         <h2 id="activity-title" className="text-lg font-medium">

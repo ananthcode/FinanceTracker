@@ -191,18 +191,18 @@ passwords, are locked out after repeated failures and can sign out per device.
 
 ### Tests for User Story 3
 
-- [ ] T078 [P] [US3] pgTAP `supabase/tests/preferences.test.sql`: base currency locked after setup (rule 9), own row only, invalid timezone rejected, `preference_changed` audit with before/after
-- [ ] T079 [P] [US3] Playwright `apps/web/e2e/us3-preferences.spec.ts`: setup with defaults shows `₹12,34,567.00` and `11-Oct-2026`; switch to international → `₹1,234,567.00` without reload; base currency read-only
+- [X] T078 [P] [US3] pgTAP `supabase/tests/preferences.test.sql`: base currency locked after setup (rule 9), own row only, invalid timezone rejected, `preference_changed` audit with before/after
+- [X] T079 [P] [US3] Playwright `apps/web/e2e/us3-preferences.spec.ts`: setup with defaults shows `₹12,34,567.00` and `11-Oct-2026`; switch to international → `₹1,234,567.00` without reload; base currency read-only
 
 ### Implementation for User Story 3
 
-- [ ] T080 [US3] Implement repositories `packages/db/src/repositories/profile.ts` and `packages/db/src/repositories/preferences.ts`
-- [ ] T081 [US3] Implement `GET /api/me`, `POST /api/me/setup` (display name "1–50 chars after trim"; `privacyNoticeShown` required when not yet recorded — Google path; `409 SETUP_ALREADY_COMPLETE`; audit `setup_completed`) and `PATCH /api/me/preferences` (`422 BASE_CURRENCY_LOCKED`) in `apps/web/app/api/me/`
-- [ ] T082 [P] [US3] Implement web `PreferencesProvider` in `apps/web/components/providers/PreferencesProvider.tsx` feeding `Money`/`DateText`
-- [ ] T083 [P] [US3] Implement mobile `PreferencesProvider` in `apps/mobile/components/providers/PreferencesProvider.tsx` (cache in AsyncStorage for offline open)
-- [ ] T084 [US3] Implement web setup `apps/web/app/(app)/setup/page.tsx` (defaults INR, Indian grouping, `dd-MMM-yyyy`, April, Asia/Kolkata; privacy notice if not yet shown)
-- [ ] T085 [US3] Implement web preferences + live preview in `apps/web/app/(app)/settings/page.tsx`
-- [ ] T086 [US3] Implement mobile `apps/mobile/app/setup.tsx` (same defaults as web; show `components/PrivacyNotice.tsx` and send `privacyNoticeShown` when not yet recorded — Google path, FR-036e) and preferences + live preview in `apps/mobile/app/(tabs)/settings/index.tsx`
+- [X] T080 [US3] Implement repositories `packages/db/src/repositories/profile.ts` and `packages/db/src/repositories/preferences.ts`
+- [X] T081 [US3] Implement `GET /api/me`, `POST /api/me/setup` (display name "1–50 chars after trim"; `privacyNoticeShown` required when not yet recorded — Google path; `409 SETUP_ALREADY_COMPLETE`; audit `setup_completed`) and `PATCH /api/me/preferences` (`422 BASE_CURRENCY_LOCKED`) in `apps/web/app/api/me/`
+- [X] T082 [P] [US3] Implement web `PreferencesProvider` in `apps/web/components/providers/PreferencesProvider.tsx` feeding `Money`/`DateText`
+- [X] T083 [P] [US3] Implement mobile `PreferencesProvider` in `apps/mobile/components/providers/PreferencesProvider.tsx` (cache in AsyncStorage for offline open)
+- [X] T084 [US3] Implement web setup `apps/web/app/(app)/setup/page.tsx` (defaults INR, Indian grouping, `dd-MMM-yyyy`, April, Asia/Kolkata; privacy notice if not yet shown)
+- [X] T085 [US3] Implement web preferences + live preview in `apps/web/app/(app)/settings/page.tsx`
+- [X] T086 [US3] Implement mobile `apps/mobile/app/setup.tsx` (same defaults as web; show `components/PrivacyNotice.tsx` and send `privacyNoticeShown` when not yet recorded — Google path, FR-036e) and preferences + live preview in `apps/mobile/app/(tabs)/settings/index.tsx`
 
 **Checkpoint**: US3 works independently on top of the MVP
 

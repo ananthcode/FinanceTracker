@@ -67,8 +67,11 @@ export function clientAddressOf(request: Request): string {
 }
 
 async function resolveUser(
+  request: Request,
   bearer: string | null,
 ): Promise<{ user: CurrentUser; supabase: SupabaseClient } | null> {
+  // No bearer token and no cookies at all: nothing to authenticate with.
+  if (!bearer && !request.headers.get("cookie")) return null;
   const config = { url: publicEnv.supabaseUrl, anonKey: publicEnv.supabaseAnonKey };
   const supabase = bearer ? createBearerClient(config, bearer) : await createServerSupabase();
   const { data, error } = bearer ? await supabase.auth.getUser(bearer) : await supabase.auth.getUser();
@@ -108,7 +111,7 @@ export function route<TSchema extends z.ZodType | undefined, TParams = Record<st
       let user: CurrentUser | null = null;
       let supabase: SupabaseClient | null = null;
       if (options.auth !== "none") {
-        const resolved = await resolveUser(bearerToken);
+        const resolved = await resolveUser(request, bearerToken);
         if (!resolved) throw errors.unauthenticated();
         if (options.auth === "owner" && resolved.user.role !== "owner") throw errors.forbidden();
         ({ user, supabase } = resolved);

@@ -1,7 +1,10 @@
 import { useEffect, useState } from "react";
 import { Alert, Text, View } from "react-native";
+import { DEFAULT_PREFERENCES } from "@ft/core";
 import { Button } from "@/components/Button";
 import { DateText } from "@/components/DateText";
+import { PreferencesForm } from "@/components/PreferencesForm";
+import { useSession } from "@/components/providers/SessionProvider";
 import { Screen } from "@/components/Screen";
 import { api } from "@/lib/api";
 import { signOutOfThisPhone, type UnsentChoice } from "@/lib/sign-out";
@@ -35,8 +38,9 @@ function askAboutUnsent(count: number): Promise<UnsentChoice> {
   );
 }
 
-/** Settings (US2 part): own sign-in activity (FR-039) and sign-out of this phone (FR-011). */
+/** Settings: preferences (US3), own sign-in activity (FR-039) and sign-out of this phone (FR-011). */
 export default function SettingsScreen() {
+  const { me, refreshMe } = useSession();
   const [items, setItems] = useState<ActivityItem[] | null>(null);
   const [offline, setOffline] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -55,6 +59,17 @@ export default function SettingsScreen() {
 
   return (
     <Screen title="Settings">
+      <Text accessibilityRole="header" style={{ fontSize: 18, fontWeight: "600" }}>
+        Preferences
+      </Text>
+      {me && (
+        <PreferencesForm
+          mode="settings"
+          initial={me.preferences ?? DEFAULT_PREFERENCES}
+          initialDisplayName={me.displayName ?? ""}
+          onSaved={refreshMe}
+        />
+      )}
       <Text accessibilityRole="header" style={{ fontSize: 18, fontWeight: "600" }}>
         Recent sign-in activity
       </Text>
