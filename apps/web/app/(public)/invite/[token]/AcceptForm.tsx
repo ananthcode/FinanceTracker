@@ -7,7 +7,6 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { browserSupabase } from "@/lib/supabase/browser";
 
 /** Join with email + password or Google, after the privacy notice is shown (FR-001, FR-004, FR-036e). */
 export function AcceptForm({ token }: { token: string }) {
@@ -44,14 +43,6 @@ export function AcceptForm({ token }: { token: string }) {
     }
   }
 
-  async function google() {
-    setError(null);
-    const { error: oauthError } = await browserSupabase().auth.signInWithOAuth({
-      provider: "google",
-      options: { redirectTo: `${window.location.origin}/auth/callback?next=/setup` },
-    });
-    if (oauthError) setError("Google sign-in isn't available right now.");
-  }
 
   return (
     <div className="flex flex-col gap-4">
@@ -93,9 +84,13 @@ export function AcceptForm({ token }: { token: string }) {
       <div className="flex items-center gap-2 text-sm text-muted" aria-hidden>
         <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
       </div>
-      <Button type="button" variant="outline" onClick={google}>
+      {/* Server-side OAuth start keeps the PKCE verifier and session in HttpOnly cookies (FR-036b). */}
+      <a
+        href={`/auth/google?next=/setup${keepSignedIn ? "&keep=1" : ""}`}
+        className="inline-flex h-9 items-center justify-center rounded-md border border-border px-4 text-sm font-medium"
+      >
         Continue with Google
-      </Button>
+      </a>
     </div>
   );
 }

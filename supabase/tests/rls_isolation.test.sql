@@ -2,8 +2,10 @@
 begin;
 select plan(20);
 
--- Setup (superuser): owner, two members.
+-- Setup (superuser): owner, two members. Existing owners (e.g. from local E2E runs) are set aside
+-- inside this transaction, which is rolled back.
 select tests.as_superuser();
+update public.profiles set role = 'member' where role = 'owner';
 select tests.create_user('owner.test@example.com', 'owner') as owner_id \gset
 select tests.create_user('asha.test@example.com') as asha_id \gset
 select tests.create_user('ravi.test@example.com') as ravi_id \gset

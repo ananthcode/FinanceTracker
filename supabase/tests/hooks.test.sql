@@ -1,6 +1,6 @@
 -- T046 Auth hooks and user-creation trigger (database rule 7, FR-001, FR-004, FR-009, FR-015).
 begin;
-select plan(17);
+select plan(18);
 select tests.as_superuser();
 
 -- Helper: build a Before User Created event.
@@ -66,6 +66,14 @@ select throws_ok($$
   values ('00000000-0000-0000-0000-000000000000', gen_random_uuid(), 'authenticated', 'authenticated',
           'asha.test@example.com', '{"provider":"email"}', now(), now())
 $$, '42501', 'INVITE_REQUIRED', 'creating a user after the invitation was revoked fails');
+
+-- Mixed-case email from the auth service still matches the lower-case invitation.
+select pg_temp.invite('kiran.test@example.com');
+insert into auth.users (instance_id, id, aud, role, email, raw_app_meta_data, created_at, updated_at)
+values ('00000000-0000-0000-0000-000000000000', gen_random_uuid(), 'authenticated', 'authenticated',
+        'Kiran.Test@Example.com', '{"provider":"email"}', now(), now());
+select is((select email::text from public.profiles where email = 'kiran.test@example.com'), 'kiran.test@example.com',
+          'trigger matches a mixed-case email and stores it in lower case');
 
 -- ------------------------------------------------ Custom Access Token hook
 select is(app.hook_custom_access_token(jsonb_build_object(

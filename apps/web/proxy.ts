@@ -57,9 +57,10 @@ export async function proxy(request: NextRequest) {
   const { data } = await supabase.auth.getUser();
   const user = data.user;
 
-  if (pathname.startsWith("/api/")) return response;
+  const isApi = pathname.startsWith("/api/");
 
   if (!user) {
+    if (isApi) return response; // API routes enforce their own auth
     if (isPublic(pathname)) return response;
     const url = request.nextUrl.clone();
     url.pathname = "/sign-in";
@@ -72,6 +73,15 @@ export async function proxy(request: NextRequest) {
     const lastActive = Number(request.cookies.get(LAST_ACTIVE_COOKIE)?.value);
     if (isIdleExpired(lastActive, Date.now(), IDLE_MINUTES)) {
       await supabase.auth.signOut({ scope: "local" });
+      if (isApi) {
+        const expired = NextResponse.json(
+          { error: { code: "UNAUTHENTICATED", message: "Signed out after 30 minutes of inactivity." } },
+          { status: 401 },
+        );
+        for (const c of response.cookies.getAll()) expired.cookies.set(c);
+        expired.cookies.delete(LAST_ACTIVE_COOKIE);
+        return expired;
+      }
       const url = request.nextUrl.clone();
       url.pathname = "/sign-in";
       url.search = "?reason=idle";
@@ -82,7 +92,7 @@ export async function proxy(request: NextRequest) {
     response.cookies.set(LAST_ACTIVE_COOKIE, String(Date.now()), markerCookie(false));
   }
 
-  if (isPublic(pathname)) return response;
+  if (isApi || isPublic(pathname)) return response;
 
   // RLS returns the profile only for an active user (FR-015).
   const { data: profile } = await supabase

@@ -32,6 +32,7 @@ function Gate() {
       </Stack.Protected>
       <Stack.Protected guard={!configBad && !signedIn}>
         <Stack.Screen name="sign-in" />
+        <Stack.Screen name="forgot-password" />
       </Stack.Protected>
       <Stack.Protected guard={signedIn && !setupDone}>
         <Stack.Screen name="setup" />

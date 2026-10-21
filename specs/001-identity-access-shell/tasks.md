@@ -160,24 +160,24 @@ passwords, are locked out after repeated failures and can sign out per device.
 
 ### Tests for User Story 2
 
-- [ ] T063 [P] [US2] pgTAP `supabase/tests/lockout.test.sql`: 5 consecutive failures since last success → `locked_until = now() + 15 min`; success resets; token hook refuses locked email
-- [ ] T064 [P] [US2] Unit tests `apps/web/lib/session-idle.test.ts` (30-min idle rule only when "Keep me signed in" is unticked)
-- [ ] T065 [P] [US2] Playwright `apps/web/e2e/us2-sign-in.spec.ts`: sign in/out, 6th wrong password `LOCKED` with retry time, reset via Mailpit (1-hour single-use link, common password rejected, other sessions ended), reset limit 3/hour with neutral message, idle sign-out with `IDLE_MINUTES=1`
+- [X] T063 [P] [US2] pgTAP `supabase/tests/lockout.test.sql`: 5 consecutive failures since last success → `locked_until = now() + 15 min`; success resets; token hook refuses locked email
+- [X] T064 [P] [US2] Unit tests `apps/web/lib/session-idle.test.ts` (30-min idle rule only when "Keep me signed in" is unticked)
+- [X] T065 [P] [US2] Playwright `apps/web/e2e/us2-sign-in.spec.ts`: sign in/out, 6th wrong password `LOCKED` with retry time, reset via Mailpit (1-hour single-use link, common password rejected, other sessions ended), reset limit 3/hour with neutral message, idle sign-out with `IDLE_MINUTES=1`
 
 ### Implementation for User Story 2
 
-- [ ] T066 [US2] Create migration `supabase/migrations/<ts>_lockout.sql`: `app.register_failed_sign_in(email)` (writes `sign_in_failed`; on 5th consecutive sets lock and writes `sign_in_locked`) and `app.clear_failed_sign_ins(email)` — service role only
-- [ ] T067 [US2] Implement session cookie policy `apps/web/lib/session-cookies.ts` (HttpOnly, Secure, SameSite=Lax; persistent when "Keep me signed in", otherwise no Max-Age; `ft_last_active` cookie)
-- [ ] T068 [US2] Implement `POST /api/auth/sign-in` in `apps/web/app/api/auth/sign-in/route.ts` (`423 LOCKED {retryAfter}`, `401 INVALID_CREDENTIALS`, `401 USER_INACTIVE`; audits; `last_sign_in_at`; cookies on web, tokens on Android)
-- [ ] T069 [US2] Extend `apps/web/middleware.ts` with the 30-minute idle rule and add `apps/web/components/IdleWarning.tsx` (1-minute warning)
-- [ ] T070 [US2] Implement `POST /api/auth/password-reset` in `apps/web/app/api/auth/password-reset/route.ts` (always `202` neutral; max 3 per email per hour; audit `password_reset_requested` with hashed email)
-- [ ] T071 [US2] Implement `POST /api/auth/password-reset/complete` in `apps/web/app/api/auth/password-reset/complete/route.ts` (password policy; end all other sessions, keep current; audit `password_reset_completed`)
-- [ ] T072 [US2] Implement `POST /api/auth/sign-out` in `apps/web/app/api/auth/sign-out/route.ts` (current device only; audit `signed_out`)
-- [ ] T073 [US2] Implement `GET /api/me/sign-in-activity` in `apps/web/app/api/me/sign-in-activity/route.ts` (own successful/failed sign-ins and lockouts with time, method, device — FR-039)
-- [ ] T074 [US2] Implement web pages `apps/web/app/(public)/sign-in/page.tsx` (Google + email/password, "Keep me signed in" unticked by default, lockout message with retry time), `forgot-password/page.tsx`, `reset-password/page.tsx`
-- [ ] T075 [US2] Implement mobile `apps/mobile/app/sign-in.tsx` and `apps/mobile/app/forgot-password.tsx` (password sign-in via API, Google via `lib/oauth.ts`)
-- [ ] T076 [US2] Implement mobile sign-out `apps/mobile/lib/sign-out.ts`: warn with `LocalDataStore.pendingCount`, offer "Send now" / "Sign out anyway (discard unsent changes)"; never discard without confirmation; call `POST /api/auth/sign-out` with `device: "android"` (audit `signed_out`) before clearing the local session
-- [ ] T077 [US2] Add "Sign-in activity" section to web `apps/web/app/(app)/settings/page.tsx` and mobile `apps/mobile/app/(tabs)/settings/index.tsx`
+- [X] T066 [US2] Create migration `supabase/migrations/<ts>_lockout.sql`: `app.register_failed_sign_in(email)` (writes `sign_in_failed`; on 5th consecutive sets lock and writes `sign_in_locked`) and `app.clear_failed_sign_ins(email)` — service role only
+- [X] T067 [US2] Implement session cookie policy `apps/web/lib/session-cookies.ts` (HttpOnly, Secure, SameSite=Lax; persistent when "Keep me signed in", otherwise no Max-Age; `ft_last_active` cookie)
+- [X] T068 [US2] Implement `POST /api/auth/sign-in` in `apps/web/app/api/auth/sign-in/route.ts` (`423 LOCKED {retryAfter}`, `401 INVALID_CREDENTIALS`, `401 USER_INACTIVE`; audits; `last_sign_in_at`; cookies on web, tokens on Android)
+- [X] T069 [US2] Extend `apps/web/middleware.ts` with the 30-minute idle rule and add `apps/web/components/IdleWarning.tsx` (1-minute warning)
+- [X] T070 [US2] Implement `POST /api/auth/password-reset` in `apps/web/app/api/auth/password-reset/route.ts` (always `202` neutral; max 3 per email per hour; audit `password_reset_requested` with hashed email)
+- [X] T071 [US2] Implement `POST /api/auth/password-reset/complete` in `apps/web/app/api/auth/password-reset/complete/route.ts` (password policy; end all other sessions, keep current; audit `password_reset_completed`)
+- [X] T072 [US2] Implement `POST /api/auth/sign-out` in `apps/web/app/api/auth/sign-out/route.ts` (current device only; audit `signed_out`)
+- [X] T073 [US2] Implement `GET /api/me/sign-in-activity` in `apps/web/app/api/me/sign-in-activity/route.ts` (own successful/failed sign-ins and lockouts with time, method, device — FR-039)
+- [X] T074 [US2] Implement web pages `apps/web/app/(public)/sign-in/page.tsx` (Google + email/password, "Keep me signed in" unticked by default, lockout message with retry time), `forgot-password/page.tsx`, `reset-password/page.tsx`
+- [X] T075 [US2] Implement mobile `apps/mobile/app/sign-in.tsx` and `apps/mobile/app/forgot-password.tsx` (password sign-in via API, Google via `lib/oauth.ts`)
+- [X] T076 [US2] Implement mobile sign-out `apps/mobile/lib/sign-out.ts`: warn with `LocalDataStore.pendingCount`, offer "Send now" / "Sign out anyway (discard unsent changes)"; never discard without confirmation; call `POST /api/auth/sign-out` with `device: "android"` (audit `signed_out`) before clearing the local session
+- [X] T077 [US2] Add "Sign-in activity" section to web `apps/web/app/(app)/settings/page.tsx` and mobile `apps/mobile/app/(tabs)/settings/index.tsx`
 
 **Checkpoint**: US1 + US2 = MVP (invite, join, sign in/out, reset, lockout)
 
