@@ -40,7 +40,7 @@ export async function issuePasswordSession(input: {
     const message = result.error?.message ?? "";
     // Errors raised by our Custom Access Token hook (research R-05/R-06).
     if (message.includes("LOCKED")) return { ok: false, reason: "locked" };
-    if (message.includes("USER_INACTIVE")) return { ok: false, reason: "inactive" };
+    if (message.includes("USER_INACTIVE") || /banned/i.test(message)) return { ok: false, reason: "inactive" };
     return { ok: false, reason: "invalid_credentials" };
   }
 

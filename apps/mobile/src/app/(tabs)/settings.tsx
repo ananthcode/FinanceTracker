@@ -1,3 +1,4 @@
+import { router } from "expo-router";
 import { useEffect, useState } from "react";
 import { Alert, Text, View } from "react-native";
 import { DEFAULT_PREFERENCES } from "@ft/core";
@@ -83,6 +84,7 @@ export default function SettingsScreen() {
           </Text>
         </View>
       ))}
+      {me?.role === "owner" && <Button label="User management" variant="outline" onPress={() => router.push("/admin")} />}
       <Button label={busy ? "Signing out…" : "Sign out of this phone"} variant="outline" onPress={signOut} disabled={busy} />
     </Screen>
   );

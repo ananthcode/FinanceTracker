@@ -5,6 +5,7 @@ import { useEffect } from "react";
 import { useColorScheme } from "react-native";
 import { DisplayProvider } from "@/components/providers/DisplayProvider";
 import { SessionProvider, useSession } from "@/components/providers/SessionProvider";
+import { useSessionWatch } from "@/lib/session-watch";
 
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
 
@@ -13,17 +14,20 @@ SplashScreen.preventAutoHideAsync().catch(() => undefined);
  * Stack.Protected. Invitation links stay reachable in every state (FR-004a).
  */
 function Gate() {
-  const { ready, config, session, me } = useSession();
+  const { ready, config, session, me, refreshMe } = useSession();
+
+  const configBad = config === "invalid" || config === "mismatch";
+  const signedIn = !configBad && session !== null;
+  const setupDone = signedIn && me?.setupComplete === true;
+  const isOwner = setupDone && me?.role === "owner";
+
+  useSessionWatch(signedIn, refreshMe);
 
   useEffect(() => {
     if (ready) SplashScreen.hideAsync().catch(() => undefined);
   }, [ready]);
 
   if (!ready) return null;
-
-  const configBad = config === "invalid" || config === "mismatch";
-  const signedIn = !configBad && session !== null;
-  const setupDone = signedIn && me?.setupComplete === true;
 
   return (
     <Stack screenOptions={{ headerShown: false }}>
@@ -39,6 +43,10 @@ function Gate() {
       </Stack.Protected>
       <Stack.Protected guard={setupDone}>
         <Stack.Screen name="(tabs)" />
+      </Stack.Protected>
+      <Stack.Protected guard={isOwner}>
+        <Stack.Screen name="admin/index" options={{ headerShown: true, title: "User management" }} />
+        <Stack.Screen name="admin/erase/[id]" options={{ headerShown: true, title: "Erase user" }} />
       </Stack.Protected>
       <Stack.Protected guard={!configBad}>
         <Stack.Screen name="invite/[token]" />

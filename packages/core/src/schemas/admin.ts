@@ -48,3 +48,4 @@ export const AdminAuditResponse = z.object({
   items: z.array(AdminAuditItem),
   nextCursor: z.number().int().nullable(),
 });
+export type AdminAuditResponse = z.infer<typeof AdminAuditResponse>;

@@ -217,20 +217,20 @@ without seeing financial data.
 
 ### Tests for User Story 4
 
-- [ ] T087 [P] [US4] pgTAP `supabase/tests/admin.test.sql`: `admin_list_users` returns only FR-014 columns; owner cannot be disabled/erased; second owner rejected (rule 10); after erase no audit row or invitation contains the email/id (rule 8); `details` never contains tokens (rule 12); a user disabled or erased mid-setup can no longer update their profile or preferences (erase/disable precedence, Edge Cases)
-- [ ] T088 [P] [US4] Playwright `apps/web/e2e/us4-admin.spec.ts`: revoke → link fails; resend supersedes; disable → requests refused within 1 minute; enable restores data; erase wrong email → nothing erased, correct email → user gone and email re-invitable; member denied `/admin`
+- [X] T087 [P] [US4] pgTAP `supabase/tests/admin.test.sql`: `admin_list_users` returns only FR-014 columns; owner cannot be disabled/erased; second owner rejected (rule 10); after erase no audit row or invitation contains the email/id (rule 8); `details` never contains tokens (rule 12); a user disabled or erased mid-setup can no longer update their profile or preferences (erase/disable precedence, Edge Cases)
+- [X] T088 [P] [US4] Playwright `apps/web/e2e/us4-admin.spec.ts`: revoke → link fails; resend supersedes; disable → requests refused within 1 minute; enable restores data; erase wrong email → nothing erased, correct email → user gone and email re-invitable; member denied `/admin`
 
 ### Implementation for User Story 4
 
-- [ ] T089 [US4] Create migration `supabase/migrations/<ts>_admin.sql`: `app.admin_list_users()`, `app.admin_audit_feed(cursor)`, `app.set_user_status(user_id, status)` (refuses owner; audits `user_disabled`/`user_enabled`), `app.scrub_user_from_audit(user_id)` (replace refs with `erased:<uuid>`, delete all invitations for the email) — service role only
-- [ ] T090 [US4] Implement `GET /api/admin/overview` and `GET /api/admin/audit` in `apps/web/app/api/admin/`
-- [ ] T091 [US4] Implement `POST /api/admin/invitations/[id]/resend` and `/revoke` in `apps/web/app/api/admin/invitations/[id]/resend/route.ts` and `apps/web/app/api/admin/invitations/[id]/revoke/route.ts` (`409 NOT_RESENDABLE`, `409 NOT_PENDING`; audit `invitation_resent` / `invitation_revoked`; resend sends the new link and records `delivery_status`)
-- [ ] T092 [US4] Implement `POST /api/admin/users/[id]/disable` and `/enable` in `apps/web/app/api/admin/users/[id]/disable/route.ts` and `apps/web/app/api/admin/users/[id]/enable/route.ts` (status + auth ban; `409 CANNOT_TARGET_OWNER`, `409 NOT_DISABLED`)
-- [ ] T093 [US4] Implement `POST /api/admin/users/[id]/erase` in `apps/web/app/api/admin/users/[id]/erase/route.ts` (`confirmEmail` case-insensitive match else `422 CONFIRMATION_MISMATCH`; scrub audit → delete invitations → audit `user_erased` → delete auth user; never returns user data)
-- [ ] T094 [US4] Complete web admin `apps/web/app/(app)/admin/page.tsx`: invitations table (status, delivery failed + resend, revoke), users table, disable/enable, erase dialog with dual confirmation, audit feed
-- [ ] T095 [US4] Implement mobile admin screens `apps/mobile/app/admin/index.tsx` and `apps/mobile/app/admin/erase/[id].tsx` (same capabilities and dual confirmation)
-- [ ] T096 [US4] Implement forced sign-out handling: web `apps/web/lib/api/client.ts` (on `USER_INACTIVE` → sign-out page); mobile `apps/mobile/lib/session-watch.ts` (check `/api/me` on foreground; inactive → sign out; user not found → `LocalDataStore.wipeAll`)
-- [ ] T097 [US4] Implement `scripts/env-recover-owner.ts` (moves owner role to a new email via invitation; audits `owner_recovered`; touches no other user's data — FR-013a)
+- [X] T089 [US4] Create migration `supabase/migrations/<ts>_admin.sql`: `app.admin_list_users()`, `app.admin_audit_feed(cursor)`, `app.set_user_status(user_id, status)` (refuses owner; audits `user_disabled`/`user_enabled`), `app.scrub_user_from_audit(user_id)` (replace refs with `erased:<uuid>`, delete all invitations for the email) — service role only
+- [X] T090 [US4] Implement `GET /api/admin/overview` and `GET /api/admin/audit` in `apps/web/app/api/admin/`
+- [X] T091 [US4] Implement `POST /api/admin/invitations/[id]/resend` and `/revoke` in `apps/web/app/api/admin/invitations/[id]/resend/route.ts` and `apps/web/app/api/admin/invitations/[id]/revoke/route.ts` (`409 NOT_RESENDABLE`, `409 NOT_PENDING`; audit `invitation_resent` / `invitation_revoked`; resend sends the new link and records `delivery_status`)
+- [X] T092 [US4] Implement `POST /api/admin/users/[id]/disable` and `/enable` in `apps/web/app/api/admin/users/[id]/disable/route.ts` and `apps/web/app/api/admin/users/[id]/enable/route.ts` (status + auth ban; `409 CANNOT_TARGET_OWNER`, `409 NOT_DISABLED`)
+- [X] T093 [US4] Implement `POST /api/admin/users/[id]/erase` in `apps/web/app/api/admin/users/[id]/erase/route.ts` (`confirmEmail` case-insensitive match else `422 CONFIRMATION_MISMATCH`; scrub audit → delete invitations → audit `user_erased` → delete auth user; never returns user data)
+- [X] T094 [US4] Complete web admin `apps/web/app/(app)/admin/page.tsx`: invitations table (status, delivery failed + resend, revoke), users table, disable/enable, erase dialog with dual confirmation, audit feed
+- [X] T095 [US4] Implement mobile admin screens `apps/mobile/app/admin/index.tsx` and `apps/mobile/app/admin/erase/[id].tsx` (same capabilities and dual confirmation)
+- [X] T096 [US4] Implement forced sign-out handling: web `apps/web/lib/api/client.ts` (on `USER_INACTIVE` → sign-out page); mobile `apps/mobile/lib/session-watch.ts` (check `/api/me` on foreground; inactive → sign out; user not found → `LocalDataStore.wipeAll`)
+- [X] T097 [US4] Implement `scripts/env-recover-owner.ts` (moves owner role to a new email via invitation; audits `owner_recovered`; touches no other user's data — FR-013a)
 
 **Checkpoint**: US4 works independently; admin never sees financial data
 
