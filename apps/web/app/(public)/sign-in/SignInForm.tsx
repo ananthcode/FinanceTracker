@@ -77,7 +77,7 @@ export function SignInForm({ next }: { next: string }) {
       <Link href="/forgot-password" className="text-sm underline">
         Forgot your password?
       </Link>
-      <div className="flex items-center gap-2 text-sm text-muted" aria-hidden>
+      <div className="flex items-center gap-2 text-sm text-muted-foreground" aria-hidden>
         <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
       </div>
       <a

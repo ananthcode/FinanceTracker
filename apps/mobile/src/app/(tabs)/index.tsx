@@ -1,11 +1,8 @@
-import { Text } from "react-native";
-import { Screen } from "@/components/Screen";
+import { ComingSoon } from "@/components/ComingSoon";
 
-/** Dashboard placeholder (content in roadmap module R6). */
+/** Dashboard placeholder (T102) — content arrives in roadmap module R6. */
 export default function DashboardScreen() {
   return (
-    <Screen title="Dashboard">
-      <Text>Coming soon.</Text>
-    </Screen>
+    <ComingSoon description="Net worth, this month's income and spending, and charts you can drill into will appear here." />
   );
 }

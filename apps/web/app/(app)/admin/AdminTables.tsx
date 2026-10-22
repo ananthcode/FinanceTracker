@@ -49,7 +49,7 @@ export function AdminTables({ overview, ownerId }: { overview: AdminOverviewResp
         </h2>
         <table id="invitations-table" className="w-full text-sm">
           <thead>
-            <tr className="text-left text-muted">
+            <tr className="text-left text-muted-foreground">
               <th scope="col" className="py-1">Email</th>
               <th scope="col">Status</th>
               <th scope="col">Issued</th>
@@ -107,7 +107,7 @@ export function AdminTables({ overview, ownerId }: { overview: AdminOverviewResp
         </h2>
         <table id="users-table" className="w-full text-sm">
           <thead>
-            <tr className="text-left text-muted">
+            <tr className="text-left text-muted-foreground">
               <th scope="col" className="py-1">Name</th>
               <th scope="col">Email</th>
               <th scope="col">Access</th>

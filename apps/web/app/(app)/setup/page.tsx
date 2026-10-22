@@ -20,7 +20,7 @@ export default async function SetupPage() {
       <h1 id="setup-title" className="text-2xl font-semibold">
         Set up your account
       </h1>
-      <p className="text-sm text-muted">
+      <p className="text-sm text-muted-foreground">
         These choices decide how amounts and dates appear everywhere. You can change everything except the base
         currency later in Settings.
       </p>

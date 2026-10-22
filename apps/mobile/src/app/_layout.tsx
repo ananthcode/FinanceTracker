@@ -5,6 +5,8 @@ import { useEffect } from "react";
 import { useColorScheme } from "react-native";
 import { DisplayProvider } from "@/components/providers/DisplayProvider";
 import { SessionProvider, useSession } from "@/components/providers/SessionProvider";
+import { StatusFrame } from "@/components/StatusFrame";
+import { envResult } from "@/lib/env";
 import { useSessionWatch } from "@/lib/session-watch";
 
 SplashScreen.preventAutoHideAsync().catch(() => undefined);
@@ -29,7 +31,7 @@ function Gate() {
 
   if (!ready) return null;
 
-  return (
+  const stack = (
     <Stack screenOptions={{ headerShown: false }}>
       <Stack.Protected guard={configBad}>
         <Stack.Screen name="config-error" />
@@ -53,6 +55,10 @@ function Gate() {
       </Stack.Protected>
     </Stack>
   );
+
+  // T103/T104: Demo marker, Offline banner and "service unavailable" above every screen.
+  if (configBad) return stack;
+  return <StatusFrame demo={signedIn && envResult.data?.appEnv === "demo"}>{stack}</StatusFrame>;
 }
 
 /** T083: saved preferences (cached for offline) drive every amount and date. */

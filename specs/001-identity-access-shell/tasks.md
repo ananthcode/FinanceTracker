@@ -245,16 +245,16 @@ indicator.
 
 ### Tests for User Story 5
 
-- [ ] T098 [P] [US5] Playwright `apps/web/e2e/us5-shell.spec.ts`: every nav entry opens with active highlight; Demo badge when `APP_ENV=demo`; admin entry only for owner
-- [ ] T099 [P] [US5] Jest `apps/mobile/__tests__/shell.test.tsx`: offline banner appears within 5 s of connectivity loss (2 s debounce), Demo badge, admin tab visibility
+- [X] T098 [P] [US5] Playwright `apps/web/e2e/us5-shell.spec.ts`: every nav entry opens with active highlight; Demo badge when `APP_ENV=demo`; admin entry only for owner
+- [X] T099 [P] [US5] Jest `apps/mobile/__tests__/shell.test.tsx`: offline banner appears within 5 s of connectivity loss (2 s debounce), Demo badge, admin tab visibility
 
 ### Implementation for User Story 5
 
-- [ ] T100 [US5] Implement web shell `apps/web/components/shell/` (sidebar ≥ 1024 px, top bar + drawer below; entries Dashboard, Accounts, Transactions, Payment plan, Settings, Admin for owner; `DemoBadge`; slot for hide-balances toggle) and wire into `apps/web/app/(app)/layout.tsx`
-- [ ] T101 [P] [US5] Create web placeholders `apps/web/app/(app)/page.tsx`, `accounts/page.tsx`, `transactions/page.tsx`, `payment-plan/page.tsx` ("Coming soon")
-- [ ] T102 [US5] Implement mobile tabs `apps/mobile/app/(tabs)/_layout.tsx` with placeholder screens and owner-only admin entry
-- [ ] T103 [US5] Implement `apps/mobile/components/OfflineBanner.tsx` (NetInfo `isInternetReachable`, 2 s debounce) and `apps/mobile/components/DemoBadge.tsx`
-- [ ] T104 [US5] Implement "service temporarily unavailable" state: `apps/web/app/unavailable/page.tsx` and `apps/mobile/components/ServiceUnavailable.tsx` (backend unreachable/paused)
+- [X] T100 [US5] Implement web shell `apps/web/components/shell/` (sidebar ≥ 1024 px, top bar + drawer below; entries Dashboard, Accounts, Transactions, Payment plan, Settings, Admin for owner; `DemoBadge`; slot for hide-balances toggle) and wire into `apps/web/app/(app)/layout.tsx`
+- [X] T101 [P] [US5] Create web placeholders `apps/web/app/(app)/page.tsx`, `accounts/page.tsx`, `transactions/page.tsx`, `payment-plan/page.tsx` ("Coming soon")
+- [X] T102 [US5] Implement mobile tabs `apps/mobile/app/(tabs)/_layout.tsx` with placeholder screens and owner-only admin entry
+- [X] T103 [US5] Implement `apps/mobile/components/OfflineBanner.tsx` (NetInfo `isInternetReachable`, 2 s debounce) and `apps/mobile/components/DemoBadge.tsx`
+- [X] T104 [US5] Implement "service temporarily unavailable" state: `apps/web/app/unavailable/page.tsx` and `apps/mobile/components/ServiceUnavailable.tsx` (backend unreachable/paused)
 
 **Checkpoint**: Shell complete on both platforms
 

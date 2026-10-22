@@ -55,7 +55,7 @@ export function ResetForm({ email }: { email: string }) {
           onChange={(e) => setPassword(e.target.value)}
           aria-describedby="new-password-hint"
         />
-        <p id="new-password-hint" className="text-sm text-muted" aria-live="polite">
+        <p id="new-password-hint" className="text-sm text-muted-foreground" aria-live="polite">
           {hint ?? "At least 8 characters; avoid common passwords."}
         </p>
       </div>

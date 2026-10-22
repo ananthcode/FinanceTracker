@@ -112,7 +112,7 @@ export function PreferencesForm({
               </option>
             ))}
           </select>
-          <p id="base-currency-help" className="text-sm text-muted">
+          <p id="base-currency-help" className="text-sm text-muted-foreground">
             Chosen once — it can&apos;t be changed after setup.
           </p>
         </div>

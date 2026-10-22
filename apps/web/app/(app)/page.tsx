@@ -1,11 +1,11 @@
-/** Dashboard placeholder — content arrives in roadmap module R6; navigation shell in US5. */
+import { ComingSoon } from "@/components/ComingSoon";
+
+/** Dashboard placeholder (T101) — content arrives in roadmap module R6. */
 export default function DashboardPage() {
   return (
-    <section aria-labelledby="dashboard-title" className="space-y-2">
-      <h1 id="dashboard-title" className="text-2xl font-semibold">
-        Dashboard
-      </h1>
-      <p className="text-muted">Coming soon.</p>
-    </section>
+    <ComingSoon
+      title="Dashboard"
+      description="Net worth, this month's income and spending, and charts you can drill into will appear here."
+    />
   );
 }

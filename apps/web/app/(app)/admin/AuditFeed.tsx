@@ -25,14 +25,14 @@ export function AuditFeed({
         Access history
       </h2>
       {items.length === 0 ? (
-        <p className="text-sm text-muted">No events yet.</p>
+        <p className="text-sm text-muted-foreground">No events yet.</p>
       ) : (
         <ul id="audit-feed" className="flex flex-col text-sm">
           {items.map((e) => (
             <li key={e.id} className="border-t border-border py-1">
               <DateText instant={e.occurredAt} /> — {LABELS[e.action] ?? e.action}
               {e.targetRef && <> · {e.targetRef}</>}
-              {e.actorRef && <span className="text-muted"> (by {e.actorRef})</span>}
+              {e.actorRef && <span className="text-muted-foreground"> (by {e.actorRef})</span>}
             </li>
           ))}
         </ul>

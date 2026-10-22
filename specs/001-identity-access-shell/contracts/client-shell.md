@@ -18,10 +18,19 @@ Applies to `apps/web` and `apps/mobile`. Later modules plug into this contract.
 ## Shell elements
 
 - Navigation: Dashboard · Accounts · Transactions · Payment plan · Settings (+ Admin for owner).
-  Web: sidebar ≥ 1024 px, top bar + drawer below; Android: bottom tabs (+ Settings stack).
-- **Hide-balances toggle** in the navigation header on every screen (FR-031).
-- **Demo marker**: persistent badge when `APP_ENV=demo` (FR-035).
-- **Offline banner** (Android): driven by NetInfo, debounced 2 s (FR-036).
+  Web: sidebar ≥ 1024 px, top bar + drawer below; the current entry carries `aria-current="page"`.
+  No navigation is shown until first-run setup is complete. Android: five bottom tabs; the
+  owner-only User management entry is a button in the tab header (and in Settings), opening the
+  `/admin` stack screen.
+- **Hide-balances toggle** in the navigation header on every screen (FR-031) — web `AppShell`
+  `actions` slot, Android `HeaderActions` children.
+- **Demo marker**: persistent badge on signed-in screens when `APP_ENV=demo` (FR-035).
+- **Offline banner** (Android): driven by NetInfo (`isConnected`/`isInternetReachable` false); the
+  first reading applies at once, later changes after 2 s unchanged (FR-036).
+- **Service temporarily unavailable**: web — the proxy and signed-in layout redirect to
+  `/unavailable` when the backend cannot be reached (never a sign-out); Android — a notice with
+  "Try again" when online but `app.health` fails, re-checked on foreground and every 60 s, while
+  the app keeps working on local data.
 
 ## Shared primitives (only path for these concerns)
 

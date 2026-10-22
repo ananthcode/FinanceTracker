@@ -53,7 +53,7 @@ export default async function InvitePage({ params }: PageProps<"/invite/[token]"
       </p>
       <PrivacyNotice />
       <AcceptForm token={token} />
-      <p className="text-sm text-muted">
+      <p className="text-sm text-muted-foreground">
         Using an Android phone? Install the Finance Tracker app from the link the owner shared, then open this
         invitation again — it will open in the app. Already joined? <Link href="/sign-in" className="underline">Sign in</Link>.
       </p>

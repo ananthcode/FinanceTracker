@@ -53,7 +53,7 @@ export default async function SettingsPage() {
         {data && data.length > 0 ? (
           <table className="w-full text-sm">
             <thead>
-              <tr className="text-left text-muted">
+              <tr className="text-left text-muted-foreground">
                 <th scope="col" className="py-1">When</th>
                 <th scope="col">What</th>
                 <th scope="col">Method</th>
@@ -74,7 +74,7 @@ export default async function SettingsPage() {
             </tbody>
           </table>
         ) : (
-          <p className="text-sm text-muted">No activity yet.</p>
+          <p className="text-sm text-muted-foreground">No activity yet.</p>
         )}
       </section>
 

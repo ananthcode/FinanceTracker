@@ -64,7 +64,7 @@ export function AcceptForm({ token }: { token: string }) {
             aria-invalid={hint ? true : undefined}
             aria-describedby="password-hint"
           />
-          <p id="password-hint" className="text-sm text-muted" aria-live="polite">
+          <p id="password-hint" className="text-sm text-muted-foreground" aria-live="polite">
             {hint ?? "At least 8 characters; avoid common passwords."}
           </p>
         </div>
@@ -81,7 +81,7 @@ export function AcceptForm({ token }: { token: string }) {
           {busy ? "Joining…" : "Join with email"}
         </Button>
       </form>
-      <div className="flex items-center gap-2 text-sm text-muted" aria-hidden>
+      <div className="flex items-center gap-2 text-sm text-muted-foreground" aria-hidden>
         <span className="h-px flex-1 bg-border" /> or <span className="h-px flex-1 bg-border" />
       </div>
       {/* Server-side OAuth start keeps the PKCE verifier and session in HttpOnly cookies (FR-036b). */}

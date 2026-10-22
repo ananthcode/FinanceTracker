@@ -1,4 +1,5 @@
 import { createServerClient } from "@supabase/ssr";
+import { isAuthRetryableFetchError } from "@supabase/supabase-js";
 import { NextResponse, type NextRequest } from "next/server";
 import {
   applySessionCookiePolicy,
@@ -27,6 +28,13 @@ function isPublic(pathname: string): boolean {
 
 const IDLE_MINUTES = Number(process.env.IDLE_MINUTES ?? 30);
 
+function unavailable(request: NextRequest): NextResponse {
+  const url = request.nextUrl.clone();
+  url.pathname = "/unavailable";
+  url.search = "";
+  return NextResponse.redirect(url);
+}
+
 /**
  * Next.js 16 proxy (formerly middleware): refreshes the Supabase session cookie, enforces sign-in,
  * the 30-minute idle rule for sessions not kept signed in (FR-010), first-run setup (FR-020) and the
@@ -54,10 +62,15 @@ export async function proxy(request: NextRequest) {
     },
   );
 
-  const { data } = await supabase.auth.getUser();
+  const { data, error: authError } = await supabase.auth.getUser();
   const user = data.user;
 
   const isApi = pathname.startsWith("/api/");
+
+  // Backend unreachable or paused: say so instead of treating the user as signed out (T104).
+  if (authError && isAuthRetryableFetchError(authError) && !isApi && !isPublic(pathname)) {
+    return unavailable(request);
+  }
 
   if (!user) {
     if (isApi) return response; // API routes enforce their own auth
@@ -95,11 +108,14 @@ export async function proxy(request: NextRequest) {
   if (isApi || isPublic(pathname)) return response;
 
   // RLS returns the profile only for an active user (FR-015).
-  const { data: profile } = await supabase
+  const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("role, setup_completed_at")
     .eq("user_id", user.id)
     .maybeSingle();
+
+  // A failed lookup says nothing about the user's status — never sign them out for it.
+  if (profileError) return unavailable(request);
 
   if (!profile) {
     await supabase.auth.signOut({ scope: "local" });
