@@ -60,7 +60,8 @@ jobs:
       - run: pnpm supabase start -x studio,imgproxy,vector,logflare,edge-runtime
       - name: Export local Supabase keys
         run: |
-          pnpm supabase status -o env \
+          # `pnpm exec` — a pnpm script would print its "> finance-tracker@ supabase" banner into $GITHUB_ENV.
+          pnpm exec supabase status -o env \
             --override-name api.url=NEXT_PUBLIC_SUPABASE_URL \
             --override-name auth.anon_key=NEXT_PUBLIC_SUPABASE_ANON_KEY \
             --override-name auth.service_role_key=SUPABASE_SERVICE_ROLE_KEY >> "$GITHUB_ENV"
