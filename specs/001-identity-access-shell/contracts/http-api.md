@@ -71,7 +71,10 @@ Body `[PreferencesUpdate]` (any of displayName, numberFormat, dateFormat, fyStar
 
 ### `GET /api/me/sign-in-activity?limit=20` → `200` list of `{ occurredAt, action, method, deviceType }` (FR-039)
 
-### `POST /api/me/audit` — device-side events
+### `GET /api/auth/ping` → `204`
+"Stay signed in" from the web idle warning; the proxy refreshes the last-activity marker (FR-010).
+
+### `POST /api/me/audit` — device-side events *(arrives with US6, deferred)*
 Body `{ action: "app_lock_enabled"|"app_lock_disabled", device: "android" }` → `204`.
 
 ---
@@ -102,6 +105,18 @@ never returns user data.
   never emails, tokens, passwords or amounts.
 
 ---
+
+## Web browser routes (redirects, not JSON)
+
+The session these create lives only in HttpOnly cookies (FR-036b). Every `next` parameter is
+accepted only as a same-site path (starts with `/`, not `//`) — no open redirects.
+
+| Route | Purpose | Outcome |
+|-------|---------|---------|
+| `GET /auth/google?next=&keep=1` | Starts Google sign-in with PKCE; remembers "Keep me signed in" | Redirect to Google, or `/sign-in?error=oauth` |
+| `GET /auth/callback?code=&next=` | Exchanges the code; records `sign_in_succeeded` (method google, device web). Invitation and verified-email rules were already enforced by the Supabase hooks | Redirect to `next`, or `/sign-in?error=invite_required` · `inactive` · `oauth` |
+| `GET /auth/confirm?token_hash=&type=recovery&next=` | Verifies the password-reset email link on the server (works in any browser) | Redirect to `next` (the new-password form), or `/forgot-password?error=link` (used, expired or wrong type) |
+| Signed-in pages when the backend cannot be reached | The proxy and signed-in layout never sign the user out for an outage | Redirect to `/unavailable` |
 
 ## Static
 

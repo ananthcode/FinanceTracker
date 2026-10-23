@@ -46,6 +46,10 @@ revoked from `anon` and `authenticated`.
 8. After erasing X, no audit row contains X's id or email and no `invitations` row has X's email
    (SC-009).
 9. Base currency cannot change after setup.
-10. A second `owner` profile cannot be inserted.
+10. A second `owner` profile cannot be inserted. Owner recovery (FR-013a, `pnpm env:recover-owner`)
+    moves the role instead: `app.transfer_owner(new_owner)` for an existing user, or — for an email
+    with no account — an **owner** invitation (creatable only with the service role) whose
+    acceptance demotes the current owner to member before the new profile is inserted. Both write
+    `owner_recovered`; the recovery script revokes any other pending owner invitation first.
 11. No client role can read or write `private.rate_limits` or `private.environment`.
 12. `audit_events.details` never contains invitation tokens (token columns are never copied).
