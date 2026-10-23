@@ -307,9 +307,9 @@ indicator.
 
 ## Phase 10: Polish & Cross-Cutting Concerns
 
-- [ ] T118 [P] Create `.github/workflows/keep-alive.yml` (daily call to `app.health()` on the demo project using repository secrets)
-- [ ] T119 [P] Update `README.md` with developer setup pointing to `specs/001-identity-access-shell/quickstart.md`
-- [ ] T120 Accessibility pass on `apps/web/components/shell/`, `apps/web/app/(app)/settings/`, `apps/web/app/(app)/admin/` and `apps/mobile/app/(tabs)/` (labels, focus order, status not by colour alone — Principle XIII)
+- [X] T118 [P] Create `.github/workflows/keep-alive.yml` (daily call to `app.health()` on the demo project using repository secrets)
+- [X] T119 [P] Update `README.md` with developer setup pointing to `specs/001-identity-access-shell/quickstart.md`
+- [ ] T120 Accessibility pass on `apps/web/components/shell/`, `apps/web/app/(app)/settings/`, `apps/web/app/(app)/admin/` and `apps/mobile/app/(tabs)/` (labels, focus order, status not by colour alone — Principle XIII) — web done (`apps/web/e2e/a11y.spec.ts`: axe WCAG 2.1 AA scan + keyboard test); Android tabs deferred (web-first order)
 - [ ] T121 Prepare owner review notes `specs/001-identity-access-shell/review-notes.md` listing the files needing explicit review (auth hooks, RLS policies, erase flow, sign-in endpoint, PIN storage) per constitution workflow
 - [ ] T122 Add `apps/web/e2e/audit-coverage.spec.ts` (drives the story flows and asserts each of the 20 FR-037 actions is recorded and no event `details` contains a password, PIN, token or amount — SC-008); then run full quickstart validation (S1-a…S7-a, SEC-a…SEC-e, PERF-a on a physical Android device for SC-004) and record results in `specs/001-identity-access-shell/validation.md`
 - [ ] T123 Owner-assisted: create hosted demo environment (Supabase Free project, Vercel project, Gmail SMTP, Google OAuth, EAS `demo` build, `pnpm env:bootstrap`) following `specs/001-identity-access-shell/quickstart.md` §Hosted demo environment; record outcomes in `specs/001-identity-access-shell/validation.md`

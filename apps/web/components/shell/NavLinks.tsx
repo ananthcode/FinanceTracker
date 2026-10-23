@@ -22,9 +22,9 @@ export function NavLinks({ isOwner, onNavigate }: { isOwner: boolean; onNavigate
               href={href}
               aria-current={active ? "page" : undefined}
               onClick={onNavigate}
-              className={`flex items-center gap-3 rounded-md border-l-4 px-3 py-2 text-sm ${
+              className={`flex items-center gap-3 rounded-md border-l-4 px-3 py-2 text-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand ${
                 active
-                  ? "border-brand bg-brand/10 font-semibold text-brand"
+                  ? "border-brand bg-brand/10 font-semibold text-brand-strong dark:text-brand"
                   : "border-transparent hover:bg-black/5 dark:hover:bg-white/5"
               }`}
             >

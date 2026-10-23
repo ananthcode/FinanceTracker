@@ -49,7 +49,7 @@ export function AppShell({
           aria-label="Open navigation"
           aria-haspopup="dialog"
           onClick={() => drawer.current?.showModal()}
-          className="rounded-md p-2 hover:bg-black/5 dark:hover:bg-white/5"
+          className="rounded-md p-2 hover:bg-black/5 dark:hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
         >
           <Menu aria-hidden="true" className="size-5" />
         </button>
@@ -71,7 +71,7 @@ export function AppShell({
             type="button"
             aria-label="Close navigation"
             onClick={() => drawer.current?.close()}
-            className="rounded-md p-2 hover:bg-black/5 dark:hover:bg-white/5"
+            className="rounded-md p-2 hover:bg-black/5 dark:hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
           >
             <X aria-hidden="true" className="size-5" />
           </button>

@@ -1,0 +1,39 @@
+name: Keep demo backend awake
+
+# T118 (research R-11): Supabase Free projects pause after 7 days without activity. One daily call
+# to the public app.health() function keeps the hosted demo environment awake. Uses only the
+# publishable (anon) key; does nothing until the repository secrets exist.
+
+on:
+  schedule:
+    - cron: "17 3 * * *" # daily, 08:47 IST
+  workflow_dispatch:
+
+permissions: {}
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    env:
+      SUPABASE_URL: ${{ secrets.DEMO_SUPABASE_URL }}
+      SUPABASE_ANON_KEY: ${{ secrets.DEMO_SUPABASE_ANON_KEY }}
+    steps:
+      - name: Call app.health()
+        run: |
+          if [ -z "$SUPABASE_URL" ] || [ -z "$SUPABASE_ANON_KEY" ]; then
+            echo "::notice::DEMO_SUPABASE_URL / DEMO_SUPABASE_ANON_KEY not set yet — nothing to keep awake."
+            exit 0
+          fi
+          status=$(curl -sS -o response.json -w '%{http_code}' --retry 3 --retry-delay 20 \
+            -X POST "$SUPABASE_URL/rest/v1/rpc/health" \
+            -H "apikey: $SUPABASE_ANON_KEY" \
+            -H "Authorization: Bearer $SUPABASE_ANON_KEY" \
+            -H "Content-Profile: app" \
+            -H "Content-Type: application/json" \
+            -d '{}')
+          echo "HTTP $status: $(cat response.json)"
+          if [ "$status" != "200" ]; then
+            echo "::error::Demo backend did not answer (HTTP $status). It may be paused — restore it from the Supabase dashboard (quickstart runbook)."
+            exit 1
+          fi

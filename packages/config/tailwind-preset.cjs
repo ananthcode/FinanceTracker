@@ -4,7 +4,8 @@
  * and/or label.
  */
 const colors = {
-  brand: { DEFAULT: "#1f6feb", foreground: "#ffffff" },
+  // `strong` is for brand-coloured text on light brand tints (≥ 4.5:1, WCAG AA).
+  brand: { DEFAULT: "#1f6feb", foreground: "#ffffff", strong: "#0550ae" },
   income: "#1a7f37",
   expense: "#cf222e",
   muted: "#6e7781",

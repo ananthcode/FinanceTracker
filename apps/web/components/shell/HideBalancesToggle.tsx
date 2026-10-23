@@ -18,7 +18,7 @@ export function HideBalancesToggle() {
       aria-label="Hide balances"
       title={hideBalances ? "Balances hidden — show them" : "Hide balances"}
       onClick={() => setHideBalances(!hideBalances)}
-      className="rounded-md p-2 hover:bg-black/5 dark:hover:bg-white/5"
+      className="rounded-md p-2 hover:bg-black/5 dark:hover:bg-white/5 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
     >
       <Icon aria-hidden="true" className="size-5" />
     </button>

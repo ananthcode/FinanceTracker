@@ -27,10 +27,18 @@ pnpm db:reset
 ```
 
 ```bash
-cp .env.example .env.local
+cp .env.example apps/web/.env.local
 ```
 
-Fill `.env.local` with the local keys printed by `supabase start` and `OWNER_EMAIL=owner@example.com`.
+```bash
+cp .env.example apps/mobile/.env.local
+```
+
+Each app reads its own `.env.local` (the `env:*` scripts read `apps/web/.env.local`). Fill them
+with the local keys printed by `supabase start`, `APP_ENV=demo` and
+`OWNER_EMAIL=owner@example.com`; SMTP is Mailpit (`127.0.0.1`, port `54325`). In
+`apps/mobile/.env.local` use `http://10.0.2.2:54321` and `http://10.0.2.2:3000` — the Android
+emulator's address for this PC.
 
 ```bash
 pnpm env:bootstrap
@@ -41,7 +49,14 @@ pnpm dev
 ```
 
 `pnpm dev` runs the web app on `http://localhost:3000`; local emails appear in Mailpit
-(`http://localhost:54324`). For Android: `pnpm --filter mobile android` with the dev build.
+(`http://localhost:54324`). For Android: `pnpm --filter @ft/mobile android` builds and installs
+the dev build (needs `ANDROID_HOME`; Expo Go cannot run this app).
+
+**Windows notes.** If `supabase start` fails with "access forbidden" on a 5432x port, Windows has
+reserved that range for Hyper-V; from an Administrator PowerShell run `net stop winnat`,
+`netsh int ipv4 add excludedportrange protocol=tcp startport=54320 numberofports=10`,
+`net start winnat`. If containers come up after a reboot but the ports do not answer, run
+`pnpm db:stop` then `pnpm db:start` (data is kept).
 
 ## Automated checks
 
@@ -66,7 +81,8 @@ pnpm e2e
 ```
 
 Expected: all green. `db:test` runs the pgTAP suite proving the 10 access rules in
-[contracts/database.md](contracts/database.md). `e2e` runs Playwright for stories 1–4.
+[contracts/database.md](contracts/database.md). `e2e` runs Playwright for the web stories (1–5 and 7).
+Android component tests run with `pnpm --filter @ft/mobile test`.
 
 ## Manual validation by user story
 
