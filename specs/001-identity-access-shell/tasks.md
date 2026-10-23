@@ -293,13 +293,13 @@ indicator.
 
 ### Tests for User Story 7
 
-- [ ] T114 [P] [US7] Unit tests `apps/web/components/Money.test.tsx` and `apps/mobile/__tests__/money.test.tsx` (masked output never reveals digit count; toggle off restores immediately)
-- [ ] T115 [P] [US7] Playwright `apps/web/e2e/us7-hide-balances.spec.ts` (toggle persists across reload; other device unaffected)
+- [ ] T114 [P] [US7] Unit tests `apps/web/components/Money.test.tsx` and `apps/mobile/__tests__/money.test.tsx` (masked output never reveals digit count; toggle off restores immediately) — web half done (`Money.test.tsx`); mobile half deferred (web-first order)
+- [X] T115 [P] [US7] Playwright `apps/web/e2e/us7-hide-balances.spec.ts` (toggle persists across reload; other device unaffected)
 
 ### Implementation for User Story 7
 
-- [ ] T116 [P] [US7] Implement `apps/web/components/shell/HideBalancesToggle.tsx` in the navigation header
-- [ ] T117 [P] [US7] Implement `apps/mobile/components/HideBalancesToggle.tsx` in the tab header
+- [X] T116 [P] [US7] Implement `apps/web/components/shell/HideBalancesToggle.tsx` in the navigation header
+- [ ] T117 [P] [US7] Implement `apps/mobile/components/HideBalancesToggle.tsx` in the tab header — deferred until Android work resumes (web-first order)
 
 **Checkpoint**: All seven user stories complete
 

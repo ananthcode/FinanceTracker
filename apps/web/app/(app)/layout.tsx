@@ -4,6 +4,7 @@ import { IdleWarning } from "@/components/IdleWarning";
 import { DisplayProvider } from "@/components/providers/DisplayProvider";
 import { AppShell } from "@/components/shell/AppShell";
 import { DemoBadge } from "@/components/shell/DemoBadge";
+import { HideBalancesToggle } from "@/components/shell/HideBalancesToggle";
 import { getPreferences, getProfile } from "@ft/db";
 import { checkEnvironment } from "@/lib/environment-guard";
 import { publicEnv } from "@/lib/env";
@@ -36,7 +37,9 @@ export default async function SignedInLayout({ children }: { children: React.Rea
       <div className="flex min-h-full flex-1 flex-col">
         {publicEnv.appEnv === "demo" && <DemoBadge />}
         {profile?.setupComplete ? (
-          <AppShell isOwner={profile.role === "owner"}>{children}</AppShell>
+          <AppShell isOwner={profile.role === "owner"} actions={<HideBalancesToggle />}>
+            {children}
+          </AppShell>
         ) : (
           // First-run setup: no navigation until it is done (FR-020).
           <main className="mx-auto w-full max-w-5xl flex-1 p-4">{children}</main>
