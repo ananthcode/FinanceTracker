@@ -51,3 +51,7 @@ desktop.ini
 !.vscode/extensions.json
 .idea/
 *.log
+
+# ---- Playwright ----
+apps/web/test-results/
+apps/web/playwright-report/

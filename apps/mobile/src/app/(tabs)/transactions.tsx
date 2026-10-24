@@ -1,0 +1,6 @@
+import { ComingSoon } from "@/components/ComingSoon";
+
+/** Transactions placeholder (T102) — content arrives in roadmap module R4. */
+export default function TransactionsScreen() {
+  return <ComingSoon description="Income, expenses and transfers you record will appear here, with search and filters." />;
+}

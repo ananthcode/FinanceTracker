@@ -1,0 +1,44 @@
+{
+  "name": "finance-tracker",
+  "private": true,
+  "description": "Personal finance tracker for web and Android (India-first)",
+  "packageManager": "pnpm@10.34.7",
+  "engines": {
+    "node": ">=24"
+  },
+  "scripts": {
+    "dev": "turbo run dev --filter=@ft/web",
+    "build": "turbo run build",
+    "lint": "turbo run lint",
+    "typecheck": "turbo run typecheck",
+    "test": "turbo run test",
+    "e2e": "pnpm --filter @ft/web e2e",
+    "supabase": "supabase",
+    "db:start": "supabase start",
+    "db:stop": "supabase stop",
+    "db:reset": "supabase db reset",
+    "db:test": "supabase test db",
+    "db:types": "supabase gen types typescript --local --schema public,app > packages/db/src/types.gen.ts",
+    "env:bootstrap": "node --env-file-if-exists=apps/web/.env.local --import tsx scripts/env-bootstrap.ts",
+    "env:recover-owner": "node --env-file-if-exists=apps/web/.env.local --import tsx scripts/env-recover-owner.ts"
+  },
+  "devDependencies": {
+    "@ft/db": "workspace:*",
+    "@types/nodemailer": "^8.0.2",
+    "nodemailer": "^10.1.0",
+    "prettier": "^3.9.10",
+    "supabase": "^2.120.0",
+    "tsx": "^4.23.15",
+    "turbo": "^2.11.7",
+    "typescript": "^5.9.3"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild",
+      "supabase",
+      "sharp",
+      "unrs-resolver",
+      "@tailwindcss/oxide"
+    ]
+  }
+}
