@@ -66,7 +66,7 @@ the sync protocol must be entity-generic for R3/R4.
 | VII | Shared core, thin clients | PASS | Balances, summary, labels, parsing, ordering keys, HLC, merge and schemas in `packages/core`; repositories in `packages/db`; apps render only |
 | VIII | Validate at boundaries | PASS | Zod change/pull schemas; `apply_changes` re-validates; DB checks, enums, FKs, partial unique index |
 | IX | Testing discipline | PASS | Core edge-case vectors, pgTAP isolation incl. owner, sync integration with duplicate delivery and conflicts, Playwright stories; CI unchanged |
-| X | Demo-first | PASS w/ note | New record type (accounts): demo dataset is produced by R5 per the roadmap; R2 tests use synthetic fixtures |
+| X | Demo-first | PASS | New record type (accounts): R2 adds its part of the deterministic demo dataset (`packages/core/src/demo/accounts.ts` — every type, label and state); R5's "Load demo data / reset" inserts it (fixed after `/speckit-analyze` C1, 2026-10-24) |
 | XI | Simplicity & free tier | PASS w/ notes | No new service; one small UI dependency; in-house sync justified in Complexity Tracking |
 | XII | India-first locale | PASS | Lakh/crore display via R1 `formatMoney`; opening date is a calendar date checked in the user's timezone |
 | XIII | Accessible, graphical UX | PASS | Labels for owed/in credit/overdrawn/excluded (not colour alone); keyboard reordering; all amounts via `<Money>` (hide-balances) |
@@ -105,7 +105,8 @@ packages/core/src/
 ├── money/parse.ts       # parseAmountInput (R2-11)
 ├── ordering/keys.ts     # fractional index keys (R2-06)
 ├── sync/                # hlc.ts, merge.ts, schemas.ts (Change, ChangeResult, PullResponse)
-└── test/vectors/        # balances.json, merge.json — shared with pgTAP
+└── demo/accounts.ts     # deterministic demo account set (constitution X), loaded by R5
+packages/core/test/vectors/  # balances.json, merge.json — shared with pgTAP
 packages/db/src/repositories/
 ├── accounts.ts          # listAccounts, listGroups (RLS client)
 └── sync.ts              # pushChanges, pullChanges (RPC wrappers)

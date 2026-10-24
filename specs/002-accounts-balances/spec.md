@@ -404,6 +404,7 @@ a minute both changes appear on the web, with no duplicates, and the waiting ind
   the R6 dashboard) without changing the account data.
 - The net-worth summary appears on the accounts screen in this module; the dashboard (R6) reuses
   the same figures.
-- Demo data for accounts is produced by the demo-data module (R5); this module uses synthetic
-  fixtures for its tests.
+- This module defines the accounts part of the fixed, synthetic demo data set (every type, label
+  and state), as the constitution requires; the "Load demo data / reset my data" actions that put
+  it into a user's space arrive with the demo-data module (R5).
 - Examples in this specification use synthetic names, `example.com` emails and made-up amounts only.

@@ -16,7 +16,8 @@ Web in this module; Android screens in the Android phase follow the same contrac
 
 - View switch **By type / My groups** (FR-009), remembered via `accountsView` preference.
 - Each row: icon (colour token), name, type label, balance via `<Money>` with label
-  ("owed", "in credit", "overdrawn", "excluded from net worth", "archived with a balance");
+  ("owed", "in credit", "overdrawn", "excluded from net worth", "archived with a balance"); credit
+  cards with a limit add "Available ₹X of ₹Y" or "Over limit by ₹Z" (FR-006);
   Move up / Move down buttons and a drag handle (FR-010, R2-09).
 - Group headers show the subtotal; user groups that mix kinds label it "net" (FR-017).
 - Summary and every amount go through `<Money>` → hide-balances masks all (FR-020).
@@ -36,6 +37,8 @@ Web in this module; Android screens in the Android phase follow the same contrac
 | `currentBalance(account, movements)` | Exact `bigint`; movements empty until R4 (R2-07) |
 | `summarise(accounts, view, groups)` | Per-group subtotals, Owned, Owed, Net worth; excludes archived/excluded (FR-016–FR-018) |
 | `balanceLabel(account, balance)` | `owed` / `in credit` / `overdrawn` / none (FR-015) |
+| `availableCredit(account, balance)` | Limit − owed, never below 0, `overLimit` flag; `null` without a limit (FR-006) |
+| `demoAccounts()` | Deterministic synthetic demo set (constitution X); inserted by R5's loader |
 | `ACCOUNT_COLOURS`, `ACCOUNT_ICONS`, `defaultAppearance(type)` | Keys only; apps map to rendering (R2-10) |
 | `keyBetween(a, b)` | Fractional index keys (R2-06) |
 | `Hlc` (`next`, `observe`, `compare`, `clamp`) | Sync clock (sync-protocol.md) |

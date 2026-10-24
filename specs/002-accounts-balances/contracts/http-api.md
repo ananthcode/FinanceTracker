@@ -20,14 +20,20 @@ errors.
   token), otherwise `422 VALIDATION_FAILED`.
 - Calls `app.apply_changes(changes, device)` with the caller's RLS-scoped client.
 - `200 { results: ChangeResult[] }` in the same order as `changes`.
-- Errors: `401 UNAUTHENTICATED`, `403 USER_INACTIVE` (disabled mid-edit → device signs out,
-  nothing applied), `422 VALIDATION_FAILED` (whole batch rejected when any change fails schema
-  validation — no partial application), `429 TRY_LATER` (> 120 changes per minute per user).
+- Errors: `401 UNAUTHENTICATED`, `401 USER_INACTIVE` (R1's code; disabled mid-edit → the device
+  signs out, nothing applied), `422 VALIDATION_FAILED` (whole batch rejected when any change fails
+  the **shape** check — the Zod schemas in `packages/core/src/sync/schemas.ts`; no partial
+  application), `429 TRY_LATER` (> 120 changes per minute per user).
+- Checks that only the database can make — the group belongs to the caller, colour/icon keys match
+  the database's allowed lists, the date is not after today in the user's timezone, limits, names,
+  balances — never fail the batch: the affected change comes back `rejected` with its code
+  (`VALIDATION_FAILED` for the first two) inside the `200` response, and the other changes are
+  applied.
 
 ### `GET /api/sync/pull?cursor={cursor}` — rows changed since the cursor (Android)
 
 - Auth: user. `200 { cursor, hasMore, rows }` per [sync-protocol.md](sync-protocol.md#pull).
-- Errors: `401`, `403 USER_INACTIVE`, `422 VALIDATION_FAILED` (bad cursor).
+- Errors: `401 UNAUTHENTICATED`, `401 USER_INACTIVE`, `422 VALIDATION_FAILED` (bad cursor).
 
 ### `GET /api/me` (R1, extended)
 
