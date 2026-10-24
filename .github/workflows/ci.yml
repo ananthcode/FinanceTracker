@@ -61,10 +61,12 @@ jobs:
       - name: Export local Supabase keys
         run: |
           # `pnpm exec` — a pnpm script would print its "> finance-tracker@ supabase" banner into $GITHUB_ENV.
+          # The CLI quotes values (KEY="value"); $GITHUB_ENV would keep the quotes, so strip them.
           pnpm exec supabase status -o env \
             --override-name api.url=NEXT_PUBLIC_SUPABASE_URL \
             --override-name auth.anon_key=NEXT_PUBLIC_SUPABASE_ANON_KEY \
-            --override-name auth.service_role_key=SUPABASE_SERVICE_ROLE_KEY >> "$GITHUB_ENV"
+            --override-name auth.service_role_key=SUPABASE_SERVICE_ROLE_KEY \
+            | sed -E 's/^([A-Z0-9_]+)="(.*)"$/\1=\2/' >> "$GITHUB_ENV"
       - run: pnpm --filter @ft/web test:int
       - run: pnpm --filter @ft/web exec playwright install --with-deps chromium
       - run: pnpm e2e
