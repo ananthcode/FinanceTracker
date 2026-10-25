@@ -1,0 +1,115 @@
+{
+  "description": "Per-field latest-edit-wins merge (FR-030, R2-02). Shared by packages/core/test/merge.test.ts and the SQL parity test (app.merge_field_versions). Times are epoch ms; receivedAt is the server receive time.",
+  "cases": [
+    {
+      "name": "new row: every field applies",
+      "fieldVersions": {},
+      "fields": ["name", "type", "colour"],
+      "hlc": "1793011200000.0000.phone001",
+      "receivedAt": 1793011200500,
+      "applied": ["colour", "name", "type"],
+      "ignored": [],
+      "clamped": false,
+      "after": { "name": "1793011200000.0000.phone001", "type": "1793011200000.0000.phone001", "colour": "1793011200000.0000.phone001" }
+    },
+    {
+      "name": "different fields combine (phone renamed, web recoloured)",
+      "fieldVersions": { "name": "1793011200000.0000.phone001", "colour": "1793011260000.0000.webbrw01" },
+      "fields": ["name"],
+      "hlc": "1793011230000.0000.phone001",
+      "receivedAt": 1793011300000,
+      "applied": ["name"],
+      "ignored": [],
+      "clamped": false,
+      "after": { "name": "1793011230000.0000.phone001", "colour": "1793011260000.0000.webbrw01" }
+    },
+    {
+      "name": "same field: the newer edit wins",
+      "fieldVersions": { "name": "1793011200000.0000.webbrw01" },
+      "fields": ["name"],
+      "hlc": "1793011200001.0000.phone001",
+      "receivedAt": 1793011300000,
+      "applied": ["name"],
+      "ignored": [],
+      "clamped": false,
+      "after": { "name": "1793011200001.0000.phone001" }
+    },
+    {
+      "name": "same field: an older edit arriving later loses",
+      "fieldVersions": { "name": "1793011260000.0000.webbrw01" },
+      "fields": ["name", "icon"],
+      "hlc": "1793011230000.0000.phone001",
+      "receivedAt": 1793011300000,
+      "applied": ["icon"],
+      "ignored": ["name"],
+      "clamped": false,
+      "after": { "name": "1793011260000.0000.webbrw01", "icon": "1793011230000.0000.phone001" }
+    },
+    {
+      "name": "same wall time: the higher counter wins",
+      "fieldVersions": { "sortKey": "1793011200000.0001.phone001" },
+      "fields": ["sortKey"],
+      "hlc": "1793011200000.0002.phone001",
+      "receivedAt": 1793011200500,
+      "applied": ["sortKey"],
+      "ignored": [],
+      "clamped": false,
+      "after": { "sortKey": "1793011200000.0002.phone001" }
+    },
+    {
+      "name": "same wall time and counter: device id breaks the tie",
+      "fieldVersions": { "notes": "1793011200000.0000.phone001" },
+      "fields": ["notes"],
+      "hlc": "1793011200000.0000.webbrw01",
+      "receivedAt": 1793011200500,
+      "applied": ["notes"],
+      "ignored": [],
+      "clamped": false,
+      "after": { "notes": "1793011200000.0000.webbrw01" }
+    },
+    {
+      "name": "identical HLC (replayed by a broken client) keeps the stored value",
+      "fieldVersions": { "notes": "1793011200000.0000.webbrw01" },
+      "fields": ["notes"],
+      "hlc": "1793011200000.0000.webbrw01",
+      "receivedAt": 1793011200500,
+      "applied": [],
+      "ignored": ["notes"],
+      "clamped": false,
+      "after": { "notes": "1793011200000.0000.webbrw01" }
+    },
+    {
+      "name": "clock far in the future is clamped to receivedAt + 5 min",
+      "fieldVersions": { "name": "1793011200000.0000.webbrw01" },
+      "fields": ["name"],
+      "hlc": "1893011200000.0000.phone001",
+      "receivedAt": 1793011200000,
+      "applied": ["name"],
+      "ignored": [],
+      "clamped": true,
+      "after": { "name": "1793011500000.0000.phone001" }
+    },
+    {
+      "name": "after clamping, a normal later edit still wins",
+      "fieldVersions": { "name": "1793011500000.0000.phone001" },
+      "fields": ["name"],
+      "hlc": "1793011600000.0000.webbrw01",
+      "receivedAt": 1793011600100,
+      "applied": ["name"],
+      "ignored": [],
+      "clamped": false,
+      "after": { "name": "1793011600000.0000.webbrw01" }
+    },
+    {
+      "name": "archive (state) made later wins over an earlier state change",
+      "fieldVersions": { "state": "1793011200000.0000.webbrw01", "name": "1793011200000.0000.webbrw01" },
+      "fields": ["state"],
+      "hlc": "1793011300000.0000.phone001",
+      "receivedAt": 1793011400000,
+      "applied": ["state"],
+      "ignored": [],
+      "clamped": false,
+      "after": { "state": "1793011300000.0000.phone001", "name": "1793011200000.0000.webbrw01" }
+    }
+  ]
+}

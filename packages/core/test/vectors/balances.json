@@ -1,0 +1,226 @@
+{
+  "description": "Balances and net-worth summary (FR-012–FR-019, FR-006, FR-022; SC-002). Amounts are integer paise as strings. Credit cards hold the amount owed (positive = owed); other types hold the amount held. Shared with the SQL parity test for app.account_balance_minor.",
+  "cases": [
+    {
+      "name": "spec example (US1/US2 independent tests)",
+      "view": "by_type",
+      "groups": [],
+      "accounts": [
+        { "id": "00000000-0000-4000-8000-000000000001", "type": "bank", "openingBalanceMinor": "5234050", "openingBalanceDate": "2026-04-01", "state": "active", "includeInNetWorth": true, "groupId": null, "sortKey": "a0", "creditLimitMinor": null },
+        { "id": "00000000-0000-4000-8000-000000000002", "type": "cash", "openingBalanceMinor": "200000", "openingBalanceDate": "2026-04-01", "state": "active", "includeInNetWorth": true, "groupId": null, "sortKey": "a1", "creditLimitMinor": null },
+        { "id": "00000000-0000-4000-8000-000000000003", "type": "credit_card", "openingBalanceMinor": "1825000", "openingBalanceDate": "2026-04-01", "state": "active", "includeInNetWorth": true, "groupId": null, "sortKey": "a2", "creditLimitMinor": null }
+      ],
+      "movements": [],
+      "expect": {
+        "owned": "5434050", "owed": "1825000", "netWorth": "3609050",
+        "sections": [
+          { "key": "bank", "subtotal": "5234050", "subtotalKind": "owned", "accounts": ["00000000-0000-4000-8000-000000000001"] },
+          { "key": "cash", "subtotal": "200000", "subtotalKind": "owned", "accounts": ["00000000-0000-4000-8000-000000000002"] },
+          { "key": "credit_card", "subtotal": "1825000", "subtotalKind": "owed", "accounts": ["00000000-0000-4000-8000-000000000003"] }
+        ],
+        "archived": [],
+        "labels": { "00000000-0000-4000-8000-000000000003": "owed" },
+        "excluded": [],
+        "archivedWithBalance": [],
+        "available": {}
+      }
+    },
+    {
+      "name": "overdrawn bank and an excluded account",
+      "view": "by_type",
+      "groups": [],
+      "accounts": [
+        { "id": "00000000-0000-4000-8000-000000000011", "type": "bank", "openingBalanceMinor": "-50000", "openingBalanceDate": "2026-04-01", "state": "active", "includeInNetWorth": true, "groupId": null, "sortKey": "a0", "creditLimitMinor": null },
+        { "id": "00000000-0000-4000-8000-000000000012", "type": "cash", "openingBalanceMinor": "200000", "openingBalanceDate": "2026-04-01", "state": "active", "includeInNetWorth": false, "groupId": null, "sortKey": "a1", "creditLimitMinor": null },
+        { "id": "00000000-0000-4000-8000-000000000013", "type": "credit_card", "openingBalanceMinor": "1825000", "openingBalanceDate": "2026-04-01", "state": "active", "includeInNetWorth": true, "groupId": null, "sortKey": "a2", "creditLimitMinor": null }
+      ],
+      "movements": [],
+      "expect": {
+        "owned": "-50000", "owed": "1825000", "netWorth": "-1875000",
+        "sections": [
+          { "key": "bank", "subtotal": "-50000", "subtotalKind": "owned", "accounts": ["00000000-0000-4000-8000-000000000011"] },
+          { "key": "cash", "subtotal": "0", "subtotalKind": "owned", "accounts": ["00000000-0000-4000-8000-000000000012"] },
+          { "key": "credit_card", "subtotal": "1825000", "subtotalKind": "owed", "accounts": ["00000000-0000-4000-8000-000000000013"] }
+        ],
+        "archived": [],
+        "labels": { "00000000-0000-4000-8000-000000000011": "overdrawn", "00000000-0000-4000-8000-000000000013": "owed" },
+        "excluded": ["00000000-0000-4000-8000-000000000012"],
+        "archivedWithBalance": [],
+        "available": {}
+      }
+    },
+    {
+      "name": "card in credit, zero balance, archived at zero",
+      "view": "by_type",
+      "groups": [],
+      "accounts": [
+        { "id": "00000000-0000-4000-8000-000000000021", "type": "bank", "openingBalanceMinor": "100000", "openingBalanceDate": "2026-04-01", "state": "active", "includeInNetWorth": true, "groupId": null, "sortKey": "a0", "creditLimitMinor": null },
+        { "id": "00000000-0000-4000-8000-000000000022", "type": "wallet", "openingBalanceMinor": "0", "openingBalanceDate": "2026-04-01", "state": "active", "includeInNetWorth": true, "groupId": null, "sortKey": "a1", "creditLimitMinor": null },
+        { "id": "00000000-0000-4000-8000-000000000023", "type": "wallet", "openingBalanceMinor": "0", "openingBalanceDate": "2026-04-01", "state": "archived", "includeInNetWorth": true, "groupId": null, "sortKey": "a2", "creditLimitMinor": null },
+        { "id": "00000000-0000-4000-8000-000000000024", "type": "credit_card", "openingBalanceMinor": "-120000", "openingBalanceDate": "2026-04-01", "state": "active", "includeInNetWorth": true, "groupId": null, "sortKey": "a3", "creditLimitMinor": null }
+      ],
+      "movements": [],
+      "expect": {
+        "owned": "100000", "owed": "-120000", "netWorth": "220000",
+        "sections": [
+          { "key": "bank", "subtotal": "100000", "subtotalKind": "owned", "accounts": ["00000000-0000-4000-8000-000000000021"] },
+          { "key": "wallet", "subtotal": "0", "subtotalKind": "owned", "accounts": ["00000000-0000-4000-8000-000000000022"] },
+          { "key": "credit_card", "subtotal": "-120000", "subtotalKind": "owed", "accounts": ["00000000-0000-4000-8000-000000000024"] }
+        ],
+        "archived": ["00000000-0000-4000-8000-000000000023"],
+        "labels": { "00000000-0000-4000-8000-000000000024": "in_credit" },
+        "excluded": [],
+        "archivedWithBalance": [],
+        "available": {}
+      }
+    },
+    {
+      "name": "archived account whose balance is no longer zero counts again and is flagged",
+      "view": "by_type",
+      "groups": [],
+      "accounts": [
+        { "id": "00000000-0000-4000-8000-000000000031", "type": "bank", "openingBalanceMinor": "5000", "openingBalanceDate": "2026-04-01", "state": "archived", "includeInNetWorth": true, "groupId": null, "sortKey": "a0", "creditLimitMinor": null },
+        { "id": "00000000-0000-4000-8000-000000000032", "type": "cash", "openingBalanceMinor": "1000", "openingBalanceDate": "2026-04-01", "state": "active", "includeInNetWorth": true, "groupId": null, "sortKey": "a1", "creditLimitMinor": null }
+      ],
+      "movements": [],
+      "expect": {
+        "owned": "6000", "owed": "0", "netWorth": "6000",
+        "sections": [
+          { "key": "cash", "subtotal": "1000", "subtotalKind": "owned", "accounts": ["00000000-0000-4000-8000-000000000032"] }
+        ],
+        "archived": ["00000000-0000-4000-8000-000000000031"],
+        "labels": {},
+        "excluded": [],
+        "archivedWithBalance": ["00000000-0000-4000-8000-000000000031"],
+        "available": {}
+      }
+    },
+    {
+      "name": "maximum-size balances stay exact",
+      "view": "by_type",
+      "groups": [],
+      "accounts": [
+        { "id": "00000000-0000-4000-8000-000000000041", "type": "bank", "openingBalanceMinor": "999999999999", "openingBalanceDate": "2026-04-01", "state": "active", "includeInNetWorth": true, "groupId": null, "sortKey": "a0", "creditLimitMinor": null },
+        { "id": "00000000-0000-4000-8000-000000000042", "type": "bank", "openingBalanceMinor": "999999999999", "openingBalanceDate": "2026-04-01", "state": "active", "includeInNetWorth": true, "groupId": null, "sortKey": "a1", "creditLimitMinor": null },
+        { "id": "00000000-0000-4000-8000-000000000043", "type": "credit_card", "openingBalanceMinor": "-999999999999", "openingBalanceDate": "2026-04-01", "state": "active", "includeInNetWorth": true, "groupId": null, "sortKey": "a2", "creditLimitMinor": null }
+      ],
+      "movements": [],
+      "expect": {
+        "owned": "1999999999998", "owed": "-999999999999", "netWorth": "2999999999997",
+        "sections": [
+          { "key": "bank", "subtotal": "1999999999998", "subtotalKind": "owned", "accounts": ["00000000-0000-4000-8000-000000000041", "00000000-0000-4000-8000-000000000042"] },
+          { "key": "credit_card", "subtotal": "-999999999999", "subtotalKind": "owed", "accounts": ["00000000-0000-4000-8000-000000000043"] }
+        ],
+        "archived": [],
+        "labels": { "00000000-0000-4000-8000-000000000043": "in_credit" },
+        "excluded": [],
+        "archivedWithBalance": [],
+        "available": {}
+      }
+    },
+    {
+      "name": "My groups view: mixed group is net, empty group shown, ungrouped last, totals unchanged",
+      "view": "my_groups",
+      "groups": [
+        { "id": "00000000-0000-4000-8000-0000000000c1", "name": "My accounts", "sortKey": "a0", "state": "active" },
+        { "id": "00000000-0000-4000-8000-0000000000c2", "name": "Held for family", "sortKey": "a1", "state": "active" },
+        { "id": "00000000-0000-4000-8000-0000000000c3", "name": "Empty group", "sortKey": "a2", "state": "active" },
+        { "id": "00000000-0000-4000-8000-0000000000c4", "name": "Old group", "sortKey": "a3", "state": "deleted" }
+      ],
+      "accounts": [
+        { "id": "00000000-0000-4000-8000-000000000051", "type": "bank", "openingBalanceMinor": "300000", "openingBalanceDate": "2026-04-01", "state": "active", "includeInNetWorth": true, "groupId": "00000000-0000-4000-8000-0000000000c1", "sortKey": "a0", "creditLimitMinor": null },
+        { "id": "00000000-0000-4000-8000-000000000052", "type": "credit_card", "openingBalanceMinor": "50000", "openingBalanceDate": "2026-04-01", "state": "active", "includeInNetWorth": true, "groupId": "00000000-0000-4000-8000-0000000000c1", "sortKey": "a1", "creditLimitMinor": null },
+        { "id": "00000000-0000-4000-8000-000000000053", "type": "cash", "openingBalanceMinor": "10000", "openingBalanceDate": "2026-04-01", "state": "active", "includeInNetWorth": true, "groupId": "00000000-0000-4000-8000-0000000000c2", "sortKey": "a2", "creditLimitMinor": null },
+        { "id": "00000000-0000-4000-8000-000000000054", "type": "wallet", "openingBalanceMinor": "700", "openingBalanceDate": "2026-04-01", "state": "active", "includeInNetWorth": true, "groupId": null, "sortKey": "a3", "creditLimitMinor": null },
+        { "id": "00000000-0000-4000-8000-000000000055", "type": "wallet", "openingBalanceMinor": "300", "openingBalanceDate": "2026-04-01", "state": "active", "includeInNetWorth": true, "groupId": "00000000-0000-4000-8000-0000000000c4", "sortKey": "a4", "creditLimitMinor": null }
+      ],
+      "movements": [],
+      "expect": {
+        "owned": "311000", "owed": "50000", "netWorth": "261000",
+        "sections": [
+          { "key": "00000000-0000-4000-8000-0000000000c1", "subtotal": "250000", "subtotalKind": "net", "accounts": ["00000000-0000-4000-8000-000000000051", "00000000-0000-4000-8000-000000000052"] },
+          { "key": "00000000-0000-4000-8000-0000000000c2", "subtotal": "10000", "subtotalKind": "owned", "accounts": ["00000000-0000-4000-8000-000000000053"] },
+          { "key": "00000000-0000-4000-8000-0000000000c3", "subtotal": "0", "subtotalKind": "owned", "accounts": [] },
+          { "key": "ungrouped", "subtotal": "1000", "subtotalKind": "owned", "accounts": ["00000000-0000-4000-8000-000000000054", "00000000-0000-4000-8000-000000000055"] }
+        ],
+        "archived": [],
+        "labels": { "00000000-0000-4000-8000-000000000052": "owed" },
+        "excluded": [],
+        "archivedWithBalance": [],
+        "available": {}
+      }
+    },
+    {
+      "name": "available credit (FR-006)",
+      "view": "by_type",
+      "groups": [],
+      "accounts": [
+        { "id": "00000000-0000-4000-8000-000000000061", "type": "credit_card", "openingBalanceMinor": "1825000", "openingBalanceDate": "2026-04-01", "state": "active", "includeInNetWorth": true, "groupId": null, "sortKey": "a0", "creditLimitMinor": "5000000" },
+        { "id": "00000000-0000-4000-8000-000000000062", "type": "credit_card", "openingBalanceMinor": "1200000", "openingBalanceDate": "2026-04-01", "state": "active", "includeInNetWorth": true, "groupId": null, "sortKey": "a1", "creditLimitMinor": "1000000" },
+        { "id": "00000000-0000-4000-8000-000000000063", "type": "credit_card", "openingBalanceMinor": "0", "openingBalanceDate": "2026-04-01", "state": "active", "includeInNetWorth": true, "groupId": null, "sortKey": "a2", "creditLimitMinor": null }
+      ],
+      "movements": [],
+      "expect": {
+        "owned": "0", "owed": "3025000", "netWorth": "-3025000",
+        "sections": [
+          { "key": "credit_card", "subtotal": "3025000", "subtotalKind": "owed", "accounts": ["00000000-0000-4000-8000-000000000061", "00000000-0000-4000-8000-000000000062", "00000000-0000-4000-8000-000000000063"] }
+        ],
+        "archived": [],
+        "labels": { "00000000-0000-4000-8000-000000000061": "owed", "00000000-0000-4000-8000-000000000062": "owed" },
+        "excluded": [],
+        "archivedWithBalance": [],
+        "available": {
+          "00000000-0000-4000-8000-000000000061": { "available": "3175000", "overLimit": false, "overBy": "0" },
+          "00000000-0000-4000-8000-000000000062": { "available": "0", "overLimit": true, "overBy": "200000" }
+        }
+      }
+    },
+    {
+      "name": "movements count only on or after the opening date (R4-ready)",
+      "view": "by_type",
+      "groups": [],
+      "accounts": [
+        { "id": "00000000-0000-4000-8000-000000000071", "type": "bank", "openingBalanceMinor": "100000", "openingBalanceDate": "2026-04-01", "state": "active", "includeInNetWorth": true, "groupId": null, "sortKey": "a0", "creditLimitMinor": null }
+      ],
+      "movements": [
+        { "accountId": "00000000-0000-4000-8000-000000000071", "date": "2026-03-31", "amountMinor": "-5000" },
+        { "accountId": "00000000-0000-4000-8000-000000000071", "date": "2026-04-01", "amountMinor": "2000" },
+        { "accountId": "00000000-0000-4000-8000-000000000071", "date": "2026-05-01", "amountMinor": "-500" },
+        { "accountId": "00000000-0000-4000-8000-000000000099", "date": "2026-05-01", "amountMinor": "9999" }
+      ],
+      "expect": {
+        "owned": "101500", "owed": "0", "netWorth": "101500",
+        "sections": [
+          { "key": "bank", "subtotal": "101500", "subtotalKind": "owned", "accounts": ["00000000-0000-4000-8000-000000000071"] }
+        ],
+        "archived": [],
+        "labels": {},
+        "excluded": [],
+        "archivedWithBalance": [],
+        "available": {}
+      }
+    },
+    {
+      "name": "equal sort keys are ordered by id; deleted accounts never appear",
+      "view": "by_type",
+      "groups": [],
+      "accounts": [
+        { "id": "00000000-0000-4000-8000-0000000000b2", "type": "bank", "openingBalanceMinor": "100", "openingBalanceDate": "2026-04-01", "state": "active", "includeInNetWorth": true, "groupId": null, "sortKey": "a1", "creditLimitMinor": null },
+        { "id": "00000000-0000-4000-8000-0000000000b1", "type": "bank", "openingBalanceMinor": "200", "openingBalanceDate": "2026-04-01", "state": "active", "includeInNetWorth": true, "groupId": null, "sortKey": "a1", "creditLimitMinor": null },
+        { "id": "00000000-0000-4000-8000-0000000000b0", "type": "bank", "openingBalanceMinor": "400", "openingBalanceDate": "2026-04-01", "state": "deleted", "includeInNetWorth": true, "groupId": null, "sortKey": "a0", "creditLimitMinor": null }
+      ],
+      "movements": [],
+      "expect": {
+        "owned": "300", "owed": "0", "netWorth": "300",
+        "sections": [
+          { "key": "bank", "subtotal": "300", "subtotalKind": "owned", "accounts": ["00000000-0000-4000-8000-0000000000b1", "00000000-0000-4000-8000-0000000000b2"] }
+        ],
+        "archived": [],
+        "labels": {},
+        "excluded": [],
+        "archivedWithBalance": [],
+        "available": {}
+      }
+    }
+  ]
+}
