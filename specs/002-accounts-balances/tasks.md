@@ -129,14 +129,14 @@ exclusion and hide-balances.
 
 ### Tests for User Story 2
 
-- [ ] T040 [P] [US2] Playwright `apps/web/e2e/r2-us2-net-worth.spec.ts`: summary Owned ₹54,340.50 · Owed ₹18,250.00 · Net worth ₹36,090.50 and matching subtotals (S2-a); overdrawn bank and excluded cash labelled and totals recomputed exactly (S2-b); negative net worth shows sign + label; hide-balances masks every amount on `/accounts` (S2-c, SC-006)
+- [X] T040 [P] [US2] Playwright `apps/web/e2e/r2-us2-net-worth.spec.ts`: summary Owned ₹54,340.50 · Owed ₹18,250.00 · Net worth ₹36,090.50 and matching subtotals (S2-a); overdrawn bank and excluded cash labelled and totals recomputed exactly (S2-b); negative net worth shows sign + label; hide-balances masks every amount on `/accounts` (S2-c, SC-006)
 
 ### Implementation for User Story 2
 
-- [ ] T041 [P] [US2] Implement `NetWorthSummary` in `apps/web/components/accounts/NetWorthSummary.tsx` from `summarise()` (Owned, Owed, Net worth via `<Money>`; negative net worth labelled; explanation when all accounts are excluded or archived)
-- [ ] T042 [P] [US2] Implement `GroupSection` in `apps/web/components/accounts/GroupSection.tsx`: header with subtotal (labelled "net" for mixed user groups — FR-017), rows, "excluded from net worth" marker (FR-018)
-- [ ] T043 [US2] Wire `NetWorthSummary` and `GroupSection` into `apps/web/app/(app)/accounts/page.tsx` so totals come only from `summarise()` (FR-019) and update after every push (FR-014)
-- [ ] T044 [US2] Add `/accounts` to the hide-balances screen review list used by the R1 hide-balances e2e (`apps/web/e2e/us7-hide-balances.spec.ts`) (SC-006)
+- [X] T041 [P] [US2] Implement `NetWorthSummary` in `apps/web/components/accounts/NetWorthSummary.tsx` from `summarise()` (Owned, Owed, Net worth via `<Money>`; negative net worth labelled; explanation when all accounts are excluded or archived)
+- [X] T042 [P] [US2] Implement `GroupSection` in `apps/web/components/accounts/GroupSection.tsx`: header with subtotal (labelled "net" for mixed user groups — FR-017), rows, "excluded from net worth" marker (FR-018)
+- [X] T043 [US2] Wire `NetWorthSummary` and `GroupSection` into `apps/web/app/(app)/accounts/page.tsx` so totals come only from `summarise()` (FR-019) and update after every push (FR-014)
+- [X] T044 [US2] Add `/accounts` to the hide-balances screen review list used by the R1 hide-balances e2e (`apps/web/e2e/us7-hide-balances.spec.ts`) (SC-006)
 
 **Checkpoint**: US1 + US2 — the MVP: accounts with exact balances and net worth.
 

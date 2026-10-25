@@ -22,7 +22,7 @@ export function AccountRow({ row, children }: { row: SummaryRow<AccountView>; ch
       <div className="text-right">
         <p className="font-medium tabular-nums">
           <Money value={balance} currency={account.currency} />
-          {label && <span className="ml-1 text-sm font-normal text-muted-foreground">{BALANCE_LABEL_TEXT[label]}</span>}
+          {label && <span className="text-sm font-normal text-muted-foreground"> {BALANCE_LABEL_TEXT[label]}</span>}
         </p>
         {available && account.creditLimitMinor !== null && (
           <p className="text-xs text-muted-foreground">

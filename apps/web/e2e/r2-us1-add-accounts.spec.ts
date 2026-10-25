@@ -1,26 +1,8 @@
-import { expect, test, type Page } from "@playwright/test";
-import { admin, uniqueEmail } from "./helpers/db";
-import { ensureOwner, signInUI } from "./helpers/owner";
-import { createMember } from "./helpers/users";
+import { expect, test } from "@playwright/test";
+import { addAccount, newSignedInMember, submitAccount } from "./helpers/accounts";
+import { admin } from "./helpers/db";
 
 /** T034 — R2 User Story 1: add accounts with opening balances (quickstart S1-a…S1-c; SC-001). */
-
-async function newSignedInMember(page: Page, request: Parameters<typeof createMember>[0], prefix: string): Promise<string> {
-  await ensureOwner(request);
-  const email = uniqueEmail(prefix);
-  await createMember(request, email);
-  await signInUI(page, email);
-  return email;
-}
-
-async function addAccount(page: Page, a: { name: string; type: string; balance: string; date?: string }) {
-  await page.goto("/accounts/new");
-  await page.getByLabel("Name", { exact: true }).fill(a.name);
-  await page.getByLabel("Type").selectOption({ label: a.type });
-  await page.getByLabel(/^(Opening balance|Amount owed)/).fill(a.balance);
-  if (a.date) await page.getByLabel("Balance on").fill(a.date);
-  await page.getByRole("button", { name: "Add account" }).click();
-}
 
 async function accountCount(email: string): Promise<number> {
   const db = admin();
@@ -41,12 +23,10 @@ test("added accounts are listed by type with exact balances (S1-b, SC-001)", asy
   await newSignedInMember(page, request, "acc-add");
   const started = Date.now();
   await addAccount(page, { name: "Everyday Savings", type: "Bank account", balance: "52,340.50", date: "2026-04-01" });
-  await expect(page).toHaveURL(/\/accounts$/);
   expect(Date.now() - started).toBeLessThan(60_000); // SC-001: first account in under a minute
 
   await addAccount(page, { name: "Cash in hand", type: "Cash", balance: "2000" });
   await addAccount(page, { name: "Rewards Card", type: "Credit card", balance: "18250" });
-  await expect(page).toHaveURL(/\/accounts$/);
 
   const bank = page.getByRole("region", { name: "Bank accounts" });
   const cash = page.getByRole("region", { name: "Cash" });
@@ -62,15 +42,14 @@ test("added accounts are listed by type with exact balances (S1-b, SC-001)", asy
 test("bad input is refused with a message and nothing is saved (S1-c)", async ({ page, request }) => {
   const email = await newSignedInMember(page, request, "acc-bad");
   await addAccount(page, { name: "Everyday Savings", type: "Bank account", balance: "100" });
-  await expect(page).toHaveURL(/\/accounts$/);
 
-  await addAccount(page, { name: "everyday savings", type: "Bank account", balance: "100" });
+  await submitAccount(page, { name: "everyday savings", type: "Bank account", balance: "100" });
   await expect(page.getByText("You already have an account with this name")).toBeVisible();
 
-  await addAccount(page, { name: "Too precise", type: "Bank account", balance: "1,234.567" });
+  await submitAccount(page, { name: "Too precise", type: "Bank account", balance: "1,234.567" });
   await expect(page.getByText("Use at most two decimal places")).toBeVisible();
 
-  await addAccount(page, { name: "From the future", type: "Bank account", balance: "100", date: "2099-01-01" });
+  await submitAccount(page, { name: "From the future", type: "Bank account", balance: "100", date: "2099-01-01" });
   await expect(page.getByText("The date must be today or earlier")).toBeVisible();
 
   expect(await accountCount(email)).toBe(1);

@@ -1,17 +1,26 @@
 import Link from "next/link";
-import { ACCOUNT_TYPE_GROUP_TITLE, summarise } from "@ft/core";
-import { listAccounts, listGroups } from "@ft/db";
-import { AccountRow } from "@/components/accounts/AccountRow";
+import { DEFAULT_PREFERENCES, summarise } from "@ft/core";
+import { getPreferences, listAccounts, listGroups } from "@ft/db";
+import { GroupSection } from "@/components/accounts/GroupSection";
+import { NetWorthSummary } from "@/components/accounts/NetWorthSummary";
 import { buttonVariants } from "@/components/ui/button";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 /**
- * Accounts (R2 US1): the user's accounts grouped by type, each with its exact balance (FR-009,
- * FR-012, FR-015). Reads through the user's own client — row-level security returns only their rows.
+ * Accounts (R2 US1–US2): the net-worth summary and the user's accounts grouped by type, each with
+ * its exact balance and every group with its subtotal (FR-009, FR-012–FR-018). All figures come
+ * from summarise() so later screens show the same numbers (FR-019). Reads through the user's own
+ * client — row-level security returns only their rows.
  */
 export default async function AccountsPage() {
   const supabase = await createServerSupabase();
-  const [accounts, groups] = await Promise.all([listAccounts(supabase), listGroups(supabase)]);
+  const { data } = await supabase.auth.getUser();
+  const [accounts, groups, preferences] = await Promise.all([
+    listAccounts(supabase),
+    listGroups(supabase),
+    getPreferences(supabase, data.user?.id ?? ""),
+  ]);
+  const currency = (preferences ?? DEFAULT_PREFERENCES).baseCurrency;
   const summary = summarise(accounts, { view: "by_type", groups });
   const hasActive = summary.sections.length > 0;
 
@@ -42,22 +51,11 @@ export default async function AccountsPage() {
         </div>
       )}
 
-      {summary.sections.map((section) => {
-        const title = section.type ? ACCOUNT_TYPE_GROUP_TITLE[section.type] : (section.group?.name ?? "Ungrouped");
-        const headingId = `group-${section.key}`;
-        return (
-          <section key={section.key} aria-labelledby={headingId} className="flex flex-col">
-            <h2 id={headingId} className="text-sm font-semibold tracking-wide text-muted-foreground uppercase">
-              {title}
-            </h2>
-            <ul className="mt-1">
-              {section.rows.map((row) => (
-                <AccountRow key={row.account.id} row={row} />
-              ))}
-            </ul>
-          </section>
-        );
-      })}
+      {accounts.length > 0 && <NetWorthSummary summary={summary} currency={currency} />}
+
+      {summary.sections.map((section) => (
+        <GroupSection key={section.key} section={section} currency={currency} />
+      ))}
     </section>
   );
 }
