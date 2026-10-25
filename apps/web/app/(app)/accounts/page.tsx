@@ -1,9 +1,12 @@
 import Link from "next/link";
 import { DEFAULT_PREFERENCES, summarise } from "@ft/core";
 import { getPreferences, listAccounts, listGroups } from "@ft/db";
+import { AccountRow } from "@/components/accounts/AccountRow";
 import { GroupSection } from "@/components/accounts/GroupSection";
 import { NetWorthSummary } from "@/components/accounts/NetWorthSummary";
+import { RestoreButton } from "@/components/accounts/RestoreButton";
 import { ViewSwitch } from "@/components/accounts/ViewSwitch";
+import { Alert, AlertDescription } from "@/components/ui/alert";
 import { buttonVariants } from "@/components/ui/button";
 import { createServerSupabase } from "@/lib/supabase/server";
 
@@ -13,7 +16,8 @@ import { createServerSupabase } from "@/lib/supabase/server";
  * from summarise() so later screens show the same numbers (FR-019). Reads through the user's own
  * client — row-level security returns only their rows.
  */
-export default async function AccountsPage() {
+export default async function AccountsPage({ searchParams }: { searchParams: Promise<{ notice?: string }> }) {
+  const { notice } = await searchParams;
   const supabase = await createServerSupabase();
   const { data } = await supabase.auth.getUser();
   const [accounts, groups, preferences] = await Promise.all([
@@ -26,6 +30,7 @@ export default async function AccountsPage() {
   const view = prefs.accountsView;
   const summary = summarise(accounts, { view, groups });
   const hasActive = accounts.some((a) => a.state === "active");
+  const archived = summary.archived;
 
   return (
     <section aria-labelledby="page-title" className="flex flex-col gap-6">
@@ -40,6 +45,12 @@ export default async function AccountsPage() {
         )}
       </div>
 
+      {notice === "converted" && (
+        <Alert role="status">
+          <AlertDescription>That account has been used, so it was archived instead of deleted.</AlertDescription>
+        </Alert>
+      )}
+
       {!hasActive && (
         <div className="flex max-w-prose flex-col items-start gap-3 rounded-lg border border-dashed border-border p-6">
           <h2 className="text-lg font-medium">No accounts yet</h2>
@@ -51,6 +62,11 @@ export default async function AccountsPage() {
           <Link href="/accounts/new" className={buttonVariants()}>
             Add account
           </Link>
+          {archived.length > 0 && (
+            <a href="#archived" className="text-sm text-brand-strong underline dark:text-brand">
+              See archived accounts
+            </a>
+          )}
         </div>
       )}
 
@@ -68,6 +84,28 @@ export default async function AccountsPage() {
       {hasActive && summary.sections.map((section) => (
         <GroupSection key={section.key} section={section} currency={currency} />
       ))}
+
+      {archived.length > 0 && (
+        // Archived accounts leave everyday lists and totals (FR-021, FR-022); open by default when
+        // they are all the user has.
+        <details id="archived" open={!hasActive} className="rounded-lg border border-border px-4 py-2">
+          <summary className="cursor-pointer py-1 text-sm font-semibold text-muted-foreground">
+            Archived accounts ({archived.length})
+          </summary>
+          <ul>
+            {archived.map((row) => (
+              <li key={row.account.id} className="flex items-center gap-2 border-t border-border first:border-t-0">
+                <AccountRow row={row}>
+                  <Link href={`/accounts/${row.account.id}`} className="hover:underline">
+                    {row.account.name}
+                  </Link>
+                </AccountRow>
+                <RestoreButton id={row.account.id} name={row.account.name} />
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
     </section>
   );
 }

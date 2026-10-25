@@ -23,6 +23,7 @@ export default async function NewAccountPage() {
       <AccountForm
         mode="create"
         groups={groups}
+        archived={accounts.filter((a) => a.state === "archived").map((a) => ({ id: a.id, name: a.name }))}
         todayIso={todayInZone(prefs.timezone)}
         currency={prefs.baseCurrency}
         nextSortKey={keyBetween(lastKey, null)}

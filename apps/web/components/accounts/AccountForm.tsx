@@ -47,7 +47,13 @@ const REJECTION_MESSAGES: Partial<Record<NonNullable<ChangeResult["code"]>, { fi
 
 const label = (key: string) => key.charAt(0).toUpperCase() + key.slice(1).replace(/-/g, " ");
 
-type Props = { todayIso: string; currency: string; groups: GroupView[] } & (
+type Props = {
+  todayIso: string;
+  currency: string;
+  groups: GroupView[];
+  /** Archived accounts, so a name clash can point to restoring them (FR-002, US4 scenario 6). */
+  archived: { id: string; name: string }[];
+} & (
   | { mode: "create"; nextSortKey: string }
   | { mode: "edit"; account: AccountView }
 );
@@ -58,7 +64,7 @@ type Props = { todayIso: string; currency: string; groups: GroupView[] } & (
  * Editing sends only the fields that changed, so edits from two tabs or devices combine (FR-030).
  */
 export function AccountForm(props: Props) {
-  const { todayIso, currency, groups } = props;
+  const { todayIso, currency, groups, archived } = props;
   const original = props.mode === "edit" ? props.account : null;
   const ids = useId();
   const router = useRouter();
@@ -77,6 +83,7 @@ export function AccountForm(props: Props) {
   const [groupId, setGroupId] = useState<string>(original?.groupId ?? "");
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const [formError, setFormError] = useState<string | null>(null);
+  const [archivedMatch, setArchivedMatch] = useState<{ id: string; name: string } | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirm, setConfirm] = useState<{ fields: Record<string, unknown>; balance: bigint } | null>(null);
 
@@ -162,6 +169,12 @@ export function AccountForm(props: Props) {
     }
     const result = outcome.results[0];
     if (result?.status === "rejected") {
+      const clash = result.code === "NAME_TAKEN" ? archived.find((a) => a.name.toLowerCase() === String(fields.name ?? name.trim()).toLowerCase()) : undefined;
+      if (clash) {
+        setArchivedMatch(clash);
+        setErrors({ name: "An archived account has this name — restore it or choose another name." });
+        return;
+      }
       const known = result.code ? REJECTION_MESSAGES[result.code] : undefined;
       if (known?.field) setErrors({ [known.field]: known.message });
       else setFormError(known?.message ?? "This account could not be saved. Check the values and try again.");
@@ -173,6 +186,7 @@ export function AccountForm(props: Props) {
   async function submit(e: React.FormEvent) {
     e.preventDefault();
     setFormError(null);
+    setArchivedMatch(null);
     const valid = validate();
     if (!valid) return;
     if (props.mode === "create") return save(valid.fields);
@@ -219,6 +233,11 @@ export function AccountForm(props: Props) {
           aria-describedby={describedBy("name")}
         />
         {err("name")}
+        {archivedMatch && errors.name && (
+          <Link href={`/accounts/${archivedMatch.id}`} className="text-sm text-brand-strong underline dark:text-brand">
+            Open the archived account
+          </Link>
+        )}
       </div>
 
       <div className="flex flex-col gap-1.5">

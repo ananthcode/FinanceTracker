@@ -175,13 +175,13 @@ with a "My groups" view.
 
 ### Tests for User Story 4
 
-- [ ] T053 [P] [US4] Playwright `apps/web/e2e/r2-us4-archive.spec.ts`: archive a ₹0.00 account → moves to "Archived accounts", totals unchanged; non-zero account → refused showing its balance (S4-a); restore returns to previous position; delete a never-used account → gone everywhere; creating an archived account's name → refused with a "restore it" hint (S4-b); archiving the last active account shows the empty state with a link to archived accounts
+- [X] T053 [P] [US4] Playwright `apps/web/e2e/r2-us4-archive.spec.ts`: archive a ₹0.00 account → moves to "Archived accounts", totals unchanged; non-zero account → refused showing its balance (S4-a); restore returns to previous position; delete a never-used account → gone everywhere; creating an archived account's name → refused with a "restore it" hint (S4-b); archiving the last active account shows the empty state with a link to archived accounts
 
 ### Implementation for User Story 4
 
-- [ ] T054 [US4] Add Archive / Restore / Delete actions to `apps/web/app/(app)/accounts/[id]/page.tsx`: Archive disabled with the explanation and current balance when the balance ≠ ₹0.00 (FR-022); Delete shown only without activity, with confirmation (FR-024); results `converted`/`rejected` shown in words
-- [ ] T055 [US4] Add the "Archived accounts" section (collapsed by default, rows with Restore) and the "archived with a balance" flag to `apps/web/app/(app)/accounts/page.tsx`; ensure archived accounts are excluded from every account chooser via a `selectableAccounts()` helper in `packages/core/src/accounts/summary.ts` for R4 (FR-021)
-- [ ] T056 [US4] In `AccountForm` (`apps/web/components/accounts/AccountForm.tsx`) map `NAME_TAKEN` for an archived account to "An archived account has this name — restore it or choose another name" with a link (US4 scenario 6)
+- [X] T054 [US4] Add Archive / Restore / Delete actions to `apps/web/app/(app)/accounts/[id]/page.tsx`: Archive disabled with the explanation and current balance when the balance ≠ ₹0.00 (FR-022); Delete shown only without activity, with confirmation (FR-024); results `converted`/`rejected` shown in words
+- [X] T055 [US4] Add the "Archived accounts" section (collapsed by default, rows with Restore) and the "archived with a balance" flag to `apps/web/app/(app)/accounts/page.tsx`; ensure archived accounts are excluded from every account chooser via a `selectableAccounts()` helper in `packages/core/src/accounts/summary.ts` for R4 (FR-021)
+- [X] T056 [US4] In `AccountForm` (`apps/web/components/accounts/AccountForm.tsx`) map `NAME_TAKEN` for an archived account to "An archived account has this name — restore it or choose another name" with a link (US4 scenario 6)
 
 **Checkpoint**: US1–US4 complete on the web.
 
