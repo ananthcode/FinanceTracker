@@ -67,6 +67,12 @@ export function calendarDateInZone(instant: string | Date, timezone: string): Ca
   return { year: get("year"), month: get("month"), day: get("day") };
 }
 
+/** Today's calendar date (`YYYY-MM-DD`) in `timezone` — e.g. the default opening-balance date (FR-004). */
+export function todayInZone(timezone: string, now: Date = new Date()): string {
+  const d = calendarDateInZone(now, timezone);
+  return `${String(d.year).padStart(4, "0")}-${String(d.month).padStart(2, "0")}-${String(d.day).padStart(2, "0")}`;
+}
+
 /** Formats a UTC instant as a date in the user's timezone. */
 export function formatTimestamp(
   instant: string | Date,
