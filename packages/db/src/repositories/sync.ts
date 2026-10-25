@@ -42,8 +42,8 @@ function toWire(row: Record<string, unknown>): Record<string, unknown> {
   return out;
 }
 
-export async function pullChanges(db: SupabaseClient, cursor: string): Promise<PullResponse> {
-  const { data, error } = await db.schema("app").rpc("pull_changes", { p_cursor: cursor });
+export async function pullChanges(db: SupabaseClient, cursor: string, limit = 500): Promise<PullResponse> {
+  const { data, error } = await db.schema("app").rpc("pull_changes", { p_cursor: cursor, p_limit: limit });
   if (error) raise("SYNC_PULL_FAILED", error.message);
   const raw = data as { cursor: string; hasMore: boolean; rows: { account: Record<string, unknown>[]; account_group: Record<string, unknown>[] } };
   return {

@@ -196,8 +196,8 @@ sync and the clarified per-field rule.
 
 ### Server side (built now)
 
-- [ ] T057 [P] [US5] Integration test `apps/web/app/api/sync/pull/pull.int.test.ts` with two simulated Android devices (bearer tokens, separate HLC/device ids): offline edits on both then push → per-field combination and newer-field wins; duplicated batch delivery → applied once; two offline creates "Fuel" → second `renamed` "Fuel (2)"; delete with activity → `converted`; pull pages of 500 with `hasMore`; a cursor never skips rows when pushes from two devices interleave (SC-007 server side)
-- [ ] T058 [US5] Implement `GET /api/sync/pull?cursor=` in `apps/web/app/api/sync/pull/route.ts` (user auth; cursor validated as a non-negative integer string; ≤ 60 requests/minute/user; returns `PullResponse` with money as decimal strings)
+- [X] T057 [P] [US5] Integration test `apps/web/app/api/sync/pull/pull.int.test.ts` with two simulated Android devices (bearer tokens, separate HLC/device ids): offline edits on both then push → per-field combination and newer-field wins; duplicated batch delivery → applied once; two offline creates "Fuel" → second `renamed` "Fuel (2)"; delete with activity → `converted`; pull pages of 500 with `hasMore`; a cursor never skips rows when pushes from two devices interleave (SC-007 server side)
+- [X] T058 [US5] Implement `GET /api/sync/pull?cursor=` in `apps/web/app/api/sync/pull/route.ts` (user auth; cursor validated as a non-negative integer string; ≤ 60 requests/minute/user; returns `PullResponse` with money as decimal strings)
 
 ### Android client (Deferred — Android phase)
 

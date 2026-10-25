@@ -48,8 +48,16 @@ export class FakeDevice {
     return formatHlc(this.clock);
   }
 
-  change(entity: ChangeInput["entity"], entityId: string, kind: ChangeInput["kind"], fields?: Record<string, unknown>, extra: Partial<ChangeInput> = {}): ChangeInput {
-    return { changeId: randomUUID(), entity, entityId, kind, ...(fields ? { fields } : {}), hlc: this.hlc(), ...extra };
+  /** A change stamped with this device's clock at `at` (defaults to now). */
+  change(
+    entity: ChangeInput["entity"],
+    entityId: string,
+    kind: ChangeInput["kind"],
+    fields?: Record<string, unknown>,
+    extra: Partial<ChangeInput> = {},
+    at?: number,
+  ): ChangeInput {
+    return { changeId: randomUUID(), entity, entityId, kind, ...(fields ? { fields } : {}), hlc: this.hlc(at), ...extra };
   }
 }
 
