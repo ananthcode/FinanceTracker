@@ -3,11 +3,12 @@ import { DEFAULT_PREFERENCES, summarise } from "@ft/core";
 import { getPreferences, listAccounts, listGroups } from "@ft/db";
 import { GroupSection } from "@/components/accounts/GroupSection";
 import { NetWorthSummary } from "@/components/accounts/NetWorthSummary";
+import { ViewSwitch } from "@/components/accounts/ViewSwitch";
 import { buttonVariants } from "@/components/ui/button";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 /**
- * Accounts (R2 US1–US2): the net-worth summary and the user's accounts grouped by type, each with
+ * Accounts (R2 US1–US3): the net-worth summary and the user's accounts grouped by type or by their own groups (FR-009), each with
  * its exact balance and every group with its subtotal (FR-009, FR-012–FR-018). All figures come
  * from summarise() so later screens show the same numbers (FR-019). Reads through the user's own
  * client — row-level security returns only their rows.
@@ -20,9 +21,11 @@ export default async function AccountsPage() {
     listGroups(supabase),
     getPreferences(supabase, data.user?.id ?? ""),
   ]);
-  const currency = (preferences ?? DEFAULT_PREFERENCES).baseCurrency;
-  const summary = summarise(accounts, { view: "by_type", groups });
-  const hasActive = summary.sections.length > 0;
+  const prefs = preferences ?? DEFAULT_PREFERENCES;
+  const currency = prefs.baseCurrency;
+  const view = prefs.accountsView;
+  const summary = summarise(accounts, { view, groups });
+  const hasActive = accounts.some((a) => a.state === "active");
 
   return (
     <section aria-labelledby="page-title" className="flex flex-col gap-6">
@@ -53,7 +56,16 @@ export default async function AccountsPage() {
 
       {accounts.length > 0 && <NetWorthSummary summary={summary} currency={currency} />}
 
-      {summary.sections.map((section) => (
+      {hasActive && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <ViewSwitch view={view} />
+          <Link href="/accounts/groups" className={buttonVariants({ variant: "outline", size: "sm" })}>
+            Manage groups
+          </Link>
+        </div>
+      )}
+
+      {hasActive && summary.sections.map((section) => (
         <GroupSection key={section.key} section={section} currency={currency} />
       ))}
     </section>

@@ -125,6 +125,37 @@ export function keyBetween(a: string | null, b: string | null): string {
   return ia + midpoint(fa, null);
 }
 
+export interface Keyed {
+  id: string;
+  sortKey: string;
+}
+
+/**
+ * The key changes needed to move one item within an ordered list (FR-010). Normally one change:
+ * the moved item gets a key between its new neighbours. When those neighbours have equal keys
+ * (two devices filled the same gap offline), the moved item and every later item in the list get
+ * fresh increasing keys so the order becomes strict again.
+ */
+export function planMove(list: readonly Keyed[], from: number, to: number): Keyed[] {
+  if (from === to || from < 0 || to < 0 || from >= list.length || to >= list.length) return [];
+  const order = [...list];
+  const [moved] = order.splice(from, 1);
+  order.splice(to, 0, moved!);
+  const prev = order[to - 1]?.sortKey ?? null;
+  const next = order[to + 1]?.sortKey ?? null;
+  if (prev === null || next === null || prev < next) {
+    return [{ id: moved!.id, sortKey: keyBetween(prev, next) }];
+  }
+  // Repair: re-key the moved item and everything after it.
+  const changes: Keyed[] = [];
+  let last = prev;
+  for (const item of order.slice(to)) {
+    last = keyBetween(last, null);
+    changes.push({ id: item.id, sortKey: last });
+  }
+  return changes;
+}
+
 /** `n` ordered keys between `a` and `b` (used for seeding and tests). */
 export function keysBetween(a: string | null, b: string | null, n: number): string[] {
   const keys: string[] = [];

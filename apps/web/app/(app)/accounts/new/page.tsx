@@ -1,5 +1,5 @@
 import { DEFAULT_PREFERENCES, keyBetween, todayInZone } from "@ft/core";
-import { getPreferences, listAccounts } from "@ft/db";
+import { getPreferences, listAccounts, listGroups } from "@ft/db";
 import { AccountForm } from "@/components/accounts/AccountForm";
 import { createServerSupabase } from "@/lib/supabase/server";
 
@@ -7,8 +7,9 @@ import { createServerSupabase } from "@/lib/supabase/server";
 export default async function NewAccountPage() {
   const supabase = await createServerSupabase();
   const { data } = await supabase.auth.getUser();
-  const [accounts, preferences] = await Promise.all([
+  const [accounts, groups, preferences] = await Promise.all([
     listAccounts(supabase),
+    listGroups(supabase),
     getPreferences(supabase, data.user?.id ?? ""),
   ]);
   const prefs = preferences ?? DEFAULT_PREFERENCES;
@@ -19,7 +20,13 @@ export default async function NewAccountPage() {
       <h1 id="page-title" className="text-2xl font-semibold">
         Add account
       </h1>
-      <AccountForm todayIso={todayInZone(prefs.timezone)} currency={prefs.baseCurrency} nextSortKey={keyBetween(lastKey, null)} />
+      <AccountForm
+        mode="create"
+        groups={groups}
+        todayIso={todayInZone(prefs.timezone)}
+        currency={prefs.baseCurrency}
+        nextSortKey={keyBetween(lastKey, null)}
+      />
     </section>
   );
 }

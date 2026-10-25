@@ -151,17 +151,17 @@ with a "My groups" view.
 
 ### Tests for User Story 3
 
-- [ ] T045 [P] [US3] Playwright `apps/web/e2e/r2-us3-edit-groups.spec.ts`: rename/recolour/icon/opening-balance edit updates list and totals at once (S3-a); reorder by drag and by keyboard Move up, order kept after reload and in a second browser context (FR-010); type change cash→credit card shows a confirmation and cancel keeps it (S3-b); create groups, assign, switch to My groups, delete a group → accounts in "Ungrouped", totals unchanged, view choice remembered after reload (S3-c); two tabs editing different fields both kept (S4-c)
-- [ ] T046 [P] [US3] Integration test `apps/web/app/api/me/accounts-view.int.test.ts`: `PATCH /api/me/preferences { accountsView }` stored, returned by `GET /api/me`, audited as a preference change
+- [X] T045 [P] [US3] Playwright `apps/web/e2e/r2-us3-edit-groups.spec.ts`: rename/recolour/icon/opening-balance edit updates list and totals at once (S3-a); reorder by drag and by keyboard Move up, order kept after reload and in a second browser context (FR-010); type change cash→credit card shows a confirmation and cancel keeps it (S3-b); create groups, assign, switch to My groups, delete a group → accounts in "Ungrouped", totals unchanged, view choice remembered after reload (S3-c); two tabs editing different fields both kept (S4-c)
+- [X] T046 [P] [US3] Integration test `apps/web/app/api/me/accounts-view.int.test.ts`: `PATCH /api/me/preferences { accountsView }` stored, returned by `GET /api/me`, audited as a preference change
 
 ### Implementation for User Story 3
 
-- [ ] T047 [US3] Migration `supabase/migrations/<ts>_accounts_view_preference.sql`: `user_preferences.accounts_view public.accounts_view not null default 'by_type'`; grant update on the column to `authenticated`; regenerate types
-- [ ] T048 [US3] Add `accountsView` to `Preferences`/`PreferencesUpdate`/`DEFAULT_PREFERENCES` in `packages/core/src/schemas/me.ts`, the preferences repository `packages/db/src/repositories/preferences.ts`, and the `PATCH /api/me/preferences` / `GET /api/me` responses (`apps/web/lib/me.ts`)
-- [ ] T049 [US3] Implement `/accounts/[id]` in `apps/web/app/(app)/accounts/[id]/page.tsx` with `AccountForm` in edit mode: sends `update` with only changed fields (research R2-05); type change between owned and owed opens a confirmation describing the effect on Owned/Owed/Net worth (FR-011); user group select
-- [ ] T050 [US3] Implement `SortableList` in `apps/web/components/accounts/SortableList.tsx` (dnd-kit with keyboard sensor and screen-reader announcements, plus Move up / Move down buttons on each row); a move sends one `update { sortKey: keyBetween(prev, next) }` (FR-010, research R2-06, R2-09)
-- [ ] T051 [US3] Implement `ViewSwitch` in `apps/web/components/accounts/ViewSwitch.tsx` (By type / My groups, saved via `PATCH /api/me/preferences`) and the My groups rendering in `apps/web/app/(app)/accounts/page.tsx` (user groups by their `sort_key`, then "Ungrouped") (FR-009)
-- [ ] T052 [US3] Implement `/accounts/groups` in `apps/web/app/(app)/accounts/groups/page.tsx`: create, rename (1–30 chars, unique ignoring case → `GROUP_NAME_TAKEN`), reorder with `SortableList`, delete with confirmation explaining accounts move to "Ungrouped" (FR-009a/b)
+- [X] T047 [US3] Migration `supabase/migrations/<ts>_accounts_view_preference.sql`: `user_preferences.accounts_view public.accounts_view not null default 'by_type'`; grant update on the column to `authenticated`; regenerate types
+- [X] T048 [US3] Add `accountsView` to `Preferences`/`PreferencesUpdate`/`DEFAULT_PREFERENCES` in `packages/core/src/schemas/me.ts`, the preferences repository `packages/db/src/repositories/preferences.ts`, and the `PATCH /api/me/preferences` / `GET /api/me` responses (`apps/web/lib/me.ts`)
+- [X] T049 [US3] Implement `/accounts/[id]` in `apps/web/app/(app)/accounts/[id]/page.tsx` with `AccountForm` in edit mode: sends `update` with only changed fields (research R2-05); type change between owned and owed opens a confirmation describing the effect on Owned/Owed/Net worth (FR-011); user group select
+- [X] T050 [US3] Implement `SortableList` in `apps/web/components/accounts/SortableList.tsx` (dnd-kit with keyboard sensor and screen-reader announcements, plus Move up / Move down buttons on each row); a move sends one `update { sortKey: keyBetween(prev, next) }` (FR-010, research R2-06, R2-09)
+- [X] T051 [US3] Implement `ViewSwitch` in `apps/web/components/accounts/ViewSwitch.tsx` (By type / My groups, saved via `PATCH /api/me/preferences`) and the My groups rendering in `apps/web/app/(app)/accounts/page.tsx` (user groups by their `sort_key`, then "Ungrouped") (FR-009)
+- [X] T052 [US3] Implement `/accounts/groups` in `apps/web/app/(app)/accounts/groups/page.tsx`: create, rename (1–30 chars, unique ignoring case → `GROUP_NAME_TAKEN`), reorder with `SortableList`, delete with confirmation explaining accounts move to "Ungrouped" (FR-009a/b)
 
 **Checkpoint**: US3 works; both views and one user-wide order.
 

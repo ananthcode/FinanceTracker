@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { keyBetween, keysBetween } from "../src/ordering/keys";
+import { keyBetween, keysBetween, planMove } from "../src/ordering/keys";
 
 /** T005 — fractional index keys: a move changes one key (FR-010, R2-06). */
 describe("keyBetween", () => {
@@ -50,5 +50,43 @@ describe("keyBetween", () => {
     expect(() => keyBetween(a, a)).toThrow();
     expect(() => keyBetween("zz!", null)).toThrow();
     expect(() => keyBetween("a00", null)).toThrow(); // trailing zero is not canonical
+  });
+});
+
+describe("planMove (FR-010)", () => {
+  const apply = (list: { id: string; sortKey: string }[], changes: { id: string; sortKey: string }[]) =>
+    list
+      .map((i) => changes.find((c) => c.id === i.id) ?? i)
+      .sort((a, b) => (a.sortKey < b.sortKey ? -1 : a.sortKey > b.sortKey ? 1 : a.id < b.id ? -1 : 1))
+      .map((i) => i.id);
+  const list = [
+    { id: "a", sortKey: "a0" },
+    { id: "b", sortKey: "a1" },
+    { id: "c", sortKey: "a2" },
+  ];
+
+  it("moves an item with a single key change", () => {
+    const up = planMove(list, 2, 1);
+    expect(up).toHaveLength(1);
+    expect(apply(list, up)).toEqual(["a", "c", "b"]);
+    expect(apply(list, planMove(list, 0, 2))).toEqual(["b", "c", "a"]);
+    expect(apply(list, planMove(list, 2, 0))).toEqual(["c", "a", "b"]);
+  });
+
+  it("does nothing for a move to the same place or out of range", () => {
+    expect(planMove(list, 1, 1)).toEqual([]);
+    expect(planMove(list, 0, 5)).toEqual([]);
+  });
+
+  it("repairs equal keys left by two offline devices", () => {
+    const tied = [
+      { id: "a", sortKey: "a0" },
+      { id: "b", sortKey: "a1" },
+      { id: "c", sortKey: "a1" },
+      { id: "d", sortKey: "a2" },
+    ];
+    // Move d between b and c, whose keys are equal.
+    const changes = planMove(tied, 3, 2);
+    expect(apply(tied, changes)).toEqual(["a", "b", "d", "c"]);
   });
 });

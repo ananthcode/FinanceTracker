@@ -195,14 +195,14 @@ isOneToOne: false
                   ]
                 },"user_preferences": {
                   Row: {
-                    "base_currency": string,"date_format": Database["public"]['Enums']["date_format"],"fy_start_month": number,"number_format": Database["public"]['Enums']["number_format"],"timezone": string,"updated_at": string,"user_id": string
+                    "accounts_view": Database["public"]['Enums']["accounts_view"],"base_currency": string,"date_format": Database["public"]['Enums']["date_format"],"fy_start_month": number,"number_format": Database["public"]['Enums']["number_format"],"timezone": string,"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "base_currency"?: string,"date_format"?: Database["public"]['Enums']["date_format"],"fy_start_month"?: number,"number_format"?: Database["public"]['Enums']["number_format"],"timezone"?: string,"updated_at"?: string,"user_id": string
+                    "accounts_view"?: Database["public"]['Enums']["accounts_view"],"base_currency"?: string,"date_format"?: Database["public"]['Enums']["date_format"],"fy_start_month"?: number,"number_format"?: Database["public"]['Enums']["number_format"],"timezone"?: string,"updated_at"?: string,"user_id": string
                   }
                   Update: {
-                    "base_currency"?: string,"date_format"?: Database["public"]['Enums']["date_format"],"fy_start_month"?: number,"number_format"?: Database["public"]['Enums']["number_format"],"timezone"?: string,"updated_at"?: string,"user_id"?: string
+                    "accounts_view"?: Database["public"]['Enums']["accounts_view"],"base_currency"?: string,"date_format"?: Database["public"]['Enums']["date_format"],"fy_start_month"?: number,"number_format"?: Database["public"]['Enums']["number_format"],"timezone"?: string,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     

@@ -26,6 +26,15 @@ const INDIAN = /^\d{1,2}(,\d{2})*,\d{3}$/;
 
 const fail = (error: AmountInputError): AmountInputResult => ({ ok: false, error });
 
+/** Minor units → plain text an amount field can show and parse back exactly, e.g. -50025n → "-500.25". */
+export function formatAmountInput(minor: bigint, currency = "INR"): string {
+  const exponent = minorUnitsOf(currency);
+  const negative = minor < 0n;
+  const digits = (negative ? -minor : minor).toString().padStart(exponent + 1, "0");
+  const text = exponent === 0 ? digits : `${digits.slice(0, -exponent)}.${digits.slice(-exponent)}`;
+  return negative ? `-${text}` : text;
+}
+
 export function parseAmountInput(text: string, options: AmountInputOptions = {}): AmountInputResult {
   const currency = options.currency ?? "INR";
   const exponent = minorUnitsOf(currency);

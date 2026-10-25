@@ -62,3 +62,15 @@ describe("parseAmountInput", () => {
     expect(parseAmountInput("$12.34", { currency: "USD" })).toEqual(ok(1234n));
   });
 });
+
+describe("formatAmountInput", () => {
+  it("round-trips through parseAmountInput exactly", async () => {
+    const { formatAmountInput } = await import("../src/money/parse");
+    for (const v of [0n, 5n, 99n, 5234050n, -50025n, 999_999_999_999n, -999_999_999_999n]) {
+      expect(parseAmountInput(formatAmountInput(v), { allowNegative: true })).toEqual({ ok: true, minor: v });
+    }
+    expect(formatAmountInput(-50025n)).toBe("-500.25");
+    expect(formatAmountInput(5n)).toBe("0.05");
+    expect(formatAmountInput(1500n, "JPY")).toBe("1500");
+  });
+});

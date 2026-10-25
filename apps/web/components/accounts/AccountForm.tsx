@@ -9,12 +9,17 @@ import {
   ACCOUNT_TYPE_LABEL,
   ACCOUNT_TYPES,
   defaultAppearance,
+  formatAmountInput,
   isOwedType,
   parseAmountInput,
-  type AmountInputError,
   type AccountType,
+  type AccountView,
+  type AmountInputError,
   type ChangeResult,
+  type GroupView,
 } from "@ft/core";
+import { ConfirmDialog } from "@/components/ConfirmDialog";
+import { Money } from "@/components/Money";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -22,55 +27,58 @@ import { Label } from "@/components/ui/label";
 import { changes, useSyncPush } from "@/lib/sync-client";
 import { AccountIcon } from "./AccountIcon";
 
-type AccountInputErrorCode = AmountInputError;
-
 const selectClass = "h-9 rounded-md border border-input bg-transparent px-2 text-sm";
 
-const AMOUNT_MESSAGES: Record<AccountInputErrorCode, string> = {
+const AMOUNT_MESSAGES: Record<AmountInputError, string> = {
   NOT_A_NUMBER: "Enter an amount like 52,340.50.",
   TOO_MANY_DECIMALS: "Use at most two decimal places.",
   OUT_OF_RANGE: "The amount is too large.",
   NEGATIVE_NOT_ALLOWED: "Enter an amount greater than zero.",
 };
 
+type Field = "name" | "balance" | "date" | "credit" | "notes";
+
 const REJECTION_MESSAGES: Partial<Record<NonNullable<ChangeResult["code"]>, { field?: Field; message: string }>> = {
   NAME_TAKEN: { field: "name", message: "You already have an account with this name. Choose another name." },
   DATE_IN_FUTURE: { field: "date", message: "The date must be today or earlier." },
   LIMIT_REACHED: { message: "You have reached the limit of 200 accounts. Archive or delete accounts you no longer use." },
+  NOT_FOUND: { message: "This account no longer exists." },
 };
-
-type Field = "name" | "balance" | "date" | "credit" | "notes";
 
 const label = (key: string) => key.charAt(0).toUpperCase() + key.slice(1).replace(/-/g, " ");
 
+type Props = { todayIso: string; currency: string; groups: GroupView[] } & (
+  | { mode: "create"; nextSortKey: string }
+  | { mode: "edit"; account: AccountView }
+);
+
 /**
- * Add-account form (R2 US1; FR-001–FR-008, FR-018). Amounts are parsed to exact paise in the
- * browser (no rounding) and the server re-checks everything (contracts/sync-protocol.md).
+ * Add / edit account form (R2 US1, US3; FR-001–FR-011, FR-018). Amounts are parsed to exact paise
+ * in the browser (no rounding) and the server re-checks everything (contracts/sync-protocol.md).
+ * Editing sends only the fields that changed, so edits from two tabs or devices combine (FR-030).
  */
-export function AccountForm({
-  todayIso,
-  currency,
-  nextSortKey,
-}: {
-  todayIso: string;
-  currency: string;
-  nextSortKey: string;
-}) {
+export function AccountForm(props: Props) {
+  const { todayIso, currency, groups } = props;
+  const original = props.mode === "edit" ? props.account : null;
   const ids = useId();
   const router = useRouter();
   const push = useSyncPush();
 
-  const [name, setName] = useState("");
-  const [type, setType] = useState<AccountType>("bank");
-  const [balance, setBalance] = useState("");
-  const [date, setDate] = useState(todayIso);
-  const [appearance, setAppearance] = useState(() => ({ ...defaultAppearance("bank"), chosen: false }));
-  const [credit, setCredit] = useState("");
-  const [notes, setNotes] = useState("");
-  const [include, setInclude] = useState(true);
+  const [name, setName] = useState(original?.name ?? "");
+  const [type, setType] = useState<AccountType>(original?.type ?? "bank");
+  const [balance, setBalance] = useState(original ? formatAmountInput(original.openingBalanceMinor, currency) : "");
+  const [date, setDate] = useState(original?.openingBalanceDate ?? todayIso);
+  const [appearance, setAppearance] = useState(() =>
+    original ? { colour: original.colour, icon: original.icon, chosen: true } : { ...defaultAppearance("bank"), chosen: false },
+  );
+  const [credit, setCredit] = useState(original?.creditLimitMinor ? formatAmountInput(original.creditLimitMinor, currency) : "");
+  const [notes, setNotes] = useState(original?.notes ?? "");
+  const [include, setInclude] = useState(original?.includeInNetWorth ?? true);
+  const [groupId, setGroupId] = useState<string>(original?.groupId ?? "");
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
   const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  const [confirm, setConfirm] = useState<{ fields: Record<string, unknown>; balance: bigint } | null>(null);
 
   const owed = isOwedType(type);
 
@@ -80,7 +88,8 @@ export function AccountForm({
     if (!appearance.chosen) setAppearance({ ...defaultAppearance(next), chosen: false });
   }
 
-  function validate(): { fields: Record<string, unknown> } | null {
+  /** Validated field values (wire format), or null with errors shown. */
+  function validate(): { fields: Record<string, unknown>; balance: bigint } | null {
     const next: Partial<Record<Field, string>> = {};
     const trimmed = name.trim();
     if ([...trimmed].length < 1) next.name = "Enter a name.";
@@ -104,6 +113,7 @@ export function AccountForm({
     setErrors(next);
     if (Object.keys(next).length > 0 || !amount.ok) return null;
     return {
+      balance: amount.minor,
       fields: {
         name: trimmed,
         type,
@@ -111,22 +121,41 @@ export function AccountForm({
         openingBalanceDate: date,
         colour: appearance.colour,
         icon: appearance.icon,
-        sortKey: nextSortKey,
+        groupId: groupId === "" ? null : groupId,
         includeInNetWorth: include,
         notes: notes.trim() === "" ? null : notes.trim(),
-        creditLimitMinor: limit === null ? null : limit.toString(),
+        // A card's limit; an owned type never has one (the server drops it on a type change).
+        ...(owed ? { creditLimitMinor: limit === null ? null : limit.toString() } : {}),
       },
     };
   }
 
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    setFormError(null);
-    const valid = validate();
-    if (!valid) return;
+  /** Only the fields that differ from the saved account (research R2-05). */
+  function changedFields(fields: Record<string, unknown>, account: AccountView): Record<string, unknown> {
+    const saved: Record<string, unknown> = {
+      name: account.name,
+      type: account.type,
+      openingBalanceMinor: account.openingBalanceMinor.toString(),
+      openingBalanceDate: account.openingBalanceDate,
+      colour: account.colour,
+      icon: account.icon,
+      groupId: account.groupId,
+      includeInNetWorth: account.includeInNetWorth,
+      notes: account.notes,
+      creditLimitMinor: account.creditLimitMinor === null ? null : account.creditLimitMinor.toString(),
+    };
+    return Object.fromEntries(Object.entries(fields).filter(([key, value]) => saved[key] !== value));
+  }
+
+  async function save(fields: Record<string, unknown>) {
     setBusy(true);
-    const outcome = await push([changes.createAccount(crypto.randomUUID(), valid.fields)]);
+    const change =
+      props.mode === "create"
+        ? changes.createAccount(crypto.randomUUID(), { ...fields, sortKey: props.nextSortKey })
+        : changes.updateAccount(props.account.id, fields);
+    const outcome = await push([change]);
     setBusy(false);
+    setConfirm(null);
     if (!outcome.ok) {
       setFormError(outcome.error.code === "NETWORK" ? "You appear to be offline. Please try again." : outcome.error.message);
       return;
@@ -139,6 +168,26 @@ export function AccountForm({
       return;
     }
     router.push("/accounts");
+  }
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    setFormError(null);
+    const valid = validate();
+    if (!valid) return;
+    if (props.mode === "create") return save(valid.fields);
+
+    const fields = changedFields(valid.fields, props.account);
+    if (Object.keys(fields).length === 0) {
+      router.push("/accounts");
+      return;
+    }
+    // Moving between owned and owed changes the totals: ask first (FR-011).
+    if ("type" in fields && isOwedType(props.account.type) !== owed) {
+      setConfirm({ fields, balance: valid.balance });
+      return;
+    }
+    return save(fields);
   }
 
   const err = (field: Field) =>
@@ -234,6 +283,20 @@ export function AccountForm({
         </div>
       )}
 
+      {groups.length > 0 && (
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor={`${ids}-group`}>Group</Label>
+          <select id={`${ids}-group`} className={selectClass} value={groupId} onChange={(e) => setGroupId(e.target.value)}>
+            <option value="">No group</option>
+            {[...groups].sort((a, b) => (a.sortKey < b.sortKey ? -1 : a.sortKey > b.sortKey ? 1 : 0)).map((g) => (
+              <option key={g.id} value={g.id}>
+                {g.name}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
+
       <fieldset className="flex flex-col gap-2">
         <legend className="mb-2 text-sm font-medium">Colour</legend>
         <div className="flex flex-wrap gap-2">
@@ -246,7 +309,7 @@ export function AccountForm({
                 checked={appearance.colour === key}
                 onChange={() => setAppearance({ ...appearance, colour: key, chosen: true })}
                 aria-label={label(key)}
-                className="peer sr-only"
+                className="peer absolute inset-0 z-10 size-full cursor-pointer opacity-0"
               />
               <span className="block rounded-full p-0.5 ring-offset-2 peer-checked:ring-2 peer-checked:ring-foreground peer-focus-visible:outline-2 peer-focus-visible:outline-brand">
                 <AccountIcon icon={appearance.icon} colour={key} size="sm" />
@@ -268,7 +331,7 @@ export function AccountForm({
                 checked={appearance.icon === key}
                 onChange={() => setAppearance({ ...appearance, icon: key, chosen: true })}
                 aria-label={label(key)}
-                className="peer sr-only"
+                className="peer absolute inset-0 z-10 size-full cursor-pointer opacity-0"
               />
               <span className="block rounded-full p-0.5 ring-offset-2 peer-checked:ring-2 peer-checked:ring-foreground peer-focus-visible:outline-2 peer-focus-visible:outline-brand">
                 <AccountIcon icon={key} colour={appearance.colour} size="sm" />
@@ -312,12 +375,39 @@ export function AccountForm({
 
       <div className="flex gap-2">
         <Button type="submit" disabled={busy}>
-          {busy ? "Saving…" : "Add account"}
+          {busy ? "Saving…" : props.mode === "create" ? "Add account" : "Save changes"}
         </Button>
         <Link href="/accounts" className={buttonVariants({ variant: "outline" })}>
           Cancel
         </Link>
       </div>
+
+      {confirm && (
+        <ConfirmDialog
+          title={`Change ${name.trim() || "this account"} to ${ACCOUNT_TYPE_LABEL[type].toLowerCase()}?`}
+          confirmLabel="Change type"
+          busy={busy}
+          onCancel={() => setConfirm(null)}
+          onConfirm={() => void save(confirm.fields)}
+        >
+          <p>
+            Its balance will count as {owed ? "owed instead of owned" : "owned instead of owed"}
+            {include ? "," : "."}
+            {include && (
+              <>
+                {" "}
+                so your net worth changes by{" "}
+                <Money value={owed ? -2n * confirm.balance : 2n * confirm.balance} currency={currency} />.
+              </>
+            )}
+          </p>
+          <p>
+            {owed
+              ? "From now on the amount is what you owe on the card."
+              : "From now on the amount is what the account holds."}
+          </p>
+        </ConfirmDialog>
+      )}
     </form>
   );
 }
