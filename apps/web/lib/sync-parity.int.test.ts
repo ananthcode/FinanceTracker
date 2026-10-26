@@ -36,7 +36,16 @@ describe("SQL parity with packages/core", () => {
     const db = testAdmin();
     const m = await newMember("parity");
     // Vectors without movements: the SQL balance has no transactions before R4.
-    const accounts = balances.cases.filter((c) => c.movements.length === 0).flatMap((c) => c.accounts);
+    interface VectorAccount {
+      type: string;
+      openingBalanceMinor: string;
+      openingBalanceDate: string;
+      state: string;
+      creditLimitMinor: string | null;
+    }
+    const accounts: VectorAccount[] = balances.cases
+      .filter((c) => c.movements.length === 0)
+      .flatMap((c) => c.accounts as VectorAccount[]);
     for (const a of accounts) {
       const id = randomUUID();
       const { error } = await db.from("accounts").insert({
