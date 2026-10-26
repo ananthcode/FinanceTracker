@@ -9,3 +9,4 @@ export * from "./net";
 export * from "./accounts";
 export * from "./sync";
 export * from "./ordering";
+export * from "./demo";

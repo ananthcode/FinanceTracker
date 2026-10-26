@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import { uniqueEmail } from "./helpers/db";
+import { seedAccounts, uniqueEmail } from "./helpers/db";
 import { ensureOwner, signInUI } from "./helpers/owner";
 import { createMember } from "./helpers/users";
 
@@ -56,6 +56,57 @@ test("keyboard only: Tab reaches the navigation in order and Enter opens a secti
   expect(outline).not.toBe("none");
   await page.keyboard.press("Enter");
   await expect(page.getByRole("heading", { level: 1, name: "Payment plan" })).toBeVisible();
+});
+
+test("accounts screens with the demo accounts, both views (R2 T064)", async ({ page, request }) => {
+  await ensureOwner(request);
+  const member = uniqueEmail("a11yacc");
+  await createMember(request, member);
+  await seedAccounts(member, { demo: true });
+  await signInUI(page, member);
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto("/accounts");
+    await page.locator("#archived summary").click(); // include the archived list
+    await expectNoViolations(page, `/accounts by type @${width}px`);
+    await page.getByRole("radio", { name: "My groups" }).click();
+    await expect(page.getByRole("region", { name: "Held for family" })).toBeVisible();
+    await expectNoViolations(page, `/accounts my groups @${width}px`);
+    await page.getByRole("radio", { name: "By type" }).click();
+    await expect(page.getByRole("region", { name: "Bank accounts" })).toBeVisible();
+    for (const path of ["/accounts/new", "/accounts/groups"]) {
+      await page.goto(path);
+      await expectNoViolations(page, `${path} @${width}px`);
+    }
+    await page.goto("/accounts");
+    await page.getByRole("link", { name: "Rewards Card", exact: true }).click();
+    await expect(page.getByRole("heading", { level: 1, name: "Edit account" })).toBeVisible();
+    await expectNoViolations(page, `/accounts/[id] @${width}px`);
+  }
+});
+
+test("accounts: keyboard reordering announces positions and Move buttons work without a mouse (R2 T064)", async ({ page, request }) => {
+  await ensureOwner(request);
+  const member = uniqueEmail("a11ykeys");
+  await createMember(request, member);
+  await seedAccounts(member, { demo: true });
+  await page.setViewportSize({ width: 1280, height: 900 });
+  await signInUI(page, member);
+  await page.goto("/accounts");
+  const names = () => page.getByRole("region", { name: "Bank accounts" }).locator("[data-account-name]").allInnerTexts();
+  await expect.poll(names).toEqual(["Everyday Savings", "Joint Current", "Family Savings"]);
+
+  await page.getByRole("button", { name: "Move Joint Current up" }).focus();
+  await page.keyboard.press("Enter");
+  await expect.poll(names).toEqual(["Joint Current", "Everyday Savings", "Family Savings"]);
+  await page.waitForLoadState("networkidle"); // let the refresh after the move land before dragging
+
+  await page.getByRole("button", { name: "Reorder Joint Current" }).focus();
+  await page.keyboard.press("Space");
+  await expect(page.getByText(/Picked up Joint Current, position 1 of 3/)).toBeAttached();
+  await page.keyboard.press("ArrowDown");
+  await page.keyboard.press("Space");
+  await expect.poll(names).toEqual(["Everyday Savings", "Joint Current", "Family Savings"]);
 });
 
 test("admin area", async ({ page, request }) => {

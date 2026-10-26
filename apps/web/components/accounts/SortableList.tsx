@@ -13,7 +13,7 @@ import {
 import { SortableContext, sortableKeyboardCoordinates, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { ArrowDown, ArrowUp, GripVertical } from "lucide-react";
-import { useId, useState, type ReactNode } from "react";
+import { useId, useRef, useState, type ReactNode } from "react";
 import { planMove, type Keyed } from "@ft/core";
 import { changes, useSyncPush } from "@/lib/sync-client";
 
@@ -77,9 +77,23 @@ export function SortableList({
 
   const nameOf = (id: string | number) => list.find((i) => i.id === id)?.label ?? "item";
   const positionOf = (id: string | number) => list.findIndex((i) => i.id === id) + 1;
+  // dnd-kit reports "over its own place" the moment a drag starts; that must not replace the
+  // "Picked up" announcement, so remember whether the item has moved yet.
+  const moved = useRef(false);
+  const pickedUp = (id: string | number) => `Picked up ${nameOf(id)}, position ${positionOf(id)} of ${list.length}.`;
   const announcements: Announcements = {
-    onDragStart: ({ active }) => `Picked up ${nameOf(active.id)}, position ${positionOf(active.id)} of ${list.length}.`,
-    onDragOver: ({ active, over }) => (over ? `${nameOf(active.id)} is over position ${positionOf(over.id)}.` : undefined),
+    onDragStart: ({ active }) => {
+      moved.current = false;
+      return pickedUp(active.id);
+    },
+    onDragOver: ({ active, over }) => {
+      if (!over) return undefined;
+      if (over.id === active.id) {
+        return moved.current ? `${nameOf(active.id)} is back at position ${positionOf(over.id)}.` : pickedUp(active.id);
+      }
+      moved.current = true;
+      return `${nameOf(active.id)} is over position ${positionOf(over.id)}.`;
+    },
     onDragEnd: ({ active, over }) => (over ? `${nameOf(active.id)} dropped at position ${positionOf(over.id)}.` : `${nameOf(active.id)} dropped.`),
     onDragCancel: ({ active }) => `Moving ${nameOf(active.id)} was cancelled.`,
   };

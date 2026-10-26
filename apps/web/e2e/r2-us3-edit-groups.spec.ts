@@ -45,6 +45,7 @@ test("reordering by button and by keyboard drag is kept across reloads and devic
 
   await page.getByRole("button", { name: "Move Gamma cash up" }).click();
   await expect.poll(() => namesIn(page, "Cash")).toEqual(["Alpha cash", "Gamma cash", "Beta cash"]);
+  await page.waitForLoadState("networkidle"); // let the refresh after the move land before dragging
 
   // Keyboard drag: focus the handle, Space to lift, ArrowDown, Space to drop.
   await page.getByRole("button", { name: "Reorder Alpha cash" }).focus();
