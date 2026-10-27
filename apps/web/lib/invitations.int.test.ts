@@ -1,5 +1,6 @@
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { testAdmin, uniqueEmail } from "@/test/fixtures";
+import { newMember } from "@/test/sync";
 
 /**
  * T122 / SC-008: `invitation_delivery_failed` is recorded when the invitation email cannot be sent
@@ -20,9 +21,8 @@ describe("invitation email delivery failure (FR-003b)", () => {
     const { createInvitation } = await import("./invitations");
     const db = testAdmin();
     const { data: owner } = await db.from("profiles").select("user_id, email").eq("role", "owner").maybeSingle();
-    const actor = owner
-      ? { id: owner.user_id as string, email: owner.email as string }
-      : { id: "00000000-0000-4000-8000-0000000000aa", email: "owner@example.com" };
+    // invited_by must reference a real user; a fresh database (CI) has no owner yet.
+    const actor = owner ? { id: owner.user_id as string, email: owner.email as string } : await newMember("inviter");
 
     const email = uniqueEmail("undeliverable");
     const created = await createInvitation(email, actor);
