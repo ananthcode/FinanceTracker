@@ -13,6 +13,16 @@ them' / 'they owe me') with an opening balance; hide, merge and relocate for cat
 Reuses R2's sync so these records sync offline-first. Web first; the Android client follows in the
 Android phase. Person-ledger movements, interest and statements are R4/R6."
 
+## Clarifications
+
+### Session 2026-10-27
+
+- Q: Should money that people owe you, or that you owe them, count in the net worth figure on the Accounts screen? → A: Per person — each person has an "Include in net worth" switch, off by default; when on, money they owe you adds to Owned and money you owe them adds to Owed.
+- Q: Should "Relocate" (moving everything recorded under one category or payee to another, keeping the original) be built in R4 with transactions instead of in R3? → A: Yes — relocate moves to R4; the roadmap is updated. R3 ships hide, merge and delete.
+- Q: When does a user get the default categories — automatically, or chosen once ("Start with suggested categories" / "Start empty")? → A: Chosen once: the first time categories are needed, the user picks "Start with suggested categories" (preselected) or "Start empty".
+- Q: Should expense and income categories be two separate lists, or one shared list usable for both directions? → A: Two separate lists, Expense and Income; a category's kind is fixed and sub-categories inherit it. Refunds are recorded as money coming in against the original expense category (R4).
+- Q: Where should people's balances live — their own "People" entry in the main navigation, or inside Settings? → A: A new **People** entry in the main navigation, after Accounts, showing each person's balance and the two totals; Categories, Payees and Tags stay under Settings.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Organise spending and income into nested categories (Priority: P1)
@@ -25,27 +35,32 @@ category under a different parent.
 **Why this priority**: Every transaction (R4), budget and report is grouped by category; reports roll
 sub-categories up into their parents. Without categories nothing can be classified.
 
-**Independent Test**: Asha (synthetic user) opens Categories and sees the default Expense and Income
-trees. She adds "Kids" under Education, then "Swimming classes" under Kids, renames "Eating out" to
+**Independent Test**: Asha (synthetic user) opens Categories, keeps "Start with suggested
+categories", and sees the default Expense and Income trees. She adds "Kids" under Education, then "Swimming classes" under Kids, renames "Eating out" to
 "Restaurants", and moves "Pets" from Family & social to the top level. Each change shows at once, and
 "Swimming classes" is shown with its path "Education › Kids › Swimming classes".
 
 **Acceptance Scenarios**:
 
-1. **Given** a user who has never opened Categories, **When** they open it, **Then** they see the
-   default categories in two trees, Expense and Income, each sorted alphabetically at every level.
-2. **Given** any category, **When** the user adds a sub-category under it, **Then** it appears under
+1. **Given** a user who has never used categories, **When** they first open Categories or a category
+   picker, **Then** they are asked once to choose "Start with suggested categories" (preselected) or
+   "Start empty"; choosing the first adds the default categories in two trees, Expense and Income, each
+   sorted alphabetically at every level.
+2. **Given** a user who chose "Start empty", **When** they open Categories while they have no
+   categories, **Then** they see the empty Expense and Income trees with "Add category" and an
+   "Add suggested categories" option.
+3. **Given** any category, **When** the user adds a sub-category under it, **Then** it appears under
    that parent, belongs to the same kind (expense or income), and can itself have sub-categories with
    no fixed depth limit.
-3. **Given** a parent already has a sub-category "Fuel", **When** the user adds or renames another
+4. **Given** a parent already has a sub-category "Fuel", **When** the user adds or renames another
    sub-category of the same parent to "fuel", **Then** it is refused (names are unique among
    siblings, ignoring letter case); a "Fuel" under a different parent is allowed.
-4. **Given** a category, **When** the user moves it under another category of the same kind or to the
+5. **Given** a category, **When** the user moves it under another category of the same kind or to the
    top level, **Then** it moves with all its sub-categories; moving it under itself or one of its own
    sub-categories is not offered.
-5. **Given** the user changes a category's name, colour or icon, **When** they save, **Then** every
+6. **Given** the user changes a category's name, colour or icon, **When** they save, **Then** every
    screen shows the new values, and the change history records the old and new values.
-6. **Given** a long tree, **When** the user types part of a name in the category search or picker,
+7. **Given** a long tree, **When** the user types part of a name in the category search or picker,
    **Then** matching categories are shown with their full path so same-named sub-categories can be
    told apart.
 
@@ -88,9 +103,9 @@ balance.
 person ledgers replace it and feed the payment plan (R7) and person statements (R6).
 
 **Independent Test**: Asha adds the person "Ravi Kumar" with opening balance "Ravi owes me
-₹15,000.00" as of 01-Apr-2026, and "Meera Iyer" with "I owe Meera ₹4,500.00". The People view lists
+₹15,000.00" as of 01-Apr-2026, and "Meera Iyer" with "I owe Meera ₹4,500.00". The People screen lists
 Ravi "owes you ₹15,000.00" and Meera "you owe ₹4,500.00", with totals "People owe you ₹15,000.00" and
-"You owe people ₹4,500.00".
+"You owe people ₹4,500.00". The People screen is one click away in the main navigation.
 
 **Acceptance Scenarios**:
 
@@ -99,12 +114,15 @@ Ravi "owes you ₹15,000.00" and Meera "you owe ₹4,500.00", with totals "Peopl
    with that balance and a label stating the direction in words (not colour alone).
 2. **Given** a person with no opening balance, **When** they are listed, **Then** their balance shows
    ₹0.00 with "settled" and no direction.
-3. **Given** several people, **When** the People view is shown, **Then** it shows each person's
-   balance and two totals — "People owe you" and "You owe people" — each exact to the paisa.
+3. **Given** several people, **When** the user opens **People** from the main navigation, **Then** it
+   shows each person's balance and two totals — "People owe you" and "You owe people" — each exact to the paisa.
 4. **Given** hide-balances is on (R1), **When** any payee or people screen is shown, **Then** every
    balance and total is masked.
 5. **Given** an opening-balance date in the future, **When** the user saves, **Then** it is refused
    with an explanation.
+6. **Given** Ravi owes Asha ₹15,000.00 and his "Include in net worth" switch is off (the default),
+   **When** she turns it on, **Then** the Accounts screen's Owned and Net worth rise by ₹15,000.00 and
+   the summary shows a "People" line so the figures still add up; turning it off reverses this.
 
 ---
 
@@ -201,9 +219,10 @@ web with no duplicates.
 
 ### Edge Cases
 
-- The default categories are added once per user. They never appear twice, even if the user opens
-  Categories on several devices or browsers at the same moment, and deleting or renaming a default
-  never brings it back.
+- The default categories are added at most once per user. They never appear twice, even if the user
+  makes the start choice on several devices or browsers at the same moment, and deleting or renaming a
+  default never brings it back. If two devices answer the start choice differently, the first answer to
+  reach the service counts.
 - Moving a category whose name already exists among the new parent's sub-categories is refused, with
   a suggestion to merge instead.
 - A hidden parent hides its whole subtree from pickers; an unhidden sub-category under a hidden parent
@@ -248,9 +267,12 @@ web with no duplicates.
   its whole subtree) under another category of the same kind or to the top level of its kind. A move
   that would place a category under itself or its own sub-category, or next to a sibling with the
   same name, MUST be refused.
-- **FR-007**: Every user MUST start with the default category set in [Default categories](#default-categories),
-  added once; after that the defaults are ordinary categories the user may rename, move, hide, merge or
-  delete, and they are never re-added automatically.
+- **FR-007**: The first time a user needs categories (opening Categories or any category picker), they
+  MUST be asked once to choose **Start with suggested categories** (preselected) — which adds the set in
+  [Default categories](#default-categories) — or **Start empty**. While a user has no categories, the
+  Categories screen MUST also offer "Add suggested categories". Once added, defaults are ordinary
+  categories the user may rename, move, hide, merge or delete, and they are never re-added
+  automatically.
 - **FR-008**: A user MUST be able to have up to 500 categories (not counting deleted ones); the form
   explains the limit when it is reached.
 
@@ -271,7 +293,8 @@ web with no duplicates.
   deleted (including hidden ones), ignoring letter case.
 - **FR-013**: The payee list MUST be searchable by any part of the name as the user types, and filterable
   by kind (All, Businesses, People) and by hidden state.
-- **FR-014**: Users MUST be able to edit a payee's name, kind, default category and notes. Changing a
+- **FR-014**: Users MUST be able to edit a payee's name, kind, default category and notes (and, for a
+  person, the opening balance, its direction and date, and the net-worth switch). Changing a
   person to a business MUST be refused unless the person's balance is ₹0.00.
 - **FR-015**: A user MUST be able to have up to 2,000 payees.
 
@@ -286,13 +309,21 @@ web with no duplicates.
   opening balance. It MUST be exact and recomputable on demand.
 - **FR-018**: A person's balance MUST be shown with words stating the direction — "owes you ₹X",
   "you owe ₹X" or "settled" — never by sign or colour alone.
-- **FR-019**: The People view MUST show two totals: **People owe you** (sum of balances where the person
+- **FR-019**: The People screen MUST show two totals: **People owe you** (sum of balances where the person
   owes the user) and **You owe people** (sum where the user owes the person), each exact to the paisa,
   including hidden people with a non-zero balance. These figures MUST be identical on every screen that
   shows them (later the R7 payment plan's "money owed to / by people" panel).
-- **FR-020**: Person balances MUST NOT be included in the accounts screen's Owned, Owed or Net worth
-  (R2), which remain account-only.
+- **FR-020**: Each person MUST have an "Include in net worth" switch, off by default. When it is on,
+  the person's balance counts in the Accounts screen's summary (R2): money they owe the user adds to
+  Owned, money the user owes them adds to Owed, and Net worth changes accordingly. The summary MUST then
+  show a "People" line (owed to you and owed by you, for included people only) so Owned, Owed and Net
+  worth still add up from the lines shown. People with the switch off never affect these figures. The
+  People totals (FR-019) always include every person, whatever the switch.
 - **FR-021**: Every amount on payee and people screens MUST respect hide-balances mode (R1).
+- **FR-034**: The main navigation MUST gain a **People** entry directly after Accounts, on every width
+  (the phone drawer included). The People screen lists every person (hidden people in a separate,
+  collapsible section) with their balance and direction, the two People totals (FR-019) at the top, and
+  "Add person". Categories, Payees and Tags MUST be reachable from Settings.
 
 **Hide, merge, delete**
 
@@ -310,15 +341,16 @@ web with no duplicates.
   confirmation, every reference to the source MUST point to the target; the target keeps its name,
   kind and default category; the source's notes are appended to the target's; when both are people
   the source's opening balance is added to the target's (the target's opening-balance date becomes the
-  earlier of the two) so the combined balance is exact; the source is then deleted.
+  earlier of the two) so the combined balance is exact, and the target keeps its own net-worth switch;
+  the source is then deleted.
 - **FR-025**: Users MUST be able to delete a category only if it has no sub-categories and nothing has
   ever been recorded against it, and a payee only if nothing has ever been recorded against it
   (transactions arrive in R4). Deleting requires confirmation; for a category the confirmation says how
   many payees will lose it as their default. Deleted records disappear from every screen and are kept
   in the change history (soft deletion).
 - **FR-026**: Relocate — moving every record from one category or payee to another while keeping the
-  source — MUST be available once transactions exist (R4); in this module the only references are payee
-  default categories, which merge already covers.
+  source — is out of scope for this module and is delivered in R4 with transactions (owner's choice
+  2026-10-27); here the only references are payee default categories, which merge already covers.
 
 **Privacy and history**
 
@@ -345,7 +377,8 @@ web with no duplicates.
 
 ### Default categories
 
-Added once for every user (FR-007). Expense tree:
+Added when the user chooses "Start with suggested categories" or "Add suggested categories" (FR-007).
+Expense tree:
 
 | Category | Sub-categories |
 |----------|----------------|
@@ -386,7 +419,7 @@ Income tree:
 - **Payee**: a business or person the user pays or is paid by. Attributes: name, kind (business or
   person), default category (optional), notes, hidden flag, state (active, deleted), owner.
 - **Person ledger** (for a person payee): opening balance (exact, in base currency) with direction and
-  date; current balance derived (FR-017).
+  date; include-in-net-worth switch (off by default); current balance derived (FR-017).
 - **People totals**: derived — "People owe you" and "You owe people".
 - **Change record**: one entry in the append-only history per create, edit, move, hide, unhide, merge
   or delete: who, when, device type, action and the values before and after.
@@ -402,16 +435,16 @@ Income tree:
 - **SC-003**: Across a test set covering nested merges with clashing sub-category names, payee merges
   and deletes, 100% of references end up on the expected record, and no category, payee or reference is
   lost or duplicated.
-- **SC-004**: Across a test set covering zero, both directions, merged people and maximum-size
-  balances, 100% of person balances and the two People totals match hand-computed values exactly to the
-  paisa.
+- **SC-004**: Across a test set covering zero, both directions, merged people, people included in and
+  left out of net worth, and maximum-size balances, 100% of person balances, the two People totals and
+  the Accounts screen's Owned, Owed and Net worth match hand-computed values exactly to the paisa.
 - **SC-005**: Automated isolation tests show 0 cases in which a user — including the owner-admin — can
   read or change another user's categories, tags, payees or their change history.
 - **SC-006**: 100% of changes made during acceptance testing appear in the change history with correct
   before/after values, and none appears in operational logs with names, notes or amounts.
 - **SC-007**: With hide-balances on, a review of every payee and people screen finds 0 unmasked amounts.
-- **SC-008**: Every user has exactly one copy of the default categories, including when Categories is
-  opened on two browsers at the same moment.
+- **SC-008**: Every user who chooses the suggested categories has exactly one copy of them, including
+  when the choice is made on two browsers at the same moment; a user who chooses "Start empty" has none.
 - **SC-009** (Android phase): 20 changes to categories, tags and payees made offline across two devices,
   including conflicting edits and duplicate names, sync with 0 lost changes, 0 duplicates and identical
   lists on both devices within 1 minute of reconnecting.
@@ -421,20 +454,22 @@ Income tree:
 - **Delivery order**: web first (owner, 2026-10-24). Stories 1–5 are built for the web here; Story 6
   and the Android screens come in the Android phase, using the sync chosen in R2, so these records are
   shaped to sync without rework.
-- **Navigation**: Categories, Payees (with a People filter and totals) and Tags are reached from
-  Settings; R4 also opens them from the transaction form. The R1 navigation does not change.
-- **Kinds**: expense and income categories are separate trees, as in MS Money and Quicken; transfers
-  (R4) use no category.
+- **Navigation** (owner, 2026-10-27): a new **People** entry joins the main navigation after Accounts
+  (FR-034); Categories, Payees and Tags are reached from Settings, and R4 also opens them from the
+  transaction form.
+- **Kinds**: expense and income categories are separate trees, as in MS Money and Quicken (owner,
+  2026-10-27); a refund is money coming in against the original expense category, reducing spending
+  (R4); transfers (R4) use no category; reimbursement tracking is Phase 2b.
 - **Ordering** is alphabetical rather than manual: lists of categories and payees are long and
   alphabetical order is what pickers need.
-- **Relocate** (FR-026) is defined here but delivered in R4, since it only matters once transactions
+- **Relocate** (FR-026) moved to R4 (owner, 2026-10-27), since it only matters once transactions
   exist; merge covers the clean-up needed now.
 - **Person ledger scope**: movements (lend, borrow, repay, paid / collected on behalf of), interest and
   rate history arrive in R4; person statements and the per-person sign-direction setting in R6; the
   payment-plan people panel in R7. This module defines the person, the opening balance and the derived
   balance.
-- **Net worth** stays account-only (FR-020): money lent to or borrowed from people is shown in the
-  People totals, not mixed into the accounts summary.
+- **Net worth** stays account-only unless the user switches a person in (FR-020, owner's choice
+  2026-10-27); every person always appears in the People totals.
 - **Statement match patterns** for payees (SCOPE D10) belong to statement import (Phase 2a).
 - Merging and deleting are checked by the service; on Android they are applied when they sync (FR-033).
 - Viewing the change history in the app is Phase 4 (undo UI); the history is captured from the start.

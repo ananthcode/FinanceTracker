@@ -36,3 +36,6 @@
   owner in `/speckit-clarify` — whether person balances count in net worth (FR-020), whether relocate
   moves to R4 (FR-026, a roadmap scope change), separate expense/income trees (FR-001) and how default
   categories are added (FR-007).
+- Clarify session 2026-10-27: 5 questions answered (FR-020 per-person switch, relocate → R4,
+  start-choice for defaults, separate trees, People in the main navigation — FR-034). Re-validated:
+  16/16 items still pass.
