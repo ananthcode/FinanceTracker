@@ -19,6 +19,8 @@ test("public pages", async ({ page }) => {
 });
 
 test("signed-in shell, placeholders and settings (desktop and phone widths)", async ({ page, request }) => {
+  // Ten page scans plus the drawer: close to 30 s on its own, over it later in a full run.
+  test.slow();
   await ensureOwner(request);
   const member = uniqueEmail("a11y");
   await createMember(request, member);
@@ -59,6 +61,7 @@ test("keyboard only: Tab reaches the navigation in order and Enter opens a secti
 });
 
 test("accounts screens with the demo accounts, both views (R2 T064)", async ({ page, request }) => {
+  test.slow(); // ten page scans, like the shell test above
   await ensureOwner(request);
   const member = uniqueEmail("a11yacc");
   await createMember(request, member);

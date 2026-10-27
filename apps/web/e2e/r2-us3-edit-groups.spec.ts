@@ -77,6 +77,7 @@ test("changing owned to owed asks first; cancelling keeps the type (S3-b)", asyn
 });
 
 test("own groups: create, assign, switch view, remembered, delete moves accounts to Ungrouped (S3-c)", async ({ page, request }) => {
+  test.slow(); // many steps; about 27 s on its own
   await newSignedInMember(page, request, "groups");
   await addAccount(page, { name: "Everyday Savings", type: "Bank account", balance: "52,340.50" });
   await addAccount(page, { name: "Family cash", type: "Cash", balance: "2000" });
