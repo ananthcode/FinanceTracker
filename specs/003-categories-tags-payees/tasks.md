@@ -74,7 +74,7 @@ story writes through.
 
 - [ ] T017 [P] Repositories `packages/db/src/repositories/lists.ts`: `listCategories`, `listTags`, `listPayees` (RLS client; exclude `deleted`; money read as text → `bigint`), exported from `packages/db/src/index.ts`; `pullChanges` in `repositories/sync.ts` maps the new row arrays (camelCase, money strings, no `user_id`)
 - [ ] T018 [P] Extend `apps/web/lib/sync-client.ts` change builders: `createCategory`, `updateCategory`, `deleteCategory`, `mergeCategory(sourceId, targetId)` and the same for tags and payees
-- [ ] T019 [P] Extend `apps/web/app/api/sync/push/push.int.test.ts` and `pull/pull.int.test.ts`: a category, a tag and a payee pushed and pulled back with field versions; money as strings; another user's rows never pulled
+- [ ] T019 [P] Extend `apps/web/app/api/sync/push/push.int.test.ts` and `pull/pull.int.test.ts`: a category, a tag and a payee pushed and pulled back with field versions; money as strings; another user's rows never pulled; a rejected push's log output contains no names, notes or balances (FR-029, SC-006)
 
 **Checkpoint**: Foundation ready — schemas tested, tables with RLS and audit, appliers for create /
 update / delete, web can push the new entities.
@@ -96,8 +96,8 @@ classes, renames "Eating out" to "Restaurants", moves "Pets" to the top level; t
 - [ ] T021 [P] [US1] Unit test `packages/core/test/default-categories.test.ts`: `DEFAULT_CATEGORIES` matches the spec's table (14 expense parents with listed children, 8 income), names unique among siblings, every colour/icon key valid, passes `CategoryCreateFields`
 - [ ] T022 [P] [US1] pgTAP `supabase/tests/lists_apply.test.sql` (categories part): create with parent of same kind; parent of other kind or other user → `INVALID_MOVE`; move under own descendant → `INVALID_MOVE`; move next to a same-named sibling → `NAME_TAKEN`; sibling rename clash → `NAME_TAKEN`, `"suffix"` → `renamed` " (2)"; same name under different parents allowed; `kind` in an update → rejected; 501st category → `LIMIT_REACHED`
 - [ ] T023 [P] [US1] pgTAP `supabase/tests/lists_start.test.sql`: `app.start_categories('suggested', defaults)` inserts the tree once and sets `categories_start`; a second call (either choice) adds nothing and returns the first choice; `'empty'` adds nothing; "add suggested" after `'empty'` with zero categories adds them; with any category present adds nothing; never touches another user (rules 5, 6; SC-008)
-- [ ] T024 [P] [US1] Integration test `apps/web/app/api/categories/start/start.int.test.ts`: `POST` with `suggested` → `200 { choice, added }` with `added` equal to the size of `DEFAULT_CATEGORIES` (74: 64 expense, 10 income); two concurrent requests → one copy only; `empty` then `suggested` → stored choice `empty`, `added` 0 unless no categories exist; rate limit; unauthenticated → 401
-- [ ] T025 [P] [US1] Playwright `apps/web/e2e/r3-us1-categories.spec.ts` covering spec US1 scenarios 1–7 and quickstart S1-a … S1-d
+- [ ] T024 [P] [US1] Integration test `apps/web/app/api/categories/start/start.int.test.ts`: `POST` with `suggested` → `200 { choice, added }` with `added` equal to the size of `DEFAULT_CATEGORIES` (74: 64 expense, 10 income); two concurrent requests → one copy only; `empty` then `suggested` → stored choice `empty`, `added` 0 unless no categories exist; rate limit; unauthenticated → 401; captured log output on success and failure contains no category names (FR-029)
+- [ ] T025 [P] [US1] Playwright `apps/web/e2e/r3-us1-categories.spec.ts` covering spec US1 scenarios 1–7 and quickstart S1-a … S1-d, including the start dialog opened from a picker; adding a sub-category completes within 30 s (SC-001)
 
 ### Implementation for User Story 1
 
@@ -106,7 +106,7 @@ classes, renames "Eating out" to "Restaurants", moves "Pets" to the top level; t
 - [ ] T028 [US1] Extend `app._apply_category` in a new migration `<ts>_categories_tree.sql` with the parent checks (same user and kind via the composite FK, cycle check with a recursive CTE → `INVALID_MOVE`, sibling name on move → `NAME_TAKEN`) — passes T022
 - [ ] T029 [US1] Migration `<ts>_start_categories.sql`: `user_preferences.categories_start` column (no client update grant); `app.start_categories(p_choice, p_defaults)` per research R3-06 (SECURITY DEFINER, advisory lock, first wins, validates defaults, inserts with `app.device_type`); `GET /api/me` repository read includes it — passes T023
 - [ ] T030 [US1] Implement `POST /api/categories/start` in `apps/web/app/api/categories/start/route.ts` (R1 `route()` wrapper, body `{ choice }`, passes `DEFAULT_CATEGORIES` from core, rate limit 10/min/user in `apps/web/lib/rate-limit.ts`); `packages/core/src/schemas/me.ts` gains `categoriesStart` — passes T024
-- [ ] T031 [P] [US1] Component `apps/web/components/lists/CategoryPicker.tsx`: labelled combobox, search by any part of a name, results with full path grouped Expense / Income, hidden excluded unless selected, `kind` filter prop, keyboard operable (R4 reuses it)
+- [ ] T031 [P] [US1] Component `apps/web/components/lists/CategoryPicker.tsx`: labelled combobox, search by any part of a name, results with full path grouped Expense / Income, hidden excluded unless selected, `kind` filter prop, keyboard operable (R4 reuses it); when the user has not made the start choice (`categoriesStart` null) opening the picker first shows the shared start dialog (`apps/web/components/lists/StartCategoriesDialog.tsx`, also used by T034) — FR-007
 - [ ] T032 [P] [US1] Components `apps/web/components/lists/CategoryTree.tsx` (disclosure rows, colour/icon, hidden badge, row actions menu) and `CategoryForm.tsx` (name, colour, icon; new sub-category defaults to the parent's colour and icon)
 - [ ] T033 [P] [US1] Component `apps/web/components/lists/MoveCategoryDialog.tsx` using `CategoryPicker` with `canMoveCategory` (top level of the same kind offered; invalid targets left out) 
 - [ ] T034 [US1] Page `apps/web/app/(app)/settings/categories/page.tsx`: start-choice dialog (blocking until answered, suggested preselected), two trees with search, add top-level / sub-category, edit, move, "Add suggested categories" while empty; writes via sync client; link from `apps/web/app/(app)/settings/page.tsx` under a "Lists" section
@@ -126,7 +126,7 @@ classes, renames "Eating out" to "Restaurants", moves "Pets" to the top level; t
 ### Tests for User Story 2
 
 - [ ] T036 [P] [US2] pgTAP `supabase/tests/lists_apply.test.sql` (payees part): create business with default category; default category of another user → `VALIDATION_FAILED`; name clash ignoring case → `NAME_TAKEN` / `renamed`; business with opening balance → rejected; 2,001st payee → `LIMIT_REACHED`
-- [ ] T037 [P] [US2] Playwright `apps/web/e2e/r3-us2-payees.spec.ts` covering spec US2 scenarios 1–4 (incl. the default category showing its new path after a rename)
+- [ ] T037 [P] [US2] Playwright `apps/web/e2e/r3-us2-payees.spec.ts` covering spec US2 scenarios 1–4 (incl. the default category showing its new path after a rename); adding a payee with a default category completes within 30 s (SC-001)
 
 ### Implementation for User Story 2
 
@@ -151,7 +151,7 @@ navigation with two totals, and the per-person net-worth switch on the accounts 
 
 - [ ] T042 [P] [US3] Create shared vectors `packages/core/test/vectors/people.json` (zero → settled; they owe 1500000; you owe −450000; maximum ±999999999999; hidden person with balance; merged people summed) and tests `packages/core/test/people.test.ts` for `personBalance`, `peopleTotals`, `personLabel` (SC-004)
 - [ ] T043 [P] [US3] Extend `packages/core/test/vectors/balances.json` and `accounts-summary.test.ts` with people: included owes-you adds to Owned, included you-owe adds to Owed, excluded people change nothing, the People line equals the included sums (FR-020)
-- [ ] T044 [P] [US3] pgTAP `supabase/tests/lists_apply.test.sql` (people part): person create needs a date; future date → `DATE_IN_FUTURE`; person → business with non-zero balance → `BALANCE_NOT_ZERO`, at zero → applied and opening fields cleared; business → person starts at 0 with a date
+- [ ] T044 [P] [US3] pgTAP `supabase/tests/lists_apply.test.sql` (people part): person create needs a date; future date → `DATE_IN_FUTURE`; person → business with non-zero balance → `BALANCE_NOT_ZERO`, at zero → applied with `opening_balance_minor`, `opening_balance_date` and `include_in_net_worth` cleared; business → person starts at 0 with a date
 - [ ] T045 [P] [US3] Parity: extend `apps/web/lib/sync-parity.int.test.ts` to run `vectors/people.json` against `app.person_balance_minor`
 - [ ] T046 [P] [US3] Playwright `apps/web/e2e/r3-us3-people.spec.ts` covering spec US3 scenarios 1–6 and quickstart S3-a … S3-c; extend `apps/web/e2e/us7-hide-balances.spec.ts` `SCREENS_WITH_AMOUNTS` with `/people` and `/settings/payees`
 
@@ -159,7 +159,7 @@ navigation with two totals, and the per-person net-worth switch on the accounts 
 
 - [ ] T047 [P] [US3] Implement `personBalance`, `peopleTotals`, `personLabel` in `packages/core/src/people/` — passes T042
 - [ ] T048 [US3] Extend `summarise` in `packages/core/src/accounts/summary.ts` with the optional `people` input and `people` result line (research R3-08) — passes T043
-- [ ] T049 [US3] Person rules in `app._apply_payee` (date not after today in the user's timezone; person → business only when `app.person_balance_minor` = 0, clearing the opening fields; business → person) in migration `<ts>_people_rules.sql` — passes T044, T045
+- [ ] T049 [US3] Person rules in `app._apply_payee` (date not after today in the user's timezone; person → business only when `app.person_balance_minor` = 0, clearing `opening_balance_minor`, `opening_balance_date` and `include_in_net_worth`; business → person) in migration `<ts>_people_rules.sql` — passes T044, T045
 - [ ] T050 [P] [US3] Components `apps/web/components/lists/PeopleTotals.tsx` and `PersonRow.tsx` (balance via `<Money>` with "owes you" / "you owe" / "settled")
 - [ ] T051 [US3] Pages `apps/web/app/(app)/people/page.tsx` (totals, list, hidden section, empty state, "Add person"), `new/page.tsx`, `[id]/page.tsx` (reusing `PayeeForm` in person mode: amount with direction radios, date, include in net worth, default category, notes)
 - [ ] T052 [US3] Add People after Accounts in `apps/web/components/shell/nav-items.ts`; update `apps/web/e2e/us5-shell.spec.ts` (People entry, not a placeholder) and the keyboard-order test in `apps/web/e2e/a11y.spec.ts`
