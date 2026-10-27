@@ -35,9 +35,9 @@ follow Next.js 16 (async `params`); e2e helpers in `apps/web/e2e/helpers/`.
 
 **Purpose**: Shared constants and module folders
 
-- [ ] T001 [P] Add error codes `HAS_SUBCATEGORIES`, `INVALID_MOVE`, `INVALID_MERGE` to `ERROR_CODES` in `packages/core/src/schemas/common.ts` and to `REJECTION_CODES` in `packages/core/src/sync/schemas.ts`; fix that file's stale "422" comment to "400" (research R3-11, R3-16)
+- [X] T001 [P] Add error codes `HAS_SUBCATEGORIES`, `INVALID_MOVE`, `INVALID_MERGE` to `ERROR_CODES` in `packages/core/src/schemas/common.ts` and to `REJECTION_CODES` in `packages/core/src/sync/schemas.ts`; fix that file's stale "422" comment to "400" (research R3-11, R3-16)
 - [ ] T002 [P] Create module folders with barrels `packages/core/src/categories/index.ts`, `tags/index.ts`, `payees/index.ts`, `people/index.ts`, `appearance/index.ts` and export them from `packages/core/src/index.ts` (no React or Supabase imports)
-- [ ] T003 Move the icon list to `packages/core/src/appearance/icons.ts` as `APPEARANCE_ICON_KEYS` (R2's 24 keys first, unchanged, then 24 category keys per research R3-09) with `ACCOUNT_ICON_KEYS` re-exported as the first 24; update `packages/core/src/accounts/appearance.ts` and `apps/web/components/accounts/AccountIcon.tsx` (rename to `apps/web/components/AppIcon.tsx`, map all 48 keys to lucide icons); `packages/core/test/appearance.test.ts` asserts the 48 keys are unique and every key has a web icon
+- [X] T003 Move the icon list to `packages/core/src/appearance/icons.ts` as `APPEARANCE_ICON_KEYS` (R2's 24 keys first, unchanged, then 24 category keys per research R3-09) with `ACCOUNT_ICON_KEYS` re-exported as the first 24; update `packages/core/src/accounts/appearance.ts` and `apps/web/components/accounts/AccountIcon.tsx` (rename to `apps/web/components/AppIcon.tsx`, map all 48 keys to lucide icons); `packages/core/test/appearance.test.ts` asserts the 48 keys are unique and every key has a web icon
 
 ---
 

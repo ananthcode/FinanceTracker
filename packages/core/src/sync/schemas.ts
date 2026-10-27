@@ -1,6 +1,6 @@
 /**
  * Sync protocol shapes (contracts/sync-protocol.md). These are the only accepted shapes for push
- * and pull (Principle VIII). A change that fails them makes the whole push fail with 422; checks
+ * and pull (Principle VIII). A change that fails them makes the whole push fail with 400; checks
  * only the database can make reject a single change inside a 200 response.
  */
 import { z } from "zod";
@@ -78,6 +78,9 @@ export const REJECTION_CODES = [
   "LIMIT_REACHED",
   "DATE_IN_FUTURE",
   "NOT_FOUND",
+  "HAS_SUBCATEGORIES",
+  "INVALID_MOVE",
+  "INVALID_MERGE",
 ] as const;
 export type RejectionCode = (typeof REJECTION_CODES)[number];
 

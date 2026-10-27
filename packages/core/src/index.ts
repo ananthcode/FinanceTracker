@@ -6,6 +6,7 @@ export * from "./dates";
 export * from "./auth/password-policy";
 export * from "./schemas";
 export * from "./net";
+export * from "./appearance";
 export * from "./accounts";
 export * from "./sync";
 export * from "./ordering";

@@ -140,7 +140,7 @@ extended with people cases.
 its first 24 entries, unchanged) and add 24 category-oriented keys (e.g. `shopping-cart`, `zap`,
 `droplet`, `flame`, `wifi`, `tv`, `bus`, `wrench`, `stethoscope`, `pill`, `book`, `shirt`, `laptop`,
 `sparkles`, `party-popper`, `hand-heart`, `paw-print`, `film`, `ticket`, `bed`, `shield`,
-`landmark`, `percent`, `package`). Categories accept the full 48; the colour palette is R2's 12.
+`scale`, `percent`, `package` — `scale` for taxes because `landmark` already draws the bank icon). Categories accept the full 48; the colour palette is R2's 12.
 
 **Rationale**: category trees need icons accounts never use; keeping one catalogue keeps the web
 icon map and the database check lists in one place.

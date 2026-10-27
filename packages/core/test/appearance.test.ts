@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { ACCOUNT_COLOURS, ACCOUNT_ICON_KEYS, ACCOUNT_TYPES, defaultAppearance } from "../src/accounts";
+import { APPEARANCE_ICON_KEYS } from "../src/appearance";
 
 /** FR-008, research R2-10: 12 colours with ≥ 3:1 contrast on both card backgrounds. */
 function luminance(hex: string): number {
@@ -31,5 +32,11 @@ describe("account appearance", () => {
       expect(ACCOUNT_ICON_KEYS).toContain(d.icon);
     }
     expect(new Set(ACCOUNT_ICON_KEYS).size).toBe(ACCOUNT_ICON_KEYS.length);
+  });
+
+  it("shares one icon set: 48 unique keys, the account icons first and unchanged (R3-09)", () => {
+    expect(APPEARANCE_ICON_KEYS).toHaveLength(48);
+    expect(new Set(APPEARANCE_ICON_KEYS).size).toBe(48);
+    expect(APPEARANCE_ICON_KEYS.slice(0, 24)).toEqual([...ACCOUNT_ICON_KEYS]);
   });
 });
