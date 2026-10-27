@@ -41,7 +41,7 @@ Every synced table follows the **synced-table conventions** below so R3/R4 can r
 | `currency` | `char(3)` not null | Must equal the user's `base_currency` (FR-007); set by the server |
 | `colour` | `text` not null | One of the 12 palette keys (FR-008) |
 | `icon` | `text` not null | One of the icon keys (FR-008) |
-| `sort_key` | `text` not null | Fractional index; one order per user across both views (FR-010, R2-06) |
+| `sort_key` | `text collate "C"` not null, 1–1000 chars | Fractional index; one order per user across both views (FR-010, R2-06); the C collation orders keys like JavaScript |
 | `group_id` | `uuid` null → `account_groups(id)` | User group (FR-009a); must belong to the same user; a deleted group is treated as none |
 | `include_in_net_worth` | `boolean` not null default `true` | FR-018 |
 | `notes` | `text` null | ≤ 500 chars (FR-006) |
@@ -92,8 +92,8 @@ allowed sets (SQL arrays mirrored from `packages/core` and tested for equality).
 | Field | Type | Rules |
 |-------|------|-------|
 | `name` | `text` not null | Trimmed; 1–30 chars; unique per user ignoring case among active groups (FR-009a) |
-| `sort_key` | `text` not null | Fractional index for group order |
-| `state` | `record_state` not null default `active` | `active` → `deleted` only; ≤ 30 active groups per user |
+| `sort_key` | `text collate "C"` not null, 1–1000 chars | Fractional index for group order |
+| `state` | `record_state` not null default `active`, check `state in (active, deleted)` | `active` → `deleted` only; ≤ 30 active groups per user |
 
 Deleting a group (FR-009b) sets its `state = 'deleted'` and, in the same transaction, clears
 `group_id` on every account of that user in the group (each account change audited as

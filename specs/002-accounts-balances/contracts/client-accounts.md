@@ -7,9 +7,9 @@ Web in this module; Android screens in the Android phase follow the same contrac
 
 | Route | Purpose |
 |-------|---------|
-| `/accounts` | Summary (Owned, Owed, Net worth) + accounts in the chosen view + "Archived accounts" section; empty state (US1) |
-| `/accounts/new` | Add account form (dialog on wide screens, page on narrow) |
-| `/accounts/[id]` | Edit account; Archive / Restore / Delete actions |
+| `/accounts` | Summary (Owned, Owed, Net worth) + By type / My groups switch + accounts in the chosen view + collapsible "Archived accounts (n)" section with Restore; empty state (US1), linking to archived accounts when only archived ones remain; a notice when a delete became an archive |
+| `/accounts/new` | Add account form (a page at every width — converged 2026-10-26; the draft planned a dialog on wide screens) |
+| `/accounts/[id]` | Edit account (only changed fields are sent); "Manage account": Archive (disabled, with the balance and how to reach ₹0.00, when not zero) / Restore / Delete with confirmation |
 | `/accounts/groups` | Manage user groups: create, rename, reorder, delete (FR-009a/b) |
 
 ## Screen rules

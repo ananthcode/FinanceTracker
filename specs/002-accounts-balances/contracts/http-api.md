@@ -17,13 +17,13 @@ errors.
 - Auth: user (cookie on web, bearer on Android). Body: `{ device: "web" | "android", changes: Change[] }`
   (1–100, [sync-protocol.md](sync-protocol.md)).
 - `device` must match how the request authenticated (`web` with cookies, `android` with a bearer
-  token), otherwise `422 VALIDATION_FAILED`.
+  token), otherwise `400 VALIDATION_FAILED`.
 - Calls `app.apply_changes(changes, device)` with the caller's RLS-scoped client.
 - `200 { results: ChangeResult[] }` in the same order as `changes`.
 - Errors: `401 UNAUTHENTICATED`, `401 USER_INACTIVE` (R1's code; disabled mid-edit → the device
-  signs out, nothing applied), `422 VALIDATION_FAILED` (whole batch rejected when any change fails
+  signs out, nothing applied), `400 VALIDATION_FAILED` (whole batch rejected when any change fails
   the **shape** check — the Zod schemas in `packages/core/src/sync/schemas.ts`; no partial
-  application), `429 TRY_LATER` (> 120 changes per minute per user).
+  application), `429 TRY_LATER` (> 60 pushes per minute per user).
 - Checks that only the database can make — the group belongs to the caller, colour/icon keys match
   the database's allowed lists, the date is not after today in the user's timezone, limits, names,
   balances — never fail the batch: the affected change comes back `rejected` with its code
@@ -33,7 +33,8 @@ errors.
 ### `GET /api/sync/pull?cursor={cursor}` — rows changed since the cursor (Android)
 
 - Auth: user. `200 { cursor, hasMore, rows }` per [sync-protocol.md](sync-protocol.md#pull).
-- Errors: `401 UNAUTHENTICATED`, `401 USER_INACTIVE`, `422 VALIDATION_FAILED` (bad cursor).
+- Query: `cursor` (decimal string, `0` on first sync), optional `limit` 1–500 (default 500).
+- Errors: `401 UNAUTHENTICATED`, `401 USER_INACTIVE`, `400 VALIDATION_FAILED` (bad cursor or limit).
 
 ### `GET /api/me` (R1, extended)
 
@@ -51,5 +52,7 @@ Android reads only from its local store, filled by pull.
 
 ## Rate and size limits
 
-- Push body ≤ 256 KB; ≤ 100 changes; ≤ 120 changes/minute/user (`private.rate_limits`, R1).
+- Push: ≤ 100 changes per request (the change schemas also bound every field, so a body stays
+  small); ≤ 60 push requests/minute/user (`private.rate_limits`, R1 — it counts requests).
 - Pull: ≤ 60 requests/minute/user.
+- Invalid bodies answer `400 VALIDATION_FAILED`, as in R1 (converged 2026-10-26; the draft said 422).

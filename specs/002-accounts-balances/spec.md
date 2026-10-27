@@ -313,7 +313,7 @@ a minute both changes appear on the web, with no duplicates, and the waiting ind
 
 **Privacy and history**
 
-- **FR-026**: A user's accounts, balances and account history MUST be visible to and changeable by
+- **FR-026**: A user's accounts, balances and change history MUST be visible to and changeable by
   that user only; other users, including the owner-admin, MUST NOT be able to read or change them by
   any route (R1 isolation rules extend to accounts).
 - **FR-027**: Every create, edit, reorder, archive, restore and delete of an account, and every
@@ -321,7 +321,7 @@ a minute both changes appear on the web, with no duplicates, and the waiting ind
   history with who, when, from which device type, and the values
   before and after.
 - **FR-028**: Operational logs MUST NOT contain account names, notes, balances or credit limits.
-- **FR-029**: Erasing a user (R1) MUST erase all of their accounts and account history along with
+- **FR-029**: Erasing a user (R1) MUST erase all of their accounts and their change history along with
   the rest of their data.
 
 **Offline and sync (Android phase)**
@@ -374,7 +374,7 @@ a minute both changes appear on the web, with no duplicates, and the waiting ind
 - **SC-003**: With 50 active and 50 archived accounts, the accounts screen shows all balances and
   the net-worth summary within 2 seconds of opening it.
 - **SC-004**: Automated isolation tests show 0 cases in which a user — including the owner-admin —
-  can read or change another user's accounts or account history.
+  can read or change another user's accounts or their change history.
 - **SC-005**: 100% of account changes made during acceptance testing appear in the change history
   with correct before/after values, and none appears in operational logs with names or amounts.
 - **SC-006**: With hide-balances on, a review of every accounts screen finds 0 unmasked amounts.

@@ -215,9 +215,26 @@ sync and the clarified per-field rule.
 - [X] T065 [P] Performance: Playwright `apps/web/e2e/r2-performance.spec.ts` seeding 50 active + 50 archived synthetic accounts; `/accounts` shows all balances and the summary within 2 s (SC-003)
 - [X] T066 [P] Create the deterministic demo account set in `packages/core/src/demo/accounts.ts` (constitution X): a pure function returning the same synthetic accounts and groups every time — at least one of each type (`bank`, `cash`, `wallet`, `credit_card`), a credit card with a credit limit, an overdrawn bank account, an account excluded from net worth, an archived ₹0.00 account, two user groups and an ungrouped account; synthetic names only, fixed UUIDs, amounts in `bigint` paise; with a unit test `packages/core/test/demo-accounts.test.ts` proving it is deterministic, passes the account schemas and exercises every label from `balanceLabel`. R5's "Load demo data" inserts this set; R2 does not add a loader
 - [X] T067 Add an `account` seed helper to `apps/web/e2e/helpers/db.ts` (synthetic names, `example.com` users) that can insert the T066 demo set or N generated accounts, used by T053, T065
-- [ ] T068 Write `specs/002-accounts-balances/review-notes.md` listing the code that needs explicit owner review (constitution workflow): `app.apply_changes` scoping, RLS/grants, `sync.stamp_row` lock, `mergeFields` + SQL merge, balance functions, erasure extension
-- [ ] T069 Run the full quickstart (automated suites + manual S1–S4 rows) and record results in `specs/002-accounts-balances/validation.md`
-- [ ] T070 Converge: update contracts with any deviations found during implementation, set R2 status in `ROADMAP.md`, and note in `ROADMAP.md` that Story 5's Android client (T059–T063) is carried into the Android phase
+- [X] T068 Write `specs/002-accounts-balances/review-notes.md` listing the code that needs explicit owner review (constitution workflow): `app.apply_changes` scoping, RLS/grants, `sync.stamp_row` lock, `mergeFields` + SQL merge, balance functions, erasure extension
+- [X] T069 Run the full quickstart (automated suites + manual S1–S4 rows) and record results in `specs/002-accounts-balances/validation.md`
+- [X] T070 Converge: update contracts with any deviations found during implementation, set R2 status in `ROADMAP.md`, and note in `ROADMAP.md` that Story 5's Android client (T059–T063) is carried into the Android phase
+
+### Converge notes (2026-10-26) — how the build differs from the tasks above
+
+- The account form uses plain React state with the shared Zod schemas, not react-hook-form; it
+  sends only the fields that changed.
+- "Add account" is a page (`/accounts/new`) at every width, not a dialog on wide screens.
+- Invalid request bodies answer `400 VALIDATION_FAILED` (as in R1), not `422`.
+- Rate limits count requests (60 pushes and 60 pulls per minute per user), using R1's
+  `private.rate_limits`; there is no separate body-size limit because the change schemas bound
+  every field and a push carries at most 100 changes.
+- `GET /api/sync/pull` also takes an optional `limit` (1–500, default 500).
+- Added a parity test, `apps/web/lib/sync-parity.int.test.ts`, that runs the shared merge and
+  balance vectors against the SQL functions.
+- The SC-003 performance test runs only against a production build (`E2E_PRODUCTION=1`); see
+  quickstart.md.
+- Two R1 end-to-end tests were updated: `/accounts` no longer shows "Coming soon", and the two
+  long accessibility scans use `test.slow()`.
 
 ---
 

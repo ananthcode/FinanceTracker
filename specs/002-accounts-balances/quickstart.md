@@ -42,8 +42,29 @@ pnpm e2e
 |-------|--------|
 | Vitest `packages/core` | Amount parsing, balance/summary vectors, fractional keys, HLC, merge (SC-002) |
 | pgTAP `supabase/tests/accounts*.test.sql` | Access rules 1–8 ([database.md](contracts/database.md)), constraints, merge, idempotency, state rules, audit (SC-004, SC-005) |
-| Integration `apps/web/app/api/sync/*.int.test.ts` | Push/pull with two simulated devices (SC-007 server side) |
-| Playwright `apps/web/e2e/r2-*.spec.ts` | Stories 1–4, hide-balances, accessibility, SC-001, SC-003 |
+| Integration `apps/web/app/api/sync/*/*.int.test.ts` | Push/pull with two simulated devices (SC-007 server side) |
+| Integration `apps/web/lib/sync-parity.int.test.ts` | The shared merge and balance vectors give the same answer in TypeScript and SQL (R2-07) |
+| Playwright `apps/web/e2e/r2-*.spec.ts` | Stories 1–4, hide-balances, accessibility, SC-001 |
+
+### Performance (SC-003)
+
+The dev server compiles pages on first visit, so SC-003 is measured against a production build.
+`r2-performance.spec.ts` is skipped unless `E2E_PRODUCTION=1`. Build, then start the server on a
+spare port with `WEB_BASE_URL` matching it (the CSRF check compares the `Origin`):
+
+```bash
+pnpm --filter @ft/web build
+```
+
+```bash
+cd apps/web && WEB_BASE_URL=http://localhost:3100 pnpm exec next start -p 3100
+```
+
+In a second terminal:
+
+```bash
+cd apps/web && E2E_PRODUCTION=1 WEB_BASE_URL=http://localhost:3100 pnpm exec playwright test e2e/r2-performance.spec.ts
+```
 
 ## Manual validation (web)
 

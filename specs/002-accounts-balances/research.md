@@ -156,7 +156,8 @@ TypeScript and SQL implementations so they cannot drift (Principle VII).
 
 ## R2-09 Reordering UI (FR-010)
 
-**Decision**: **dnd-kit** (`@dnd-kit/core` + `@dnd-kit/sortable`) on the web for drag and drop with
+**Decision**: **dnd-kit** (`@dnd-kit/core` 6.3.1 + `@dnd-kit/sortable` 10.0.0 +
+`@dnd-kit/utilities` 3.2.2, pinned) on the web for drag and drop with
 its keyboard sensor and screen-reader announcements, plus explicit **Move up / Move down** buttons
 on each row (FR-010 requires both). Android (later phase) uses long-press drag via
 react-native-gesture-handler (already a dependency) plus the same buttons.

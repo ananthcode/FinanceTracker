@@ -71,7 +71,7 @@ Rejection codes: `VALIDATION_FAILED`, `NAME_TAKEN` (web create/rename), `GROUP_N
 `BALANCE_NOT_ZERO`, `HAS_ACTIVITY`, `LIMIT_REACHED`, `DATE_IN_FUTURE`, `NOT_FOUND`.
 
 Two levels of validation: a change that fails the **shape** schema makes the whole push fail with
-HTTP `422` and nothing is applied ([http-api.md](http-api.md)); a change that passes the shape but
+HTTP `400` and nothing is applied ([http-api.md](http-api.md)); a change that passes the shape but
 fails a check only the database can make (group not owned by the caller, colour/icon key not in the
 database's allowed list) is `rejected` with `VALIDATION_FAILED`, and the rest of the batch is
 applied.
