@@ -11,9 +11,10 @@ interface PreferencesRow {
   date_format: string;
   fy_start_month: number;
   timezone: string;
+  accounts_view: Preferences["accountsView"];
 }
 
-const COLUMNS = "base_currency, number_format, date_format, fy_start_month, timezone";
+const COLUMNS = "base_currency, number_format, date_format, fy_start_month, timezone, accounts_view";
 
 function fromRow(row: PreferencesRow): Preferences {
   return {
@@ -22,6 +23,7 @@ function fromRow(row: PreferencesRow): Preferences {
     dateFormat: row.date_format,
     fyStartMonth: row.fy_start_month,
     timezone: row.timezone,
+    accountsView: row.accounts_view,
   };
 }
 
@@ -32,6 +34,7 @@ function toRow(patch: Partial<Preferences>): Partial<PreferencesRow> {
   if (patch.dateFormat !== undefined) row.date_format = patch.dateFormat;
   if (patch.fyStartMonth !== undefined) row.fy_start_month = patch.fyStartMonth;
   if (patch.timezone !== undefined) row.timezone = patch.timezone;
+  if (patch.accountsView !== undefined) row.accounts_view = patch.accountsView;
   return row;
 }
 

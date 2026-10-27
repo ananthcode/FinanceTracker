@@ -57,3 +57,12 @@ describe("isValidTimezone", () => {
     expect(isValidTimezone("")).toBe(false);
   });
 });
+
+describe("todayInZone (R2 FR-004)", () => {
+  it("is the calendar date in the user's timezone, not UTC", async () => {
+    const { todayInZone } = await import("../src/dates");
+    // 20:00 UTC on 31 March is already 1 April in India.
+    expect(todayInZone("Asia/Kolkata", new Date("2026-03-31T20:00:00Z"))).toBe("2026-04-01");
+    expect(todayInZone("UTC", new Date("2026-03-31T20:00:00Z"))).toBe("2026-03-31");
+  });
+});

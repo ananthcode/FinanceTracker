@@ -4,12 +4,13 @@ import { ensureOwner, signInUI } from "./helpers/owner";
 import { createMember, PASSWORD } from "./helpers/users";
 
 /** T098 — User Story 5: signed-in shell (quickstart S5-a; FR-034, FR-035). */
+// `placeholder`: the section still shows "Coming soon" (Accounts became real in R2).
 const ENTRIES = [
-  { label: "Dashboard", path: "/", heading: "Dashboard" },
-  { label: "Accounts", path: "/accounts", heading: "Accounts" },
-  { label: "Transactions", path: "/transactions", heading: "Transactions" },
-  { label: "Payment plan", path: "/payment-plan", heading: "Payment plan" },
-  { label: "Settings", path: "/settings", heading: "Settings" },
+  { label: "Dashboard", path: "/", heading: "Dashboard", placeholder: true },
+  { label: "Accounts", path: "/accounts", heading: "Accounts", placeholder: false },
+  { label: "Transactions", path: "/transactions", heading: "Transactions", placeholder: true },
+  { label: "Payment plan", path: "/payment-plan", heading: "Payment plan", placeholder: true },
+  { label: "Settings", path: "/settings", heading: "Settings", placeholder: false },
 ];
 const isDemo = process.env.NEXT_PUBLIC_APP_ENV === "demo";
 
@@ -29,7 +30,7 @@ test("every entry opens its section with the current one highlighted (S5-a)", as
     const current = mainNav(page).locator('[aria-current="page"]');
     await expect(current).toHaveCount(1);
     await expect(current).toHaveText(entry.label);
-    if (entry.path !== "/settings") await expect(page.getByText("Coming soon")).toBeVisible();
+    if (entry.placeholder) await expect(page.getByText("Coming soon")).toBeVisible();
   }
 
   // FR-034: members never see the user-management entry.

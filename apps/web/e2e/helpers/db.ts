@@ -1,3 +1,4 @@
+import { demoAccounts, keysBetween } from "@ft/core";
 import { createServiceRoleClient } from "@ft/db";
 import { newInvitationToken, toByteaHex } from "@ft/db/server";
 
@@ -50,6 +51,58 @@ export async function seedInvitation(
     });
   if (error) throw new Error(error.message);
   return token;
+}
+
+/**
+ * Seeds accounts for a synthetic user straight into the LOCAL database (T067): the deterministic
+ * demo set (packages/core demoAccounts) and/or `active` + `archived` generated accounts. Rows go
+ * through the normal triggers (sync stamp, change history).
+ */
+export async function seedAccounts(
+  email: string,
+  opts: { demo?: boolean; active?: number; archived?: number } = {},
+): Promise<void> {
+  const db = admin();
+  const { data: profile, error } = await db.from("profiles").select("user_id").eq("email", email).single();
+  if (error || !profile) throw new Error(`seedAccounts: no profile for ${email}`);
+  const userId = profile.user_id as string;
+  const uid = () => crypto.randomUUID();
+  const rows: Record<string, unknown>[] = [];
+
+  if (opts.demo) {
+    const demo = demoAccounts();
+    // Demo ids are fixed; give each seeded user their own copies.
+    const groupIds = new Map(demo.groups.map((g) => [g.id, uid()]));
+    const { error: gErr } = await db.from("account_groups").insert(
+      demo.groups.map((g) => ({ id: groupIds.get(g.id), user_id: userId, name: g.name, sort_key: g.sortKey })),
+    );
+    if (gErr) throw new Error(gErr.message);
+    for (const a of demo.accounts) {
+      rows.push({
+        id: uid(), user_id: userId, name: a.name, type: a.type, opening_balance_minor: a.openingBalanceMinor.toString(),
+        opening_balance_date: a.openingBalanceDate, currency: a.currency, colour: a.colour, icon: a.icon, sort_key: a.sortKey,
+        group_id: a.groupId ? groupIds.get(a.groupId) : null, include_in_net_worth: a.includeInNetWorth, notes: a.notes,
+        credit_limit_minor: a.creditLimitMinor?.toString() ?? null, state: a.state,
+      });
+    }
+  }
+
+  const generated = (opts.active ?? 0) + (opts.archived ?? 0);
+  const keys = keysBetween("a9", null, generated); // after the demo set's keys
+  for (let i = 0; i < generated; i++) {
+    const archived = i >= (opts.active ?? 0);
+    rows.push({
+      id: uid(), user_id: userId, name: `${archived ? "Archived" : "Seeded"} account ${i + 1}`, type: "cash",
+      opening_balance_minor: archived ? "0" : String(10_000 + i), opening_balance_date: "2026-04-01", currency: "INR",
+      colour: "green", icon: "banknote", sort_key: keys[i], state: archived ? "archived" : "active",
+      // A bulk insert fills missing columns with NULL, not their defaults: give every row all of them.
+      group_id: null, include_in_net_worth: true, notes: null, credit_limit_minor: null,
+    });
+  }
+  if (rows.length) {
+    const { error: aErr } = await db.from("accounts").insert(rows);
+    if (aErr) throw new Error(aErr.message);
+  }
 }
 
 /** First-run setup is US3; until then tests complete it directly. */

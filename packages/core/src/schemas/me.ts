@@ -11,6 +11,8 @@ import {
 
 export const Timezone = z.string().min(1).max(64).refine(isValidTimezone, "Unknown timezone");
 export const FyStartMonth = z.number().int().min(1).max(12);
+/** Accounts screen view (R2 FR-009). */
+export const AccountsViewSchema = z.enum(["by_type", "my_groups"]);
 
 export const Preferences = z.object({
   baseCurrency: CurrencyCode,
@@ -18,6 +20,8 @@ export const Preferences = z.object({
   dateFormat: DateFormatSchema,
   fyStartMonth: FyStartMonth,
   timezone: Timezone,
+  /** Defaults so R1 setup and older clients need not send it (R2 FR-009). */
+  accountsView: AccountsViewSchema.default("by_type"),
 });
 export type Preferences = z.infer<typeof Preferences>;
 
@@ -27,6 +31,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   dateFormat: "dd-MMM-yyyy",
   fyStartMonth: 4,
   timezone: "Asia/Kolkata",
+  accountsView: "by_type",
 };
 
 export const SetupRequest = Preferences.extend({
@@ -44,6 +49,7 @@ export const PreferencesUpdate = z
     dateFormat: DateFormatSchema,
     fyStartMonth: FyStartMonth,
     timezone: Timezone,
+    accountsView: AccountsViewSchema,
   })
   .partial()
   .strict();

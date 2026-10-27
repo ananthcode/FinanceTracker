@@ -31,6 +31,13 @@ export const ERROR_CODES = [
   "NOT_DISABLED",
   "CONFIRMATION_MISMATCH",
   "ENVIRONMENT_MISMATCH",
+  // R2 — accounts & sync (specs/002-accounts-balances/contracts/http-api.md)
+  "NAME_TAKEN",
+  "GROUP_NAME_TAKEN",
+  "BALANCE_NOT_ZERO",
+  "HAS_ACTIVITY",
+  "LIMIT_REACHED",
+  "DATE_IN_FUTURE",
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];

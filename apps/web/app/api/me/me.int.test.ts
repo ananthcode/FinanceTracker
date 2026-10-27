@@ -65,6 +65,7 @@ describe("GET /api/me, POST /api/me/setup, PATCH /api/me/preferences (T081, US3)
       dateFormat: "dd-MMM-yyyy",
       fyStartMonth: 4,
       timezone: "Asia/Kolkata",
+      accountsView: "by_type", // R2 FR-009
     });
   });
 

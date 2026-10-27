@@ -1,11 +1,111 @@
-import { ComingSoon } from "@/components/ComingSoon";
+import Link from "next/link";
+import { DEFAULT_PREFERENCES, summarise } from "@ft/core";
+import { getPreferences, listAccounts, listGroups } from "@ft/db";
+import { AccountRow } from "@/components/accounts/AccountRow";
+import { GroupSection } from "@/components/accounts/GroupSection";
+import { NetWorthSummary } from "@/components/accounts/NetWorthSummary";
+import { RestoreButton } from "@/components/accounts/RestoreButton";
+import { ViewSwitch } from "@/components/accounts/ViewSwitch";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { buttonVariants } from "@/components/ui/button";
+import { createServerSupabase } from "@/lib/supabase/server";
 
-/** Accounts placeholder (T101) — content arrives in roadmap module R2. */
-export default function AccountsPage() {
+/**
+ * Accounts (R2 US1–US3): the net-worth summary and the user's accounts grouped by type or by their own groups (FR-009), each with
+ * its exact balance and every group with its subtotal (FR-009, FR-012–FR-018). All figures come
+ * from summarise() so later screens show the same numbers (FR-019). Reads through the user's own
+ * client — row-level security returns only their rows.
+ */
+export default async function AccountsPage({ searchParams }: { searchParams: Promise<{ notice?: string }> }) {
+  const { notice } = await searchParams;
+  const supabase = await createServerSupabase();
+  const { data } = await supabase.auth.getUser();
+  const [accounts, groups, preferences] = await Promise.all([
+    listAccounts(supabase),
+    listGroups(supabase),
+    getPreferences(supabase, data.user?.id ?? ""),
+  ]);
+  const prefs = preferences ?? DEFAULT_PREFERENCES;
+  const currency = prefs.baseCurrency;
+  const view = prefs.accountsView;
+  const summary = summarise(accounts, { view, groups });
+  const hasActive = accounts.some((a) => a.state === "active");
+  const archived = summary.archived;
+
   return (
-    <ComingSoon
-      title="Accounts"
-      description="Your bank, cash, credit card and wallet accounts with their balances will appear here."
-    />
+    <section aria-labelledby="page-title" className="flex flex-col gap-6">
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 id="page-title" className="text-2xl font-semibold">
+          Accounts
+        </h1>
+        {hasActive && (
+          <Link href="/accounts/new" className={buttonVariants()}>
+            Add account
+          </Link>
+        )}
+      </div>
+
+      {notice === "converted" && (
+        <Alert role="status">
+          <AlertDescription>That account has been used, so it was archived instead of deleted.</AlertDescription>
+        </Alert>
+      )}
+
+      {!hasActive && (
+        <div className="flex max-w-prose flex-col items-start gap-3 rounded-lg border border-dashed border-border p-6">
+          <h2 className="text-lg font-medium">No accounts yet</h2>
+          <p className="text-muted-foreground">
+            An account is a place where your money is kept or owed — a bank account, cash in hand, a wallet, or a
+            credit card. Add each one with the balance it had on a date you choose; every amount you record later
+            belongs to one of them.
+          </p>
+          <Link href="/accounts/new" className={buttonVariants()}>
+            Add account
+          </Link>
+          {archived.length > 0 && (
+            <a href="#archived" className="text-sm text-brand-strong underline dark:text-brand">
+              See archived accounts
+            </a>
+          )}
+        </div>
+      )}
+
+      {accounts.length > 0 && <NetWorthSummary summary={summary} currency={currency} />}
+
+      {hasActive && (
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <ViewSwitch view={view} />
+          <Link href="/accounts/groups" className={buttonVariants({ variant: "outline", size: "sm" })}>
+            Manage groups
+          </Link>
+        </div>
+      )}
+
+      {hasActive && summary.sections.map((section) => (
+        <GroupSection key={section.key} section={section} currency={currency} />
+      ))}
+
+      {archived.length > 0 && (
+        // Archived accounts leave everyday lists and totals (FR-021, FR-022); open by default when
+        // they are all the user has.
+        <details id="archived" open={!hasActive} className="rounded-lg border border-border px-4 py-2">
+          <summary className="cursor-pointer py-1 text-sm font-semibold text-muted-foreground">
+            Archived accounts ({archived.length})
+          </summary>
+          <ul>
+            {archived.map((row) => (
+              <li key={row.account.id} className="flex items-center gap-2 border-t border-border first:border-t-0">
+                <AccountRow row={row}>
+                  <Link href={`/accounts/${row.account.id}`} className="hover:underline">
+                    {row.account.name}
+                  </Link>
+                </AccountRow>
+                <RestoreButton id={row.account.id} name={row.account.name} />
+              </li>
+            ))}
+          </ul>
+        </details>
+      )}
+    </section>
   );
 }

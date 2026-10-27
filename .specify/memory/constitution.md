@@ -193,12 +193,22 @@ engine, test runners) are made per module in its plan and MUST satisfy the princ
 ## Development Workflow & Quality Gates
 
 - **Spec-driven workflow**: every roadmap module goes specify → (clarify) → plan → tasks →
-  (analyze) → implement → converge, with owner approval at the spec, plan and implement
-  gates. When requirements change, the highest affected artifact (constitution → spec →
-  plan) is updated first and downstream artifacts are regenerated.
+  (analyze) → implement → converge. When requirements change, the highest affected artifact
+  (constitution → spec → plan) is updated first and downstream artifacts are regenerated.
+- **Owner gates**: the owner answers every clarification question (asked one at a time, with a
+  recommendation) and approves each module at its pull request, which summarises the decisions
+  made and lists the code needing explicit review. Spec, plan, task and analysis artifacts and
+  the implementation proceed without separate approval unless they raise an **escalation item**,
+  which MUST be put to the owner before acting:
+  - a scope or roadmap change;
+  - a new paid or external service;
+  - a security or privacy trade-off, or any access rule beyond "users see only their own data";
+  - a destructive or shared action — hosted deploys, real data, merging into `main`;
+  - a recommendation that contradicts an earlier owner choice.
 - **Review of AI-generated code**: all AI-generated code MUST be reviewed by the owner and
   pass all tests before merge. Changes touching authentication, authorization/RLS
-  policies, sync, or money arithmetic require explicit, called-out review.
+  policies, sync, or money arithmetic require explicit, called-out review, listed in the
+  module's pull request.
 - **Git**: short-lived feature branches; pull requests into `main`; CI green before merge;
   Conventional Commits messages.
 - **Backups**: users can export all their data; the owner keeps periodic database dumps of
@@ -219,4 +229,4 @@ engine, test runners) are made per module in its plan and MUST satisfy the princ
 - Product scope and sequencing live in `docs/SCOPE.md` and `ROADMAP.md`; where they conflict
   with this constitution, this constitution wins until amended.
 
-**Version**: 1.1.0 | **Ratified**: 2026-10-10 | **Last Amended**: 2026-10-11
+**Version**: 1.2.0 | **Ratified**: 2026-10-10 | **Last Amended**: 2026-10-25
