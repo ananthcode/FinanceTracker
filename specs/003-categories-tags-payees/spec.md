@@ -256,8 +256,9 @@ web with no duplicates.
 - **FR-002**: Users MUST be able to create categories at the top level or under any category, with no
   fixed depth limit. Category names MUST be 1–40 characters after trimming, unique among siblings
   (same parent, or both at the top level of the same kind), ignoring letter case.
-- **FR-003**: Each category MUST have a colour and an icon, chosen from the same palette and icon set as
-  accounts (R2); a new sub-category takes its parent's colour and icon unless the user picks others.
+- **FR-003**: Each category MUST have a colour from the accounts palette (R2) and an icon from the
+  built-in icon set, which includes the account icons plus icons suited to categories; a new
+  sub-category takes its parent's colour and icon unless the user picks others.
 - **FR-004**: Categories MUST be listed alphabetically (ignoring letter case) at every level; there is
   no manual ordering.
 - **FR-005**: Wherever a category is shown outside its tree it MUST be identified by its full path
