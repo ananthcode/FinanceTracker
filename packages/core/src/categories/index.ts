@@ -2,3 +2,6 @@
 export * from "./types";
 export * from "./schemas";
 export * from "./defaults";
+export * from "./tree";
+export * from "./search";
+export * from "./rules";
