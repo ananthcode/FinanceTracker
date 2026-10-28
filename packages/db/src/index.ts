@@ -4,3 +4,4 @@ export * from "./repositories/preferences";
 export * from "./repositories/profile";
 export * from "./repositories/accounts";
 export * from "./repositories/sync";
+export * from "./repositories/lists";

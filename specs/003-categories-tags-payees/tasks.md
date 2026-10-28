@@ -72,9 +72,9 @@ story writes through.
 
 ### Data access and the web push path
 
-- [ ] T017 [P] Repositories `packages/db/src/repositories/lists.ts`: `listCategories`, `listTags`, `listPayees` (RLS client; exclude `deleted`; money read as text → `bigint`), exported from `packages/db/src/index.ts`; `pullChanges` in `repositories/sync.ts` maps the new row arrays (camelCase, money strings, no `user_id`)
-- [ ] T018 [P] Extend `apps/web/lib/sync-client.ts` change builders: `createCategory`, `updateCategory`, `deleteCategory`, `mergeCategory(sourceId, targetId)` and the same for tags and payees
-- [ ] T019 [P] Extend `apps/web/app/api/sync/push/push.int.test.ts` and `pull/pull.int.test.ts`: a category, a tag and a payee pushed and pulled back with field versions; money as strings; another user's rows never pulled; a rejected push's log output contains no names, notes or balances (FR-029, SC-006)
+- [X] T017 [P] Repositories `packages/db/src/repositories/lists.ts`: `listCategories`, `listTags`, `listPayees` (RLS client; exclude `deleted`; money read as text → `bigint`), exported from `packages/db/src/index.ts`; `pullChanges` in `repositories/sync.ts` maps the new row arrays (camelCase, money strings, no `user_id`)
+- [X] T018 [P] Extend `apps/web/lib/sync-client.ts` change builders: `createCategory`, `updateCategory`, `deleteCategory`, `mergeCategory(sourceId, targetId)` and the same for tags and payees
+- [X] T019 [P] Extend `apps/web/app/api/sync/push/push.int.test.ts` and `pull/pull.int.test.ts`: a category, a tag and a payee pushed and pulled back with field versions; money as strings; another user's rows never pulled; a rejected push's log output contains no names, notes or balances (FR-029, SC-006)
 
 **Checkpoint**: Foundation ready — schemas tested, tables with RLS and audit, appliers for create /
 update / delete, web can push the new entities.
@@ -93,7 +93,7 @@ classes, renames "Eating out" to "Restaurants", moves "Pets" to the top level; t
 ### Tests for User Story 1
 
 - [ ] T020 [P] [US1] Unit tests `packages/core/test/category-tree.test.ts`: `buildCategoryTree` sorts alphabetically ignoring case at every level, splits Expense / Income, computes effective hidden (hidden ancestor hides descendants); `categoryPath` "A › B › C"; `searchCategories` substring match at any level returning paths, hidden excluded unless asked; `canMoveCategory` refuses self, descendants, other kind and same-named siblings
-- [ ] T021 [P] [US1] Unit test `packages/core/test/default-categories.test.ts`: `DEFAULT_CATEGORIES` matches the spec's table (14 expense parents with listed children, 8 income), names unique among siblings, every colour/icon key valid, passes `CategoryCreateFields`
+- [X] T021 [P] [US1] Unit test `packages/core/test/default-categories.test.ts`: `DEFAULT_CATEGORIES` matches the spec's table (14 expense parents with listed children, 8 income), names unique among siblings, every colour/icon key valid, passes `CategoryCreateFields`
 - [X] T022 [P] [US1] pgTAP `supabase/tests/lists_apply.test.sql` (categories part): create with parent of same kind; parent of other kind or other user → `INVALID_MOVE`; move under own descendant → `INVALID_MOVE`; move next to a same-named sibling → `NAME_TAKEN`; sibling rename clash → `NAME_TAKEN`, `"suffix"` → `renamed` " (2)"; same name under different parents allowed; `kind` in an update → rejected; 501st category → `LIMIT_REACHED`
 - [X] T023 [P] [US1] pgTAP `supabase/tests/lists_start.test.sql`: `app.start_categories('suggested', defaults)` inserts the tree once and sets `categories_start`; a second call (either choice) adds nothing and returns the first choice; `'empty'` adds nothing; "add suggested" after `'empty'` with zero categories adds them; with any category present adds nothing; never touches another user (rules 5, 6; SC-008)
 - [ ] T024 [P] [US1] Integration test `apps/web/app/api/categories/start/start.int.test.ts`: `POST` with `suggested` → `200 { choice, added }` with `added` equal to the size of `DEFAULT_CATEGORIES` (74: 64 expense, 10 income); two concurrent requests → one copy only; `empty` then `suggested` → stored choice `empty`, `added` 0 unless no categories exist; rate limit; unauthenticated → 401; captured log output on success and failure contains no category names (FR-029)
@@ -101,7 +101,7 @@ classes, renames "Eating out" to "Restaurants", moves "Pets" to the top level; t
 
 ### Implementation for User Story 1
 
-- [ ] T026 [P] [US1] Implement `DEFAULT_CATEGORIES` in `packages/core/src/categories/defaults.ts` (spec "Default categories" tables; colours and icons per research R3-09) — passes T021
+- [X] T026 [P] [US1] Implement `DEFAULT_CATEGORIES` in `packages/core/src/categories/defaults.ts` (spec "Default categories" tables; colours and icons per research R3-09) — passes T021
 - [ ] T027 [US1] Implement `buildCategoryTree`, `categoryPath`, `searchCategories`, `canMoveCategory` in `packages/core/src/categories/tree.ts`, `search.ts`, `rules.ts` — passes T020
 - [X] T028 [US1] Extend `app._apply_category` in a new migration `<ts>_categories_tree.sql` with the parent checks (same user and kind via the composite FK, cycle check with a recursive CTE → `INVALID_MOVE`, sibling name on move → `NAME_TAKEN`) — passes T022
 - [ ] T029 [US1] Migration `<ts>_start_categories.sql`: `user_preferences.categories_start` column (no client update grant); `app.start_categories(p_choice, p_defaults)` per research R3-06 (SECURITY DEFINER, advisory lock, first wins, validates defaults, inserts with `app.device_type`); `GET /api/me` repository read includes it — passes T023
@@ -223,7 +223,7 @@ never-used "Pets" deleted with its payee default cleared.
 
 **Server side (now)**
 
-- [ ] T069 [P] [US6] Integration test in `apps/web/app/api/sync/pull/pull.int.test.ts` (or a new `lists-sync.int.test.ts`): two `FakeDevice`s create the same payee, tag and sibling category offline → second `renamed` " (n)"; per-field merge on a payee edited on both; a merge pushed twice → applied once; an edit to a merged source → `NOT_FOUND`; pull pages return moved children and repointed payees after a merge (SC-009 server side)
+- [X] T069 [P] [US6] Integration test in `apps/web/app/api/sync/pull/pull.int.test.ts` (or a new `lists-sync.int.test.ts`): two `FakeDevice`s create the same payee, tag and sibling category offline → second `renamed` " (n)"; per-field merge on a payee edited on both; a merge pushed twice → applied once; an edit to a merged source → `NOT_FOUND`; pull pages return moved children and repointed payees after a merge (SC-009 server side)
 
 **Android client (Deferred)**
 
