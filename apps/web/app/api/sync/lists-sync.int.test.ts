@@ -67,7 +67,7 @@ describe("R3 entities through push and pull", () => {
       state: "active",
     });
     expect(rows.payee[0]).not.toHaveProperty("userId");
-    expect(Object.keys((rows.category[0] as { fieldVersions: object }).fieldVersions)).toContain("name");
+    expect(Object.keys(rows.category[0]!.fieldVersions as Record<string, string>)).toContain("name");
   });
 
   it("logs no names, notes or balances when a push is refused (FR-029)", async () => {
