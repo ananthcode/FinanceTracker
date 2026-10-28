@@ -14,11 +14,26 @@ export type Database = {
             "_apply_account":
 { Args: { "p_change_id": string,"p_fields": Json,"p_hlc": string,"p_id": string,"p_kind": string,"p_options": Json,"p_received_at": string,"p_user": string }; Returns: Json
                            },
+"_apply_category":
+{ Args: { "p_change_id": string,"p_fields": Json,"p_hlc": string,"p_id": string,"p_kind": string,"p_options": Json,"p_received_at": string,"p_user": string }; Returns: Json
+                           },
 "_apply_group":
 { Args: { "p_change_id": string,"p_fields": Json,"p_hlc": string,"p_id": string,"p_kind": string,"p_options": Json,"p_received_at": string,"p_user": string }; Returns: Json
                            },
 "_apply_one":
 { Args: { "p_change": Json,"p_received_at": string,"p_user": string }; Returns: Json
+                           },
+"_apply_payee":
+{ Args: { "p_change_id": string,"p_fields": Json,"p_hlc": string,"p_id": string,"p_kind": string,"p_options": Json,"p_received_at": string,"p_user": string }; Returns: Json
+                           },
+"_apply_tag":
+{ Args: { "p_change_id": string,"p_fields": Json,"p_hlc": string,"p_id": string,"p_kind": string,"p_options": Json,"p_received_at": string,"p_user": string }; Returns: Json
+                           },
+"_bump_version":
+{ Args: { "p_field": string,"p_hlc": string,"p_versions": Json }; Returns: Json
+                           },
+"_category_subtree":
+{ Args: { "p_root": string,"p_user": string }; Returns: string[]
                            },
 "_change_result":
 { Args: { "p_merge": Json,"p_renamed"?: string,"p_status": string }; Returns: Json
@@ -26,8 +41,26 @@ export type Database = {
 "_free_account_name":
 { Args: { "p_name": string,"p_user": string }; Returns: string
                            },
+"_free_category_name":
+{ Args: { "p_kind": Database["public"]['Enums']["category_kind"],"p_name": string,"p_parent": string,"p_user": string }; Returns: string
+                           },
 "_free_group_name":
 { Args: { "p_name": string,"p_user": string }; Returns: string
+                           },
+"_free_payee_name":
+{ Args: { "p_name": string,"p_user": string }; Returns: string
+                           },
+"_free_tag_name":
+{ Args: { "p_name": string,"p_user": string }; Returns: string
+                           },
+"_merge_category":
+{ Args: { "p_hlc": string,"p_source": string,"p_target": string,"p_user": string }; Returns: undefined
+                           },
+"_merge_payee":
+{ Args: { "p_hlc": string,"p_source": string,"p_target": string,"p_user": string }; Returns: undefined
+                           },
+"_merge_tag":
+{ Args: { "p_hlc": string,"p_source": string,"p_target": string,"p_user": string }; Returns: undefined
                            },
 "_set_change_context":
 { Args: { "p_change_id": string,"p_merge": Json,"p_renamed": boolean }; Returns: undefined
@@ -51,6 +84,9 @@ export type Database = {
 "apply_changes":
 { Args: { "p_changes": Json,"p_device": string }; Returns: Json
                            },
+"category_has_activity":
+{ Args: { "p_category": string }; Returns: boolean
+                           },
 "clear_failed_sign_ins":
 { Args: { "p_email": string }; Returns: undefined
                            },
@@ -68,6 +104,12 @@ export type Database = {
                            },
 "merge_field_versions":
 { Args: { "p_fields": (string)[],"p_hlc": string,"p_received_at": string,"p_versions": Json }; Returns: Json
+                           },
+"payee_has_activity":
+{ Args: { "p_payee": string }; Returns: boolean
+                           },
+"person_balance_minor":
+{ Args: { "p_payee": string }; Returns: number
                            },
 "pull_changes":
 { Args: { "p_cursor": number,"p_limit"?: number }; Returns: Json
@@ -95,6 +137,12 @@ export type Database = {
                            },
 "sign_in_lock_status":
 { Args: { "p_email": string }; Returns: Json
+                           },
+"start_categories":
+{ Args: { "p_choice": Database["public"]['Enums']["categories_start"],"p_defaults": Json,"p_device"?: string }; Returns: Json
+                           },
+"tag_usage_count":
+{ Args: { "p_tag": string }; Returns: number
                            },
 "transfer_owner":
 { Args: { "p_new_owner": string }; Returns: undefined
@@ -159,6 +207,32 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
+                },"categories": {
+                  Row: {
+                    "colour": string,"created_at": string,"deleted_at": string | null,"field_versions": NonNullable<Json>,"hidden": boolean,"icon": string,"id": string,"kind": Database["public"]['Enums']["category_kind"],"merged_into": string | null,"name": string,"parent_id": string | null,"server_seq": number,"state": Database["public"]['Enums']["record_state"],"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "colour": string,"created_at"?: string,"deleted_at"?: string | null,"field_versions"?: NonNullable<Json>,"hidden"?: boolean,"icon": string,"id": string,"kind": Database["public"]['Enums']["category_kind"],"merged_into"?: string | null,"name": string,"parent_id"?: string | null,"server_seq": number,"state"?: Database["public"]['Enums']["record_state"],"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "colour"?: string,"created_at"?: string,"deleted_at"?: string | null,"field_versions"?: NonNullable<Json>,"hidden"?: boolean,"icon"?: string,"id"?: string,"kind"?: Database["public"]['Enums']["category_kind"],"merged_into"?: string | null,"name"?: string,"parent_id"?: string | null,"server_seq"?: number,"state"?: Database["public"]['Enums']["record_state"],"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "categories_merged_into_user_id_fkey"
+      columns: ["merged_into","user_id"]
+isOneToOne: false
+      referencedRelation: "categories"
+      referencedColumns: ["id","user_id"]
+    },{
+      foreignKeyName: "categories_parent_id_user_id_kind_fkey"
+      columns: ["parent_id","user_id","kind"]
+isOneToOne: false
+      referencedRelation: "categories"
+      referencedColumns: ["id","user_id","kind"]
+    }
+                  ]
                 },"invitations": {
                   Row: {
                     "accepted_at": string | null,"accepted_user_id": string | null,"created_at": string,"delivery_status": Database["public"]['Enums']["invitation_delivery_status"] | null,"email": string,"expires_at": string,"id": string,"invited_by": string | null,"revoked_at": string | null,"role": Database["public"]['Enums']["user_role"],"status": Database["public"]['Enums']["invitation_status"],"superseded_by": string | null,"token_hash": string
@@ -179,6 +253,32 @@ isOneToOne: false
       referencedColumns: ["id"]
     }
                   ]
+                },"payees": {
+                  Row: {
+                    "created_at": string,"default_category_id": string | null,"deleted_at": string | null,"field_versions": NonNullable<Json>,"hidden": boolean,"id": string,"include_in_net_worth": boolean,"kind": Database["public"]['Enums']["payee_kind"],"merged_into": string | null,"name": string,"notes": string | null,"opening_balance_date": string | null,"opening_balance_minor": number,"server_seq": number,"state": Database["public"]['Enums']["record_state"],"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "created_at"?: string,"default_category_id"?: string | null,"deleted_at"?: string | null,"field_versions"?: NonNullable<Json>,"hidden"?: boolean,"id": string,"include_in_net_worth"?: boolean,"kind": Database["public"]['Enums']["payee_kind"],"merged_into"?: string | null,"name": string,"notes"?: string | null,"opening_balance_date"?: string | null,"opening_balance_minor"?: number,"server_seq": number,"state"?: Database["public"]['Enums']["record_state"],"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "created_at"?: string,"default_category_id"?: string | null,"deleted_at"?: string | null,"field_versions"?: NonNullable<Json>,"hidden"?: boolean,"id"?: string,"include_in_net_worth"?: boolean,"kind"?: Database["public"]['Enums']["payee_kind"],"merged_into"?: string | null,"name"?: string,"notes"?: string | null,"opening_balance_date"?: string | null,"opening_balance_minor"?: number,"server_seq"?: number,"state"?: Database["public"]['Enums']["record_state"],"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "payees_default_category_id_user_id_fkey"
+      columns: ["default_category_id","user_id"]
+isOneToOne: false
+      referencedRelation: "categories"
+      referencedColumns: ["id","user_id"]
+    },{
+      foreignKeyName: "payees_merged_into_user_id_fkey"
+      columns: ["merged_into","user_id"]
+isOneToOne: false
+      referencedRelation: "payees"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
                 },"profiles": {
                   Row: {
                     "created_at": string,"display_name": string | null,"email": string,"last_sign_in_at": string | null,"privacy_notice_shown_at": string | null,"role": Database["public"]['Enums']["user_role"],"setup_completed_at": string | null,"status": Database["public"]['Enums']["access_status"],"updated_at": string,"user_id": string
@@ -193,16 +293,36 @@ isOneToOne: false
                   Relationships: [
                     
                   ]
-                },"user_preferences": {
+                },"tags": {
                   Row: {
-                    "accounts_view": Database["public"]['Enums']["accounts_view"],"base_currency": string,"date_format": Database["public"]['Enums']["date_format"],"fy_start_month": number,"number_format": Database["public"]['Enums']["number_format"],"timezone": string,"updated_at": string,"user_id": string
+                    "created_at": string,"deleted_at": string | null,"field_versions": NonNullable<Json>,"id": string,"merged_into": string | null,"name": string,"server_seq": number,"state": Database["public"]['Enums']["record_state"],"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "accounts_view"?: Database["public"]['Enums']["accounts_view"],"base_currency"?: string,"date_format"?: Database["public"]['Enums']["date_format"],"fy_start_month"?: number,"number_format"?: Database["public"]['Enums']["number_format"],"timezone"?: string,"updated_at"?: string,"user_id": string
+                    "created_at"?: string,"deleted_at"?: string | null,"field_versions"?: NonNullable<Json>,"id": string,"merged_into"?: string | null,"name": string,"server_seq": number,"state"?: Database["public"]['Enums']["record_state"],"updated_at"?: string,"user_id": string
                   }
                   Update: {
-                    "accounts_view"?: Database["public"]['Enums']["accounts_view"],"base_currency"?: string,"date_format"?: Database["public"]['Enums']["date_format"],"fy_start_month"?: number,"number_format"?: Database["public"]['Enums']["number_format"],"timezone"?: string,"updated_at"?: string,"user_id"?: string
+                    "created_at"?: string,"deleted_at"?: string | null,"field_versions"?: NonNullable<Json>,"id"?: string,"merged_into"?: string | null,"name"?: string,"server_seq"?: number,"state"?: Database["public"]['Enums']["record_state"],"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "tags_merged_into_user_id_fkey"
+      columns: ["merged_into","user_id"]
+isOneToOne: false
+      referencedRelation: "tags"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
+                },"user_preferences": {
+                  Row: {
+                    "accounts_view": Database["public"]['Enums']["accounts_view"],"base_currency": string,"categories_start": Database["public"]['Enums']["categories_start"] | null,"date_format": Database["public"]['Enums']["date_format"],"fy_start_month": number,"number_format": Database["public"]['Enums']["number_format"],"timezone": string,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "accounts_view"?: Database["public"]['Enums']["accounts_view"],"base_currency"?: string,"categories_start"?: Database["public"]['Enums']["categories_start"] | null,"date_format"?: Database["public"]['Enums']["date_format"],"fy_start_month"?: number,"number_format"?: Database["public"]['Enums']["number_format"],"timezone"?: string,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "accounts_view"?: Database["public"]['Enums']["accounts_view"],"base_currency"?: string,"categories_start"?: Database["public"]['Enums']["categories_start"] | null,"date_format"?: Database["public"]['Enums']["date_format"],"fy_start_month"?: number,"number_format"?: Database["public"]['Enums']["number_format"],"timezone"?: string,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     
@@ -216,7 +336,7 @@ isOneToOne: false
             [_ in never]: never
           }
           Enums: {
-            "access_status": "active"|"disabled","account_type": "bank"|"cash"|"wallet"|"credit_card","accounts_view": "by_type"|"my_groups","audit_action": "invitation_created"|"invitation_resent"|"invitation_revoked"|"invitation_accepted"|"invitation_expired"|"invitation_delivery_failed"|"owner_recovered"|"user_disabled"|"user_enabled"|"user_erased"|"sign_in_succeeded"|"sign_in_failed"|"sign_in_locked"|"password_reset_requested"|"password_reset_completed"|"signed_out"|"preference_changed"|"setup_completed"|"app_lock_enabled"|"app_lock_disabled"|"account_created"|"account_edited"|"account_reordered"|"account_archived"|"account_restored"|"account_deleted"|"account_sync_renamed"|"account_group_created"|"account_group_renamed"|"account_group_reordered"|"account_group_deleted","date_format": "dd-MMM-yyyy"|"dd/MM/yyyy"|"yyyy-MM-dd","invitation_delivery_status": "sent"|"failed","invitation_status": "pending"|"accepted"|"revoked"|"superseded","number_format": "indian"|"international","record_state": "active"|"archived"|"deleted","user_role": "owner"|"member"
+            "access_status": "active"|"disabled","account_type": "bank"|"cash"|"wallet"|"credit_card","accounts_view": "by_type"|"my_groups","audit_action": "invitation_created"|"invitation_resent"|"invitation_revoked"|"invitation_accepted"|"invitation_expired"|"invitation_delivery_failed"|"owner_recovered"|"user_disabled"|"user_enabled"|"user_erased"|"sign_in_succeeded"|"sign_in_failed"|"sign_in_locked"|"password_reset_requested"|"password_reset_completed"|"signed_out"|"preference_changed"|"setup_completed"|"app_lock_enabled"|"app_lock_disabled"|"account_created"|"account_edited"|"account_reordered"|"account_archived"|"account_restored"|"account_deleted"|"account_sync_renamed"|"account_group_created"|"account_group_renamed"|"account_group_reordered"|"account_group_deleted"|"category_created"|"category_edited"|"category_moved"|"category_hidden"|"category_unhidden"|"category_merged"|"category_deleted"|"category_sync_renamed"|"tag_created"|"tag_renamed"|"tag_merged"|"tag_deleted"|"tag_sync_renamed"|"payee_created"|"payee_edited"|"payee_hidden"|"payee_unhidden"|"payee_merged"|"payee_deleted"|"payee_sync_renamed","categories_start": "suggested"|"empty","category_kind": "expense"|"income","date_format": "dd-MMM-yyyy"|"dd/MM/yyyy"|"yyyy-MM-dd","invitation_delivery_status": "sent"|"failed","invitation_status": "pending"|"accepted"|"revoked"|"superseded","number_format": "indian"|"international","payee_kind": "business"|"person","record_state": "active"|"archived"|"deleted","user_role": "owner"|"member"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -336,7 +456,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "access_status": ["active", "disabled"],"account_type": ["bank", "cash", "wallet", "credit_card"],"accounts_view": ["by_type", "my_groups"],"audit_action": ["invitation_created", "invitation_resent", "invitation_revoked", "invitation_accepted", "invitation_expired", "invitation_delivery_failed", "owner_recovered", "user_disabled", "user_enabled", "user_erased", "sign_in_succeeded", "sign_in_failed", "sign_in_locked", "password_reset_requested", "password_reset_completed", "signed_out", "preference_changed", "setup_completed", "app_lock_enabled", "app_lock_disabled", "account_created", "account_edited", "account_reordered", "account_archived", "account_restored", "account_deleted", "account_sync_renamed", "account_group_created", "account_group_renamed", "account_group_reordered", "account_group_deleted"],"date_format": ["dd-MMM-yyyy", "dd/MM/yyyy", "yyyy-MM-dd"],"invitation_delivery_status": ["sent", "failed"],"invitation_status": ["pending", "accepted", "revoked", "superseded"],"number_format": ["indian", "international"],"record_state": ["active", "archived", "deleted"],"user_role": ["owner", "member"]
+            "access_status": ["active", "disabled"],"account_type": ["bank", "cash", "wallet", "credit_card"],"accounts_view": ["by_type", "my_groups"],"audit_action": ["invitation_created", "invitation_resent", "invitation_revoked", "invitation_accepted", "invitation_expired", "invitation_delivery_failed", "owner_recovered", "user_disabled", "user_enabled", "user_erased", "sign_in_succeeded", "sign_in_failed", "sign_in_locked", "password_reset_requested", "password_reset_completed", "signed_out", "preference_changed", "setup_completed", "app_lock_enabled", "app_lock_disabled", "account_created", "account_edited", "account_reordered", "account_archived", "account_restored", "account_deleted", "account_sync_renamed", "account_group_created", "account_group_renamed", "account_group_reordered", "account_group_deleted", "category_created", "category_edited", "category_moved", "category_hidden", "category_unhidden", "category_merged", "category_deleted", "category_sync_renamed", "tag_created", "tag_renamed", "tag_merged", "tag_deleted", "tag_sync_renamed", "payee_created", "payee_edited", "payee_hidden", "payee_unhidden", "payee_merged", "payee_deleted", "payee_sync_renamed"],"categories_start": ["suggested", "empty"],"category_kind": ["expense", "income"],"date_format": ["dd-MMM-yyyy", "dd/MM/yyyy", "yyyy-MM-dd"],"invitation_delivery_status": ["sent", "failed"],"invitation_status": ["pending", "accepted", "revoked", "superseded"],"number_format": ["indian", "international"],"payee_kind": ["business", "person"],"record_state": ["active", "archived", "deleted"],"user_role": ["owner", "member"]
           }
         }
 } as const
