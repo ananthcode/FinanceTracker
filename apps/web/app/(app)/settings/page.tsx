@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { DEFAULT_PREFERENCES } from "@ft/core";
 import { getPreferences, getProfile } from "@ft/db";
 import { DateText } from "@/components/DateText";
@@ -44,6 +45,29 @@ export default async function SettingsPage() {
           initialDisplayName={profile?.displayName ?? ""}
           nowIso={new Date().toISOString()}
         />
+      </section>
+
+      <section aria-labelledby="lists-title" className="flex flex-col gap-2">
+        <h2 id="lists-title" className="text-lg font-medium">
+          Lists
+        </h2>
+        <ul className="flex flex-col gap-1">
+          <li>
+            <Link href="/settings/categories" className="text-brand-strong hover:underline dark:text-brand">
+              Categories
+            </Link>
+          </li>
+          <li>
+            <Link href="/settings/payees" className="text-brand-strong hover:underline dark:text-brand">
+              Payees
+            </Link>
+          </li>
+          <li>
+            <Link href="/settings/tags" className="text-brand-strong hover:underline dark:text-brand">
+              Tags
+            </Link>
+          </li>
+        </ul>
       </section>
 
       <section aria-labelledby="activity-title" className="flex flex-col gap-2">
