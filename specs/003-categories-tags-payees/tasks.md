@@ -235,9 +235,9 @@ never-used "Pets" deleted with its payee default cleared.
 
 ## Phase 9: Polish & Cross-Cutting Concerns
 
-- [ ] T073 [P] Accessibility: extend `apps/web/e2e/a11y.spec.ts` to `/people`, `/people/new`, `/settings/categories` (tree and start dialog), `/settings/payees`, `/settings/tags`, the picker and merge dialog (axe WCAG 2.1 AA at 1280 and 390 px; keyboard: tree disclosure, picker, move dialog)
-- [ ] T074 [P] Performance: `apps/web/e2e/r3-performance.spec.ts` (skipped unless `E2E_PRODUCTION=1`) seeding 500 categories and 2,000 payees; Categories and Payees within 2 s, picker/search matches within 1 s (SC-002)
-- [ ] T075 [P] Demo data `packages/core/src/demo/lists.ts` per research R3-15 with a unit test `packages/core/test/demo-lists.test.ts` (deterministic, passes schemas, exercises every label and the net-worth switch); extend `apps/web/e2e/helpers/db.ts` with `seedLists(email, …)` used by T073, T074
+- [X] T073 [P] Accessibility: extend `apps/web/e2e/a11y.spec.ts` to `/people`, `/people/new`, `/settings/categories` (tree and start dialog), `/settings/payees`, `/settings/tags`, the picker and merge dialog (axe WCAG 2.1 AA at 1280 and 390 px; keyboard: tree disclosure, picker, move dialog)
+- [X] T074 [P] Performance: `apps/web/e2e/r3-performance.spec.ts` (skipped unless `E2E_PRODUCTION=1`) seeding 500 categories and 2,000 payees; Categories and Payees within 2 s, picker/search matches within 1 s (SC-002)
+- [X] T075 [P] Demo data `packages/core/src/demo/lists.ts` per research R3-15 with a unit test `packages/core/test/demo-lists.test.ts` (deterministic, passes schemas, exercises every label and the net-worth switch); extend `apps/web/e2e/helpers/db.ts` with `seedLists(email, …)` used by T073, T074
 - [ ] T076 Write `specs/003-categories-tags-payees/review-notes.md`: `apply_changes` extensions (scoping, cycle check, merges and the repoint registry R4 must extend), `start_categories`, RLS/grants, `person_balance_minor` + `summarise` people inclusion, erasure extension, API route
 - [ ] T077 Run all suites (core, db, web unit, integration, pgTAP, full e2e, production performance, typecheck, lint) and record results in `specs/003-categories-tags-payees/validation.md`, mapping quickstart rows to tests
 - [ ] T078 Converge: update contracts with deviations found during implementation; set R3 status in `ROADMAP.md`; note Story 6's Android client (T070–T072) is carried into the Android phase

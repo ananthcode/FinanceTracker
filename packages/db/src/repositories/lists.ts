@@ -8,6 +8,25 @@ import { DEFAULT_CATEGORIES } from "@ft/core";
  * passes through a floating-point number (constitution II). Deleted rows are never returned.
  */
 
+/**
+ * The API returns at most 1,000 rows per request (Supabase `max_rows`), and a user may have up to
+ * 2,000 payees (FR-015): read every page, ordered by id so pages never overlap or skip.
+ */
+const PAGE = 1000;
+async function readAll<T>(
+  page: (from: number, to: number) => PromiseLike<{ data: unknown; error: { code?: string } | null }>,
+  failure: string,
+): Promise<T[]> {
+  const rows: T[] = [];
+  for (let from = 0; ; from += PAGE) {
+    const { data, error } = await page(from, from + PAGE - 1);
+    if (error) throw new Error(`${failure}: ${error.code ?? ""}`);
+    const batch = (data ?? []) as T[];
+    rows.push(...batch);
+    if (batch.length < PAGE) return rows;
+  }
+}
+
 interface CategoryRow {
   id: string;
   name: string;
@@ -19,12 +38,12 @@ interface CategoryRow {
 }
 
 export async function listCategories(db: SupabaseClient): Promise<CategoryView[]> {
-  const { data, error } = await db
-    .from("categories")
-    .select("id, name, kind, parent_id, colour, icon, hidden")
-    .neq("state", "deleted");
-  if (error) throw new Error(`CATEGORIES_READ_FAILED: ${error.code ?? ""}`);
-  return (data as CategoryRow[]).map((c) => ({
+  const data = await readAll<CategoryRow>(
+    (from, to) =>
+      db.from("categories").select("id, name, kind, parent_id, colour, icon, hidden").neq("state", "deleted").order("id").range(from, to),
+    "CATEGORIES_READ_FAILED",
+  );
+  return data.map((c) => ({
     id: c.id,
     name: c.name,
     kind: c.kind,
@@ -36,9 +55,10 @@ export async function listCategories(db: SupabaseClient): Promise<CategoryView[]
 }
 
 export async function listTags(db: SupabaseClient): Promise<TagView[]> {
-  const { data, error } = await db.from("tags").select("id, name").neq("state", "deleted");
-  if (error) throw new Error(`TAGS_READ_FAILED: ${error.code ?? ""}`);
-  return data as TagView[];
+  return readAll<TagView>(
+    (from, to) => db.from("tags").select("id, name").neq("state", "deleted").order("id").range(from, to),
+    "TAGS_READ_FAILED",
+  );
 }
 
 const PAYEE_COLUMNS =
@@ -72,11 +92,11 @@ function payeeFromRow(row: PayeeRow): PayeeView {
 
 /** The caller's payees, optionally only one kind (people for the People screen). */
 export async function listPayees(db: SupabaseClient, kind?: PayeeKind): Promise<PayeeView[]> {
-  let query = db.from("payees").select(PAYEE_COLUMNS).neq("state", "deleted");
-  if (kind) query = query.eq("kind", kind);
-  const { data, error } = await query;
-  if (error) throw new Error(`PAYEES_READ_FAILED: ${error.code ?? ""}`);
-  return (data as unknown as PayeeRow[]).map(payeeFromRow);
+  const data = await readAll<PayeeRow>((from, to) => {
+    const query = db.from("payees").select(PAYEE_COLUMNS).neq("state", "deleted");
+    return (kind ? query.eq("kind", kind) : query).order("id").range(from, to);
+  }, "PAYEES_READ_FAILED");
+  return data.map(payeeFromRow);
 }
 
 /** One of the caller's payees, or null (also for deleted ones). */

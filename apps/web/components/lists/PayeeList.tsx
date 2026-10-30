@@ -3,11 +3,14 @@
 import Link from "next/link";
 import { useId, useMemo, useState } from "react";
 import { categoryPath, compareNames, indexCategories, personBalance, type CategoryView, type PayeeView } from "@ft/core";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { PersonBalance } from "./PersonBalance";
 
 type KindFilter = "all" | "business" | "person";
+/** Rows rendered at first; search narrows the rest (SC-002 with up to 2,000 payees). */
+const PAGE_ROWS = 200;
 const FILTER_LABEL: Record<KindFilter, string> = { all: "All", business: "Businesses", person: "People" };
 
 /**
@@ -19,6 +22,7 @@ export function PayeeList({ payees, categories }: { payees: PayeeView[]; categor
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState<KindFilter>("all");
   const [showHidden, setShowHidden] = useState(false);
+  const [limit, setLimit] = useState(PAGE_ROWS);
   const index = useMemo(() => indexCategories(categories), [categories]);
 
   const shown = useMemo(() => {
@@ -65,7 +69,7 @@ export function PayeeList({ payees, categories }: { payees: PayeeView[]; categor
         <p className="text-muted-foreground">{payees.length === 0 ? "No payees yet." : "No payee matches."}</p>
       ) : (
         <ul aria-label="Payees" className="flex flex-col divide-y divide-border">
-          {shown.map((p) => (
+          {shown.slice(0, limit).map((p) => (
             <li key={p.id} className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 py-2" data-payee-name={p.name}>
               <Link href={`/settings/payees/${p.id}`} className="font-medium text-brand-strong hover:underline dark:text-brand">
                 {p.name}
@@ -82,6 +86,16 @@ export function PayeeList({ payees, categories }: { payees: PayeeView[]; categor
             </li>
           ))}
         </ul>
+      )}
+      {shown.length > limit && (
+        <div className="flex flex-wrap items-center gap-2 text-sm">
+          <span className="text-muted-foreground">
+            Showing {limit} of {shown.length}. Search to find a payee quickly.
+          </span>
+          <Button type="button" size="sm" variant="outline" onClick={() => setLimit((n) => n + PAGE_ROWS)}>
+            Show {Math.min(PAGE_ROWS, shown.length - limit)} more
+          </Button>
+        </div>
       )}
     </div>
   );

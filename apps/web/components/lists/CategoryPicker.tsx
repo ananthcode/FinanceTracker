@@ -133,7 +133,13 @@ export function CategoryPicker({
         onKeyDown={onKeyDown}
         onBlur={() => setTimeout(() => setOpen(false), 150)}
       />
-      {open && (
+      {open && options.length === 0 && (
+        // A listbox may only hold options, so "no matches" is a status message instead.
+        <p id={listId} role="status" className="rounded-md border border-border px-3 py-2 text-sm text-muted-foreground">
+          No matching categories
+        </p>
+      )}
+      {open && options.length > 0 && (
         <ul
           id={listId}
           role="listbox"
@@ -141,7 +147,6 @@ export function CategoryPicker({
           // In the flow, not floating: inside dialogs a floating list would cover the action buttons.
           className="max-h-60 w-full overflow-auto rounded-md border border-border bg-background py-1"
         >
-          {options.length === 0 && <li className="px-3 py-2 text-sm text-muted-foreground">No matching categories</li>}
           {options.map((option, i) => (
             <li
               key={option.id ?? "none"}

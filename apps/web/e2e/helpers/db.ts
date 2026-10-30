@@ -1,4 +1,4 @@
-import { demoAccounts, keysBetween } from "@ft/core";
+import { demoAccounts, demoLists, keysBetween } from "@ft/core";
 import { createServiceRoleClient } from "@ft/db";
 import { newInvitationToken, toByteaHex } from "@ft/db/server";
 
@@ -103,6 +103,69 @@ export async function seedAccounts(
     const { error: aErr } = await db.from("accounts").insert(rows);
     if (aErr) throw new Error(aErr.message);
   }
+}
+
+/**
+ * Seeds categories, tags and payees for a user (R3 T075): the demo lists, and/or `categories` and
+ * `payees` generated ones (for the performance test). Records the start choice, so the dialog does
+ * not open. Ids are fresh per user; parents and default categories are mapped to them.
+ */
+export async function seedLists(email: string, opts: { demo?: boolean; categories?: number; payees?: number } = {}): Promise<void> {
+  const db = admin();
+  const { data: profile, error } = await db.from("profiles").select("user_id").eq("email", email).single();
+  if (error || !profile) throw new Error(`seedLists: no profile for ${email}`);
+  const userId = profile.user_id as string;
+  const fresh = new Map<string, string>();
+  const idFor = (demoId: string) => fresh.get(demoId) ?? fresh.set(demoId, crypto.randomUUID()).get(demoId)!;
+  const categories: Record<string, unknown>[] = [];
+  const tags: Record<string, unknown>[] = [];
+  const payees: Record<string, unknown>[] = [];
+  // A bulk insert fills missing columns with NULL, not their defaults: give every row all of them.
+  const category = (id: string, name: string, kind: string, parentId: string | null, colour: string, icon: string, hidden = false) =>
+    categories.push({ id, user_id: userId, name, kind, parent_id: parentId, colour, icon, hidden });
+  const payee = (p: { id: string; name: string; kind: string; defaultCategoryId: string | null; notes: string | null; hidden: boolean;
+    openingBalanceMinor: bigint; openingBalanceDate: string | null; includeInNetWorth: boolean }) =>
+    payees.push({
+      id: p.id, user_id: userId, name: p.name, kind: p.kind, default_category_id: p.defaultCategoryId, notes: p.notes,
+      hidden: p.hidden, opening_balance_minor: p.openingBalanceMinor.toString(), opening_balance_date: p.openingBalanceDate,
+      include_in_net_worth: p.includeInNetWorth,
+    });
+
+  if (opts.demo) {
+    const demo = demoLists();
+    for (const c of demo.categories) category(idFor(c.id), c.name, c.kind, c.parentId ? idFor(c.parentId) : null, c.colour, c.icon, c.hidden);
+    for (const t of demo.tags) tags.push({ id: idFor(t.id), user_id: userId, name: t.name });
+    for (const p of demo.payees) payee({ ...p, id: idFor(p.id), defaultCategoryId: p.defaultCategoryId ? idFor(p.defaultCategoryId) : null });
+  }
+  // Generated: top-level categories with nine sub-categories each, then businesses defaulting to them.
+  const generatedIds: string[] = [];
+  for (let i = 0; i < (opts.categories ?? 0); i += 10) {
+    const parent = crypto.randomUUID();
+    category(parent, `Seeded group ${i / 10 + 1}`, "expense", null, "slate", "package");
+    generatedIds.push(parent);
+    for (let j = 1; j < 10 && i + j < (opts.categories ?? 0); j++) {
+      const child = crypto.randomUUID();
+      category(child, `Seeded category ${i + j}`, "expense", parent, "slate", "package");
+      generatedIds.push(child);
+    }
+  }
+  for (let i = 0; i < (opts.payees ?? 0); i++) {
+    payee({
+      id: crypto.randomUUID(), name: `Seeded payee ${i + 1}`, kind: "business",
+      defaultCategoryId: generatedIds.length ? generatedIds[i % generatedIds.length]! : null, notes: null, hidden: false,
+      openingBalanceMinor: 0n, openingBalanceDate: null, includeInNetWorth: false,
+    });
+  }
+
+  for (const [table, rows] of [["categories", categories], ["tags", tags], ["payees", payees]] as const) {
+    // Parents before children: rows are inserted in the order they were built.
+    for (let i = 0; i < rows.length; i += 500) {
+      const { error: err } = await db.from(table).insert(rows.slice(i, i + 500));
+      if (err) throw new Error(`seedLists ${table}: ${err.message}`);
+    }
+  }
+  const { error: pErr } = await db.from("user_preferences").update({ categories_start: "suggested" }).eq("user_id", userId);
+  if (pErr) throw new Error(pErr.message);
 }
 
 /** First-run setup is US3; until then tests complete it directly. */
