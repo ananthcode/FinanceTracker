@@ -180,12 +180,12 @@ two tags remain.
 ### Tests for User Story 4
 
 - [X] T055 [P] [US4] pgTAP `supabase/tests/lists_apply.test.sql` (tags part): create, rename, clash → `NAME_TAKEN` / `renamed`, delete, 501st → `LIMIT_REACHED`
-- [ ] T056 [P] [US4] Playwright `apps/web/e2e/r3-us4-tags.spec.ts` covering spec US4 scenarios 1–3 (merge relies on US5's tag merge; mark that step `test.fixme` until T063 lands, then enable)
+- [X] T056 [P] [US4] Playwright `apps/web/e2e/r3-us4-tags.spec.ts` covering spec US4 scenarios 1–3 (merge relies on US5's tag merge; mark that step `test.fixme` until T063 lands, then enable)
 
 ### Implementation for User Story 4
 
-- [ ] T057 [US4] Component `apps/web/components/lists/TagList.tsx` (alphabetical, add, inline rename, delete with confirmation showing usage count from `app.tag_usage_count` — 0 in R3) and page `apps/web/app/(app)/settings/tags/page.tsx`
-- [ ] T058 [US4] Run T055, T056 and fix until green
+- [X] T057 [US4] Component `apps/web/components/lists/TagList.tsx` (alphabetical, add, inline rename, delete with confirmation showing usage count from `app.tag_usage_count` — 0 in R3) and page `apps/web/app/(app)/settings/tags/page.tsx`
+- [X] T058 [US4] Run T055, T056 and fix until green
 
 **Checkpoint**: Tags usable.
 
