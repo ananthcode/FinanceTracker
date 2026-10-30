@@ -1,0 +1,53 @@
+{
+  "description": "Person balances and People totals (R3 FR-016 – FR-019). Positive = the person owes the user. Shared by packages/core/test/people.test.ts and the SQL parity test (app.person_balance_minor).",
+  "cases": [
+    {
+      "name": "settled at zero",
+      "people": [{ "id": "a", "openingBalanceMinor": "0" }],
+      "expected": { "balances": { "a": "0" }, "labels": { "a": "settled" }, "owedToYou": "0", "youOwe": "0" }
+    },
+    {
+      "name": "they owe the user",
+      "people": [{ "id": "a", "openingBalanceMinor": "1500000" }],
+      "expected": { "balances": { "a": "1500000" }, "labels": { "a": "owes_you" }, "owedToYou": "1500000", "youOwe": "0" }
+    },
+    {
+      "name": "the user owes them",
+      "people": [{ "id": "a", "openingBalanceMinor": "-450000" }],
+      "expected": { "balances": { "a": "-450000" }, "labels": { "a": "you_owe" }, "owedToYou": "0", "youOwe": "450000" }
+    },
+    {
+      "name": "maximum both ways",
+      "people": [
+        { "id": "a", "openingBalanceMinor": "999999999999" },
+        { "id": "b", "openingBalanceMinor": "-999999999999" }
+      ],
+      "expected": {
+        "balances": { "a": "999999999999", "b": "-999999999999" },
+        "labels": { "a": "owes_you", "b": "you_owe" },
+        "owedToYou": "999999999999",
+        "youOwe": "999999999999"
+      }
+    },
+    {
+      "name": "hidden people still count; one paisa is exact",
+      "people": [
+        { "id": "a", "openingBalanceMinor": "1", "hidden": true },
+        { "id": "b", "openingBalanceMinor": "-1" },
+        { "id": "c", "openingBalanceMinor": "250050" }
+      ],
+      "expected": {
+        "balances": { "a": "1", "b": "-1", "c": "250050" },
+        "labels": { "a": "owes_you", "b": "you_owe", "c": "owes_you" },
+        "owedToYou": "250051",
+        "youOwe": "1"
+      }
+    },
+    {
+      "name": "two people merged: opening balances added",
+      "people": [{ "id": "a", "openingBalanceMinor": "1050000" }],
+      "note": "Ravi Kumar 1500000 merged with Ravi K -450000 (lists_merge.test.sql)",
+      "expected": { "balances": { "a": "1050000" }, "labels": { "a": "owes_you" }, "owedToYou": "1050000", "youOwe": "0" }
+    }
+  ]
+}

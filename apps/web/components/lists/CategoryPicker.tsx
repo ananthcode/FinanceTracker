@@ -45,8 +45,9 @@ export function CategoryPicker({
   const [query, setQuery] = useState("");
   const [active, setActive] = useState(0);
   const [askStart, setAskStart] = useState(false);
-  // The server's answer arrives with the next render; until then remember it was given here.
-  const [startedHere, setStartedHere] = useState(false);
+  // The server's answer arrives with the next render; until then remember it was given here
+  // (a ref, so the focus handler that runs straight after the dialog closes already sees it).
+  const startedHere = useRef(false);
 
   const index = useMemo(() => indexCategories(categories), [categories]);
   const selectedLabel = value ? categoryPath(value, index) : (noneLabel ?? "");
@@ -62,7 +63,7 @@ export function CategoryPicker({
   }, [query, categories, kind, value, exclude, noneLabel]);
 
   function openList() {
-    if (categoriesStart === null && !startedHere) {
+    if (categoriesStart === null && !startedHere.current) {
       setAskStart(true);
       return;
     }
@@ -165,8 +166,8 @@ export function CategoryPicker({
       {askStart && (
         <StartCategoriesDialog
           onDone={() => {
+            startedHere.current = true;
             setAskStart(false);
-            setStartedHere(true);
             inputRef.current?.focus();
           }}
         />

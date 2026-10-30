@@ -126,14 +126,14 @@ classes, renames "Eating out" to "Restaurants", moves "Pets" to the top level; t
 ### Tests for User Story 2
 
 - [X] T036 [P] [US2] pgTAP `supabase/tests/lists_apply.test.sql` (payees part): create business with default category; default category of another user → `VALIDATION_FAILED`; name clash ignoring case → `NAME_TAKEN` / `renamed`; business with opening balance → rejected; 2,001st payee → `LIMIT_REACHED`
-- [ ] T037 [P] [US2] Playwright `apps/web/e2e/r3-us2-payees.spec.ts` covering spec US2 scenarios 1–4 (incl. the default category showing its new path after a rename); adding a payee with a default category completes within 30 s (SC-001)
+- [X] T037 [P] [US2] Playwright `apps/web/e2e/r3-us2-payees.spec.ts` covering spec US2 scenarios 1–4 (incl. the default category showing its new path after a rename); adding a payee with a default category completes within 30 s (SC-001)
 
 ### Implementation for User Story 2
 
 - [X] T038 [US2] Complete the business rules in `app._apply_payee` (default category ownership, kind checks) in migration `<ts>_payees_rules.sql` — passes T036
-- [ ] T039 [P] [US2] Components `apps/web/components/lists/PayeeList.tsx` (search as you type, kind filter All / Businesses / People, "Show hidden") and `PayeeForm.tsx` (kind, default category via `CategoryPicker`, notes; person fields shown only for Person)
-- [ ] T040 [US2] Pages `apps/web/app/(app)/settings/payees/page.tsx`, `new/page.tsx`, `[id]/page.tsx`; name-taken message suggests the existing payee with a link
-- [ ] T041 [US2] Run T037 and fix until green
+- [X] T039 [P] [US2] Components `apps/web/components/lists/PayeeList.tsx` (search as you type, kind filter All / Businesses / People, "Show hidden") and `PayeeForm.tsx` (kind, default category via `CategoryPicker`, notes; person fields shown only for Person)
+- [X] T040 [US2] Pages `apps/web/app/(app)/settings/payees/page.tsx`, `new/page.tsx`, `[id]/page.tsx`; name-taken message suggests the existing payee with a link
+- [X] T041 [US2] Run T037 and fix until green
 
 **Checkpoint**: Payees usable; categories and payees work independently.
 
@@ -149,7 +149,7 @@ navigation with two totals, and the per-person net-worth switch on the accounts 
 
 ### Tests for User Story 3
 
-- [ ] T042 [P] [US3] Create shared vectors `packages/core/test/vectors/people.json` (zero → settled; they owe 1500000; you owe −450000; maximum ±999999999999; hidden person with balance; merged people summed) and tests `packages/core/test/people.test.ts` for `personBalance`, `peopleTotals`, `personLabel` (SC-004)
+- [X] T042 [P] [US3] Create shared vectors `packages/core/test/vectors/people.json` (zero → settled; they owe 1500000; you owe −450000; maximum ±999999999999; hidden person with balance; merged people summed) and tests `packages/core/test/people.test.ts` for `personBalance`, `peopleTotals`, `personLabel` (SC-004)
 - [ ] T043 [P] [US3] Extend `packages/core/test/vectors/balances.json` and `accounts-summary.test.ts` with people: included owes-you adds to Owned, included you-owe adds to Owed, excluded people change nothing, the People line equals the included sums (FR-020)
 - [X] T044 [P] [US3] pgTAP `supabase/tests/lists_apply.test.sql` (people part): person create needs a date; future date → `DATE_IN_FUTURE`; person → business with non-zero balance → `BALANCE_NOT_ZERO`, at zero → applied with `opening_balance_minor`, `opening_balance_date` and `include_in_net_worth` cleared; business → person starts at 0 with a date
 - [ ] T045 [P] [US3] Parity: extend `apps/web/lib/sync-parity.int.test.ts` to run `vectors/people.json` against `app.person_balance_minor`
@@ -157,7 +157,7 @@ navigation with two totals, and the per-person net-worth switch on the accounts 
 
 ### Implementation for User Story 3
 
-- [ ] T047 [P] [US3] Implement `personBalance`, `peopleTotals`, `personLabel` in `packages/core/src/people/` — passes T042
+- [X] T047 [P] [US3] Implement `personBalance`, `peopleTotals`, `personLabel` in `packages/core/src/people/` — passes T042
 - [ ] T048 [US3] Extend `summarise` in `packages/core/src/accounts/summary.ts` with the optional `people` input and `people` result line (research R3-08) — passes T043
 - [ ] T049 [US3] Person rules in `app._apply_payee` (date not after today in the user's timezone; person → business only when `app.person_balance_minor` = 0, clearing `opening_balance_minor`, `opening_balance_date` and `include_in_net_worth`; business → person) in migration `<ts>_people_rules.sql` — passes T044, T045
 - [ ] T050 [P] [US3] Components `apps/web/components/lists/PeopleTotals.tsx` and `PersonRow.tsx` (balance via `<Money>` with "owes you" / "you owe" / "settled")
