@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { DEFAULT_PREFERENCES, todayInZone } from "@ft/core";
 import { getPayee, getPreferences, listCategories, listPayees } from "@ft/db";
 import { PayeeForm } from "@/components/lists/PayeeForm";
+import { PayeeManage } from "@/components/lists/PayeeManage";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 /** Edit payee (R3 US2; FR-014). */
@@ -36,6 +37,7 @@ export default async function EditPayeePage({ params }: { params: Promise<{ id: 
         payees={payees.filter((p) => p.id !== payee.id).map((p) => ({ id: p.id, name: p.name }))}
         returnTo="/settings/payees"
       />
+      <PayeeManage payee={payee} payees={payees} returnTo="/settings/payees" />
     </section>
   );
 }

@@ -201,19 +201,19 @@ never-used "Pets" deleted with its payee default cleared.
 
 ### Tests for User Story 5
 
-- [ ] T059 [P] [US5] Unit tests `packages/core/test/category-merge.test.ts` for `canMergeCategory` and `mergePreview` (sub-categories moving, clashes merging recursively, payee defaults repointed — counts match the server)
+- [X] T059 [P] [US5] Unit tests `packages/core/test/category-merge.test.ts` for `canMergeCategory` and `mergePreview` (sub-categories moving, clashes merging recursively, payee defaults repointed — counts match the server)
 - [X] T060 [P] [US5] pgTAP `supabase/tests/lists_merge.test.sql`: category merge moves children, merges same-named children recursively (three levels), repoints payee defaults, marks the source deleted with `merged_into`, each touched row gets a new `server_seq` and a history row; merge into own descendant, other kind, deleted or other user's target → `INVALID_MERGE` / `NOT_FOUND`; payee merge appends notes (capped 500), sums people's opening balances keeping the earlier date, keeps the target's switch; business↔person merge → `INVALID_MERGE`; tag merge; replayed merge change → `duplicate`, applied once (SC-003)
 - [X] T061 [P] [US5] pgTAP `supabase/tests/lists_apply.test.sql` (delete part): category with children → `HAS_SUBCATEGORIES`; with activity (stub `category_has_activity` true) → `HAS_ACTIVITY`; delete clears payee defaults (each payee audited); payee with activity → `HAS_ACTIVITY`; hide/unhide recorded as `*_hidden` / `*_unhidden`
-- [ ] T062 [P] [US5] Playwright `apps/web/e2e/r3-us5-cleanup.spec.ts` covering spec US5 scenarios 1–6 and quickstart S5-a … S5-c
+- [X] T062 [P] [US5] Playwright `apps/web/e2e/r3-us5-cleanup.spec.ts` covering spec US5 scenarios 1–6 and quickstart S5-a … S5-c
 
 ### Implementation for User Story 5
 
 - [X] T063 [US5] Migration `<ts>_lists_merge.sql`: `app._merge_category` (recursive), `app._merge_payee`, `app._merge_tag` per research R3-05, called from the appliers for `kind = merge`, change context `kind = merge` with source and target; repoint registry comment for R4 — passes T060
 - [X] T064 [US5] Delete rules in the appliers (`HAS_SUBCATEGORIES`, `HAS_ACTIVITY`, clearing payee defaults) in migration `<ts>_lists_delete.sql` — passes T061
-- [ ] T065 [US5] Implement `canMergeCategory`, `mergePreview` in `packages/core/src/categories/rules.ts` and a payee equivalent in `packages/core/src/payees/rules.ts` — passes T059
-- [ ] T066 [P] [US5] Component `apps/web/components/lists/MergeDialog.tsx` (target via `CategoryPicker` or a payee/tag search; preview of what moves; confirmation) and `DeleteDialog.tsx` (allowed: confirmation with payee-default count; not allowed: explanation offering Hide or Merge)
-- [ ] T067 [US5] Wire Hide/Unhide, Merge and Delete into the category tree, payee and person pages, and the tag list; enable the tag-merge step in T056
-- [ ] T068 [US5] Run T062 and fix until green
+- [X] T065 [US5] Implement `canMergeCategory`, `mergePreview` in `packages/core/src/categories/rules.ts` and a payee equivalent in `packages/core/src/payees/rules.ts` — passes T059
+- [X] T066 [P] [US5] Component `apps/web/components/lists/MergeDialog.tsx` (target via `CategoryPicker` or a payee/tag search; preview of what moves; confirmation) and `DeleteDialog.tsx` (allowed: confirmation with payee-default count; not allowed: explanation offering Hide or Merge)
+- [X] T067 [US5] Wire Hide/Unhide, Merge and Delete into the category tree, payee and person pages, and the tag list; enable the tag-merge step in T056
+- [X] T068 [US5] Run T062 and fix until green
 
 **Checkpoint**: All web stories complete.
 
