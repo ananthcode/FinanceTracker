@@ -57,3 +57,24 @@ export async function countRows(table: "categories" | "payees" | "tags", email: 
     .neq("state", "deleted");
   return count ?? 0;
 }
+
+export interface PersonInput {
+  name: string;
+  /** e.g. "15,000.00"; empty or omitted for settled. */
+  amount?: string;
+  direction?: "They owe me" | "I owe them";
+  date?: string;
+  includeInNetWorth?: boolean;
+}
+
+/** Adds a person through /people/new and waits for the People screen. */
+export async function addPerson(page: Page, p: PersonInput): Promise<void> {
+  await page.goto("/people/new");
+  await page.getByLabel("Name", { exact: true }).fill(p.name);
+  if (p.direction) await page.getByLabel(p.direction).check();
+  if (p.amount) await page.getByLabel("Amount").fill(p.amount);
+  if (p.date) await page.getByLabel("Balance on").fill(p.date);
+  if (p.includeInNetWorth) await page.getByLabel("Include in net worth").check();
+  await page.getByRole("button", { name: "Add person" }).click();
+  await expect(page).toHaveURL(/\/people$/);
+}

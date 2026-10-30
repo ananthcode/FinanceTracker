@@ -8,6 +8,7 @@ import { createMember, PASSWORD } from "./helpers/users";
 const ENTRIES = [
   { label: "Dashboard", path: "/", heading: "Dashboard", placeholder: true },
   { label: "Accounts", path: "/accounts", heading: "Accounts", placeholder: false },
+  { label: "People", path: "/people", heading: "People", placeholder: false }, // R3
   { label: "Transactions", path: "/transactions", heading: "Transactions", placeholder: true },
   { label: "Payment plan", path: "/payment-plan", heading: "Payment plan", placeholder: true },
   { label: "Settings", path: "/settings", heading: "Settings", placeholder: false },

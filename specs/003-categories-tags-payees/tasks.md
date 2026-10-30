@@ -150,21 +150,21 @@ navigation with two totals, and the per-person net-worth switch on the accounts 
 ### Tests for User Story 3
 
 - [X] T042 [P] [US3] Create shared vectors `packages/core/test/vectors/people.json` (zero → settled; they owe 1500000; you owe −450000; maximum ±999999999999; hidden person with balance; merged people summed) and tests `packages/core/test/people.test.ts` for `personBalance`, `peopleTotals`, `personLabel` (SC-004)
-- [ ] T043 [P] [US3] Extend `packages/core/test/vectors/balances.json` and `accounts-summary.test.ts` with people: included owes-you adds to Owned, included you-owe adds to Owed, excluded people change nothing, the People line equals the included sums (FR-020)
+- [X] T043 [P] [US3] Extend `packages/core/test/vectors/balances.json` and `accounts-summary.test.ts` with people: included owes-you adds to Owned, included you-owe adds to Owed, excluded people change nothing, the People line equals the included sums (FR-020)
 - [X] T044 [P] [US3] pgTAP `supabase/tests/lists_apply.test.sql` (people part): person create needs a date; future date → `DATE_IN_FUTURE`; person → business with non-zero balance → `BALANCE_NOT_ZERO`, at zero → applied with `opening_balance_minor`, `opening_balance_date` and `include_in_net_worth` cleared; business → person starts at 0 with a date
-- [ ] T045 [P] [US3] Parity: extend `apps/web/lib/sync-parity.int.test.ts` to run `vectors/people.json` against `app.person_balance_minor`
-- [ ] T046 [P] [US3] Playwright `apps/web/e2e/r3-us3-people.spec.ts` covering spec US3 scenarios 1–6 and quickstart S3-a … S3-c; extend `apps/web/e2e/us7-hide-balances.spec.ts` `SCREENS_WITH_AMOUNTS` with `/people` and `/settings/payees`
+- [X] T045 [P] [US3] Parity: extend `apps/web/lib/sync-parity.int.test.ts` to run `vectors/people.json` against `app.person_balance_minor`
+- [X] T046 [P] [US3] Playwright `apps/web/e2e/r3-us3-people.spec.ts` covering spec US3 scenarios 1–6 and quickstart S3-a … S3-c; extend `apps/web/e2e/us7-hide-balances.spec.ts` `SCREENS_WITH_AMOUNTS` with `/people` and `/settings/payees`
 
 ### Implementation for User Story 3
 
 - [X] T047 [P] [US3] Implement `personBalance`, `peopleTotals`, `personLabel` in `packages/core/src/people/` — passes T042
-- [ ] T048 [US3] Extend `summarise` in `packages/core/src/accounts/summary.ts` with the optional `people` input and `people` result line (research R3-08) — passes T043
-- [ ] T049 [US3] Person rules in `app._apply_payee` (date not after today in the user's timezone; person → business only when `app.person_balance_minor` = 0, clearing `opening_balance_minor`, `opening_balance_date` and `include_in_net_worth`; business → person) in migration `<ts>_people_rules.sql` — passes T044, T045
-- [ ] T050 [P] [US3] Components `apps/web/components/lists/PeopleTotals.tsx` and `PersonRow.tsx` (balance via `<Money>` with "owes you" / "you owe" / "settled")
-- [ ] T051 [US3] Pages `apps/web/app/(app)/people/page.tsx` (totals, list, hidden section, empty state, "Add person"), `new/page.tsx`, `[id]/page.tsx` (reusing `PayeeForm` in person mode: amount with direction radios, date, include in net worth, default category, notes)
-- [ ] T052 [US3] Add People after Accounts in `apps/web/components/shell/nav-items.ts`; update `apps/web/e2e/us5-shell.spec.ts` (People entry, not a placeholder) and the keyboard-order test in `apps/web/e2e/a11y.spec.ts`
-- [ ] T053 [US3] Accounts page `apps/web/app/(app)/accounts/page.tsx` loads included people and passes them to `summarise`; `apps/web/components/accounts/NetWorthSummary.tsx` shows the People line when non-empty
-- [ ] T054 [US3] Run T046 and fix until green
+- [X] T048 [US3] Extend `summarise` in `packages/core/src/accounts/summary.ts` with the optional `people` input and `people` result line (research R3-08) — passes T043
+- [X] T049 [US3] Person rules in `app._apply_payee` (date not after today in the user's timezone; person → business only when `app.person_balance_minor` = 0, clearing `opening_balance_minor`, `opening_balance_date` and `include_in_net_worth`; business → person) in migration `<ts>_people_rules.sql` — passes T044, T045
+- [X] T050 [P] [US3] Components `apps/web/components/lists/PeopleTotals.tsx` and `PersonRow.tsx` (balance via `<Money>` with "owes you" / "you owe" / "settled")
+- [X] T051 [US3] Pages `apps/web/app/(app)/people/page.tsx` (totals, list, hidden section, empty state, "Add person"), `new/page.tsx`, `[id]/page.tsx` (reusing `PayeeForm` in person mode: amount with direction radios, date, include in net worth, default category, notes)
+- [X] T052 [US3] Add People after Accounts in `apps/web/components/shell/nav-items.ts`; update `apps/web/e2e/us5-shell.spec.ts` (People entry, not a placeholder) and the keyboard-order test in `apps/web/e2e/a11y.spec.ts`
+- [X] T053 [US3] Accounts page `apps/web/app/(app)/accounts/page.tsx` loads included people and passes them to `summarise`; `apps/web/components/accounts/NetWorthSummary.tsx` shows the People line when non-empty
+- [X] T054 [US3] Run T046 and fix until green
 
 **Checkpoint**: People screen and net-worth switch work; all P1 stories done.
 

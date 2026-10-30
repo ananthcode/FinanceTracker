@@ -1,6 +1,7 @@
 import { expect, test } from "@playwright/test";
 import { addAccount, newSignedInMember } from "./helpers/accounts";
 import { uniqueEmail } from "./helpers/db";
+import { addPerson } from "./helpers/lists";
 import { ensureOwner, signInUI } from "./helpers/owner";
 import { createMember } from "./helpers/users";
 
@@ -48,13 +49,14 @@ test("the toggle masks every amount, persists on reload, and leaves other browse
  * SC-006 review list: every screen that shows amounts, checked with hide-balances on. Each module
  * adds its screens here (R2: /accounts).
  */
-const SCREENS_WITH_AMOUNTS = ["/settings", "/accounts"];
+const SCREENS_WITH_AMOUNTS = ["/settings", "/accounts", "/people", "/settings/payees"]; // R3 adds people and payees
 
 test("every screen in the review list is masked (SC-006)", async ({ page, request }) => {
   await page.setViewportSize({ width: 1280, height: 800 });
   await newSignedInMember(page, request, "hidelist");
   await addAccount(page, { name: "Everyday Savings", type: "Bank account", balance: "52,340.50" });
   await addAccount(page, { name: "Rewards Card", type: "Credit card", balance: "18250", creditLimit: "50000" });
+  await addPerson(page, { name: "Ravi Kumar", amount: "15,000.00", direction: "They owe me", includeInNetWorth: true });
   await page.getByRole("switch", { name: "Hide balances" }).click();
 
   for (const path of SCREENS_WITH_AMOUNTS) {

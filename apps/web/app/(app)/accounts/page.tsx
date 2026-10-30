@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { DEFAULT_PREFERENCES, summarise } from "@ft/core";
-import { getPreferences, listAccounts, listGroups } from "@ft/db";
+import { getPreferences, listAccounts, listGroups, listPayees } from "@ft/db";
 import { AccountRow } from "@/components/accounts/AccountRow";
 import { GroupSection } from "@/components/accounts/GroupSection";
 import { NetWorthSummary } from "@/components/accounts/NetWorthSummary";
@@ -20,15 +20,17 @@ export default async function AccountsPage({ searchParams }: { searchParams: Pro
   const { notice } = await searchParams;
   const supabase = await createServerSupabase();
   const { data } = await supabase.auth.getUser();
-  const [accounts, groups, preferences] = await Promise.all([
+  const [accounts, groups, preferences, people] = await Promise.all([
     listAccounts(supabase),
     listGroups(supabase),
     getPreferences(supabase, data.user?.id ?? ""),
+    listPayees(supabase, "person"),
   ]);
   const prefs = preferences ?? DEFAULT_PREFERENCES;
   const currency = prefs.baseCurrency;
   const view = prefs.accountsView;
-  const summary = summarise(accounts, { view, groups });
+  // People switched into net worth count in Owned / Owed (R3 FR-020).
+  const summary = summarise(accounts, { view, groups, people });
   const hasActive = accounts.some((a) => a.state === "active");
   const archived = summary.archived;
 
