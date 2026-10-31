@@ -25,7 +25,7 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order. Paths as R3.
 ## Phase 1: Setup
 
 - [X] T001 [P] Add `DATE_BEFORE_OPENING`, `LINES_MISMATCH`, `ACCOUNT_INACTIVE`, `INVALID_PERSON`, `INVALID_CATEGORY` to `ERROR_CODES` (`packages/core/src/schemas/common.ts`) and `REJECTION_CODES` (`packages/core/src/sync/schemas.ts`)
-- [ ] T002 [P] Create `packages/core/src/transactions/index.ts` and `packages/core/src/interest/index.ts` barrels and export them from `packages/core/src/index.ts`
+- [X] T002 [P] Create `packages/core/src/transactions/index.ts` and `packages/core/src/interest/index.ts` barrels and export them from `packages/core/src/index.ts`
 
 ## Phase 2: Foundational
 
@@ -96,8 +96,8 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order. Paths as R3.
 ## Phase 7: User Story 5 — Splits (P2)
 
 - [X] T041 [P] [US5] pgTAP (US5 part): lines must add up (`LINES_MISMATCH`); 1 line or > 50 refused; category kind per line; person lines' action matches flow; postings per line
-- [ ] T042 [P] [US5] Playwright `apps/web/e2e/r4-us5-splits.spec.ts`: spec US5 1–2, US3 scenario 5, S3-b, S5-a
-- [ ] T043 [US5] `SplitEditor.tsx` (add/remove lines, category or person share, amount left to allocate, keyboard operable) in `TransactionForm` — passes T042
+- [X] T042 [P] [US5] Playwright `apps/web/e2e/r4-us5-splits.spec.ts`: spec US5 1–2, US3 scenario 5, S3-b, S5-a
+- [X] T043 [US5] `SplitEditor.tsx` (add/remove lines, category or person share, amount left to allocate, keyboard operable) in `TransactionForm` — passes T042
 
 ## Phase 8: User Story 6 — Find, filter, fix (P2)
 
@@ -115,7 +115,7 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order. Paths as R3.
 
 ## Phase 10: User Story 8 — Offline on Android (P3)
 
-- [ ] T052 [P] [US8] Integration (server side, now): 50 offline changes across two devices incl. conflicting amount+lines and fields; 0 lost or duplicated; balances identical after pull (SC-008 server side)
+- [X] T052 [P] [US8] Integration (server side, now): 50 offline changes across two devices incl. conflicting amount+lines and fields; 0 lost or duplicated; balances identical after pull (SC-008 server side)
 - [ ] T053 [US8] *Deferred* Android local store tables and screens for transactions and rates
 - [ ] T054 [US8] *Deferred* Android push notification for "To confirm"
 
