@@ -58,7 +58,9 @@ export function PreferencesForm({
     setBusy(true);
     setStatus(null);
     const isSetup = mode === "setup";
-    const { baseCurrency, ...editable } = prefs;
+    // categoriesStart is set only by the start choice (R3 FR-007); the preferences endpoint refuses it.
+    const { baseCurrency, categoriesStart, ...editable } = prefs;
+    void categoriesStart;
     try {
       const res = await fetch(isSetup ? "/api/me/setup" : "/api/me/preferences", {
         method: isSetup ? "POST" : "PATCH",

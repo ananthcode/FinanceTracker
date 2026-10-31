@@ -79,7 +79,9 @@ export function PreferencesForm({
     if (!timezoneOk) return;
     setBusy(true);
     setStatus(null);
-    const { baseCurrency, ...editable } = { ...prefs, timezone: timezoneText };
+    // categoriesStart is set only by the start choice (R3 FR-007); the preferences endpoint refuses it.
+    const { baseCurrency, categoriesStart, ...editable } = { ...prefs, timezone: timezoneText };
+    void categoriesStart;
     try {
       if (mode === "setup") {
         await api("/api/me/setup", {
