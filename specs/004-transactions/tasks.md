@@ -74,14 +74,14 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order. Paths as R3.
 ## Phase 4: User Story 2 — Transfers (P1)
 
 - [X] T028 [P] [US2] pgTAP (US2 part): transfer effects held→owed, owed→held; same account refused; another user's to-account refused; transfers in no category totals
-- [ ] T029 [P] [US2] Playwright `apps/web/e2e/r4-us2-transfer.spec.ts`: spec US2 1–3, S2-a, SC-001
-- [ ] T030 [US2] Transfer tab in `TransactionForm` (from/to accounts, amount, date, notes) — passes T029
+- [X] T029 [P] [US2] Playwright `apps/web/e2e/r4-us2-transfer.spec.ts`: spec US2 1–3, S2-a, SC-001
+- [X] T030 [US2] Transfer tab in `TransactionForm` (from/to accounts, amount, date, notes) — passes T029
 
 ## Phase 5: User Story 3 — People (P1)
 
 - [X] T031 [P] [US3] pgTAP (US3 part): every person action's effect and flow check; business refused (`INVALID_PERSON`); adjustment without account requires notes (reason); person date rule; balance flips; none in totals; person → business refused once movements exist
-- [ ] T032 [P] [US3] Playwright `apps/web/e2e/r4-us3-people.spec.ts`: spec US3 1–4 and 6, S3-a (scenario 5 in US5's test)
-- [ ] T033 [US3] Person tab in `TransactionForm` (action select with plain words, person combobox limited to people, account except for adjustment, reason for adjustment); person page `apps/web/app/(app)/people/[id]/page.tsx` lists the person's movements with running balance; `PayeeForm` explains `DATE_BEFORE_OPENING` for a person's opening date
+- [X] T032 [P] [US3] Playwright `apps/web/e2e/r4-us3-people.spec.ts`: spec US3 1–4 and 6, S3-a (scenario 5 in US5's test)
+- [X] T033 [US3] Person tab in `TransactionForm` (action select with plain words, person combobox limited to people, account except for adjustment, reason for adjustment); person page `apps/web/app/(app)/people/[id]/page.tsx` lists the person's movements with running balance; `PayeeForm` explains `DATE_BEFORE_OPENING` for a person's opening date
 
 ## Phase 6: User Story 4 — Interest (P2)
 

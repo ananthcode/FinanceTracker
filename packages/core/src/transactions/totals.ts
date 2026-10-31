@@ -25,7 +25,26 @@ export interface CategoryTotals {
   earning: bigint;
 }
 
-type Totalled = Pick<TransactionView, "kind" | "flow" | "accountId" | "toAccountId" | "amountMinor" | "payeeId" | "categoryId" | "lines" | "date" | "state" | "confirmed" | "status">;
+/** A person's effect of one transaction: its person postings for them (0 when it does not count). */
+export function personEffectOf(tx: Totalled, personId: string): bigint {
+  if (!isCounted(tx)) return 0n;
+  return postingsOf(tx, () => "bank").reduce((sum, p) => (p.type === "person" && p.personId === personId ? sum + p.effect : sum), 0n);
+}
+
+/**
+ * The person's balance after each of their transactions, given newest first and the balance now
+ * (R4 FR-008): each row's "after" is the current balance less the effects of the newer rows.
+ */
+export function runningPersonBalances(newestFirst: readonly Totalled[], personId: string, balanceNow: bigint): bigint[] {
+  let balance = balanceNow;
+  return newestFirst.map((tx) => {
+    const after = balance;
+    balance -= personEffectOf(tx, personId);
+    return after;
+  });
+}
+
+type Totalled =Pick<TransactionView, "kind" | "flow" | "accountId" | "toAccountId" | "amountMinor" | "payeeId" | "categoryId" | "lines" | "date" | "state" | "confirmed" | "status">;
 
 export function categoryTotals(
   transactions: readonly Totalled[],

@@ -60,9 +60,12 @@ test("the net-worth switch moves a person's balance into the accounts summary (U
   // Turning it off reverses it.
   await page.goto("/people");
   await page.getByRole("link", { name: "Ravi Kumar" }).click();
-  await page.getByLabel("Include in net worth").uncheck();
-  await page.getByRole("button", { name: "Save" }).click();
-  await expect(page).toHaveURL(/\/people$/); // saved before leaving
+  // Until the page is interactive a click is not handled: retry until the save lands on People.
+  await expect(async () => {
+    await page.getByLabel("Include in net worth").uncheck();
+    await page.getByRole("button", { name: "Save" }).click();
+    await expect(page).toHaveURL(/\/people$/, { timeout: 3_000 });
+  }).toPass({ timeout: 20_000 });
   await page.goto("/accounts");
   await expect(page.locator("#figure-net-worth")).toContainText("₹52,340.50");
 });

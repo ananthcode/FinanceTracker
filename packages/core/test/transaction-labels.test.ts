@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { CategoryView } from "../src/categories";
-import { categoryTotals, PERSON_ACTION_TEXT, transactionLabel, type TransactionView } from "../src/transactions";
+import { categoryTotals, PERSON_ACTION_TEXT, runningPersonBalances, transactionLabel, type TransactionView } from "../src/transactions";
 
 /** R4 T022 — plain-language descriptions (FR-011, FR-016, contracts/client-transactions.md) and category totals (FR-009). */
 const names = {
@@ -61,6 +61,22 @@ describe("transactionLabel", () => {
     expect(Object.keys(PERSON_ACTION_TEXT).sort()).toEqual(
       ["adjustment", "borrowed", "collected_on_behalf", "lent", "paid_on_behalf", "received_back", "repaid_to"],
     );
+  });
+});
+
+describe("runningPersonBalances", () => {
+  it("works back from the balance now; uncounted rows and other people do not move it (S3-a)", () => {
+    // Ravi started at 1500000: lent 500000, received back 800000, paid 250000 on his behalf (newest first below).
+    const newestFirst = [
+      tx({ kind: "expense", amountMinor: 300000n, lines: [
+        { id: "a", amountMinor: 50000n, categoryId: "eating", personId: null, personAction: null, notes: null, tagIds: [] },
+        { id: "b", amountMinor: 250000n, categoryId: null, personId: "ravi", personAction: "paid_on_behalf", notes: null, tagIds: [] },
+      ] }),
+      tx({ kind: "person", personAction: "lent", payeeId: "ravi", amountMinor: 99n, confirmed: false }),
+      tx({ kind: "person", flow: "in", personAction: "received_back", payeeId: "ravi", amountMinor: 800000n }),
+      tx({ kind: "person", personAction: "lent", payeeId: "ravi", amountMinor: 500000n }),
+    ];
+    expect(runningPersonBalances(newestFirst, "ravi", 1450000n)).toEqual([1450000n, 1200000n, 1200000n, 2000000n]);
   });
 });
 
