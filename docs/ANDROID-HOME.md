@@ -38,3 +38,34 @@ T053) onward; the web app keeps its own layout.
 - Every amount still goes through `<Money>`, so hide-balances masks the balance, cards, cashflow,
   day totals and transactions alike.
 - Dark mode uses the same hues on dark surfaces.
+
+## Adding a transaction (the + button)
+
+Goal: a usual entry in **three taps** — type, amount, category — then Save, with the account and
+date filled in from the last entry. Mock-ups are kept outside the repo (they were drawn from the
+owner's current app).
+
+1. **Choose type** — four large colour tiles over a dimmed Home: Expense (dark), Income (green),
+   Transfer (purple), Planned (amber). Above them, "Repeat a recent one" chips save a recent entry
+   in one tap. A close button sits where the + was.
+2. **Amount and account** — account chips across the top (the last-used one selected, its balance
+   shown), a large amount, quick-amount chips, and a number pad with **÷ × − +** built in so
+   `120+45` gives 165 without a separate calculator. "Next: category".
+3. **Category** — search (category or payee), "Suggested now" from time of day and history, then
+   all categories of that kind as coloured chips; a › opens sub-categories; "New" adds one; Skip.
+4. **Review and save** — the top scrolls: payee or title (with suggestions), category, tags, note,
+   date and time, optional person. **Fixed at the bottom**: "Pay with" account chips, the amount and
+   **Save**. Choosing a payee fills in its default category.
+5. **Transfer** — From and To account chips with a **swap** button between them, each showing the
+   balance after the move; amount; optional fee, note and date; "Transfer ₹N".
+6. **Planned: details** — Expense / Income / Transfer switch, title, category, a schedule line in
+   plain words ("Every month on the 5th", next dates) that opens step 7, reminder, note. Fixed at
+   the bottom: "Pay with" (or From/To for a transfer), the amount and **Set plan**.
+7. **Plan for** (bottom sheet) — One time or Repeats; **Starts on** with a calendar button;
+   **Repeats every** N (− / +) of **Day, Week, Month or Year**; **Ends**: Never, On a date, or
+   **After N times** chosen on a **spin wheel** (default 12, range 1–360, light vibration per step,
+   adjustable by TalkBack), with the last date shown beside it; a plain-words summary
+   ("Monthly on the 5th, 12 times: 5 Nov → 5 Oct"); Set.
+
+Due planned payments appear in "To confirm" (R4). Fees, planned payments and the person link are
+checked against `specs/004-transactions` when built.
