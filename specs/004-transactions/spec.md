@@ -15,6 +15,15 @@ of a month), auto-accrued at month-end as that month's rate × the month's openi
 monthly, overridable) or entered manually; search, filter, bulk edit; relocate (moved here from R3);
 offline entry (Android phase); full edit history. Web first."
 
+## Clarifications
+
+### Session 2026-10-31
+
+- Q: Must every expense and income have a category, or can a transaction be saved as "Uncategorised" and given a category later? → A: Allowed as "Uncategorised" — saved, labelled, counted in reports under that name, and easy to filter and fix in bulk.
+- Q: What should happen when a transaction is dated before its account's opening-balance date? → A: Refused; the form explains that the opening balance already covers that date and links to changing the account's opening date.
+- Q: Can a transaction be dated in the future? → A: Yes — it is kept out of balances as "upcoming" until its date; when the date arrives or has passed, the user is notified to confirm it, and only a confirmed transaction counts in balances.
+- Q: Should automatic month-end interest go straight into the person's balance, or wait in "To confirm"? → A: Wait in "To confirm" — it counts only once confirmed (or edited and confirmed); bulk confirm is possible.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Record spending and income (Priority: P1)
@@ -38,6 +47,8 @@ newest first.
    balance falls by the amount (a credit card's amount owed rises instead).
 2. **Given** the add form, **When** the user chooses Income with an income category, **Then** the
    account's balance rises (a credit card's amount owed falls).
+2a. **Given** the add form, **When** the user saves an expense without choosing a category, **Then**
+   it is saved as "Uncategorised" and shown with that label.
 3. **Given** a payee with a default category, **When** the user chooses that payee, **Then** the
    category is filled in for them (they may change it).
 4. **Given** the user types a payee name that does not exist, **When** they save, **Then** they are
@@ -48,6 +59,12 @@ newest first.
    user saves, **Then** it is refused with an explanation (R2's amount rule).
 7. **Given** an archived account, a hidden category or a hidden payee, **When** the user picks for a
    new transaction, **Then** they are not offered (they stay on transactions that already use them).
+8. **Given** today is 01-Oct-2026, **When** the user records rent of ₹25,000.00 dated 05-Oct-2026,
+   **Then** it is listed as "Upcoming" and no balance or total changes.
+9. **Given** that rent transaction and today is 05-Oct-2026 or later, **When** the user opens the app,
+   **Then** the Transactions entry shows "1 to confirm" and the Transactions screen lists it under
+   "To confirm"; **When** they confirm it, **Then** the account falls by ₹25,000.00 from 05-Oct-2026;
+   until then it counts nowhere.
 
 ---
 
@@ -118,9 +135,9 @@ user can change or remove that entry, or record interest by hand instead.
 carry interest.
 
 **Independent Test**: Ravi owes ₹1,00,000.00 on 01-Oct-2026 with a rate of 1% per month from
-01-Apr-2026. When October ends, an interest entry of ₹1,000.00 appears, dated 31-Oct-2026, and Ravi
-owes ₹1,01,000.00; November's interest is ₹1,010.00 (it compounds). Movements during October do not
-change October's interest.
+01-Apr-2026. When October ends, a proposed interest entry of ₹1,000.00 dated 31-Oct-2026 appears
+under "To confirm"; once Asha confirms it, Ravi owes ₹1,01,000.00; November's interest is ₹1,010.00
+(it compounds). Movements during October do not change October's interest.
 
 **Acceptance Scenarios**:
 
@@ -128,10 +145,12 @@ change October's interest.
    the 1st of a month, **Then** it is added to the person's rate history; a rate from a date that is
    not the 1st is refused.
 2. **Given** a person with a rate and a balance at the start of a completed month, **When** that month
-   ends, **Then** one interest entry for the month exists, dated the last day of the month, equal to
-   rate × opening balance rounded to the paisa (half away from zero), in the direction of the balance.
-3. **Given** an automatic interest entry, **When** the user edits its amount or deletes it, **Then**
-   their change stands and is not recreated; later months use the resulting balances.
+   ends, **Then** one proposed interest entry for the month appears under "To confirm", dated the last
+   day of the month, equal to rate × opening balance rounded to the paisa (half away from zero), in
+   the direction of the balance; the person's balance changes only when the user confirms it.
+3. **Given** a proposed interest entry, **When** the user edits its amount and confirms it, or deletes
+   it, **Then** their choice stands and is never recreated; later months' proposals follow the
+   resulting balances.
 4. **Given** a rate change, **When** it is saved, **Then** interest for months already ended is never
    recalculated.
 5. **Given** a person set to manual interest, **When** months end, **Then** no automatic entries are
@@ -226,10 +245,15 @@ when back online, as accounts do in R2.
 
 ### Edge Cases
 
-- A transaction dated before its account's opening-balance date is refused, explaining that the
-  opening balance already includes everything before that date (the user can move the opening date
-  earlier).
-- A transaction dated in the future is refused (see Assumptions).
+- A transaction dated before its account's opening-balance date (either account of a transfer) is
+  refused, explaining that the opening balance already includes everything before that date, with a
+  link to change the account's opening date (owner, 2026-10-31). Moving an account's opening date
+  later than existing transactions is refused for the same reason. The same rule applies to a
+  person's opening-balance date for person movements.
+- A future-dated transaction is "upcoming" and never counts until confirmed (FR-002a); several
+  awaiting confirmation are listed oldest first; confirming one dated before an account's opening
+  date is refused like any transaction; Void and deleted upcoming transactions are never offered for
+  confirmation.
 - An amount of ₹0.00 is refused; amounts are entered positive and the type decides the direction.
 - Deleting or archiving an account, category or payee that transactions use follows R2/R3: delete is
   refused (archive, hide or merge instead); merging repoints the transactions.
@@ -256,13 +280,24 @@ when back online, as accounts do in R2.
 - **FR-001**: Users MUST be able to record transactions of these types: **Expense** (money out),
   **Income** (money in), **Refund** (money in against an expense category), **Transfer** (between two
   of their accounts), and person movements (US3).
-- **FR-002**: Every transaction MUST have a calendar date (not in the future in the user's timezone,
-  not before its account's opening-balance date), an account (two for transfers), and an amount
+- **FR-002**: Every transaction MUST have a calendar date (not before its account's opening-balance
+  date; future dates are allowed, FR-002a), an account (two for transfers), and an amount
   entered as a positive exact amount with at most two decimals, at most ₹9,99,99,99,999.99, never
   rounded. An optional time of day MAY be recorded and is used only to order transactions within a
   day.
-- **FR-003**: Expense, Income and Refund transactions MUST have a category of the matching kind
-  (expense for Expense and Refund, income for Income) or be split (FR-012); a payee is optional.
+- **FR-002a** (owner, 2026-10-31): A transaction dated after today (in the user's timezone) MUST be
+  saved as **upcoming**: listed, marked "Upcoming", and left out of every balance and total. When its
+  date arrives or has passed, it becomes **awaiting confirmation** and the user MUST be notified: a
+  "To confirm" count on the Transactions entry in the navigation and a "To confirm" list at the top
+  of the Transactions screen (web, in the app; Android adds a push notification in the Android
+  phase). The user confirms it (it then counts from its date, like any transaction), edits it
+  (amount, date, …) and confirms, or deletes it. An unconfirmed transaction never counts in
+  balances, however late. Moving a confirmed transaction to a future date makes it upcoming again.
+- **FR-003**: Expense, Income and Refund transactions MAY have a category of the matching kind
+  (expense for Expense and Refund, income for Income), be split (FR-012), or be left
+  **Uncategorised** (owner, 2026-10-31). Uncategorised transactions are labelled as such everywhere,
+  count in spending or income under "Uncategorised", and can be found with an "Uncategorised"
+  category filter and fixed with bulk edit (FR-017, FR-018). A payee is optional.
 - **FR-004**: Transactions MAY have tags (any number), notes (up to 1,000 characters) and a reference
   number (up to 40 characters).
 - **FR-005**: Choosing a payee MUST fill in its default category when the category is still empty.
@@ -307,11 +342,15 @@ when back online, as accounts do in R2.
 - **FR-013**: Each person MAY have an interest setting: none (default), automatic or manual, and a
   rate history of monthly rates (any value from 0% to 10% per month, up to four decimal places),
   each effective from the 1st of a month.
-- **FR-014**: For automatic interest, after each month ends the app MUST create one interest entry
+- **FR-014**: For automatic interest, after each month ends the app MUST propose one interest entry
   for that month, dated its last day, equal to that month's rate × the person's balance at the start
-  of the month, rounded to the nearest paisa (half away from zero), in the balance's direction.
-  Entries are created at most once per person per month; an entry the user edited or deleted is never
-  recreated or recalculated, and later months use the balances as they stand.
+  of the month, rounded to the nearest paisa (half away from zero), in the balance's direction. The
+  proposal waits in **"To confirm"** (owner, 2026-10-31) together with upcoming transactions
+  (FR-002a) and counts in no balance until the user confirms it, edits and confirms it, or deletes
+  it; several can be confirmed at once. While unconfirmed, a proposal's amount follows the opening
+  balance including earlier months' interest (confirmed or still proposed), so compounding is right
+  whatever order the user confirms in. Proposals are created at most once per person per month; a
+  confirmed, edited or deleted entry is never recreated or recalculated.
 - **FR-015**: Users MUST be able to record interest entries by hand for any person.
 - **FR-016**: Interest entries MUST be shown as interest wherever person movements are shown, and
   MUST NOT count as the user's spending or income.
@@ -321,8 +360,8 @@ when back online, as accounts do in R2.
 - **FR-017**: The transactions list MUST show transactions newest first (by date, then time, then
   entry order), with the account, payee, category or "Split", amount with its direction, tags and
   status, and MUST offer: text search over payee names, notes, reference numbers and category names;
-  filters by date range, account, category (including sub-categories), payee, tag, type, status and
-  amount range; and the count and net total of what matches.
+  filters by date range, account, category (including sub-categories, and "Uncategorised"), payee,
+  tag, type, status and amount range; and the count and net total of what matches.
 - **FR-018**: Users MUST be able to select transactions and, in one action, set the category, payee
   or status, add or remove tags, or delete them (with confirmation).
 - **FR-019**: Users MUST be able to **relocate** every transaction and split line from one category
@@ -377,8 +416,12 @@ when back online, as accounts do in R2.
 - **SC-005**: 100% of changes made during acceptance testing appear in the history with correct
   before/after values; none appears in logs with amounts, notes or names.
 - **SC-006**: With hide-balances on, 0 unmasked amounts on any transaction screen.
-- **SC-007**: Interest for 24 consecutive months is created exactly once per month per person, even
-  when several devices or sessions are open at month end.
+- **SC-007**: Interest for 24 consecutive months is proposed exactly once per month per person, even
+  when several devices or sessions are open at month end, and confirming the 24 proposals in any
+  order gives the same final balance as confirming them in date order.
+- **SC-009**: Across tests with upcoming transactions before, on and after their dates, 0 unconfirmed
+  transactions count in any balance or total, and every one whose date has arrived appears in the
+  "To confirm" count and list.
 - **SC-008** (Android phase): 50 transaction changes made offline across two devices sync with 0 lost
   or duplicated transactions and identical balances on both devices within 1 minute.
 
@@ -388,8 +431,11 @@ when back online, as accounts do in R2.
   and the Android screens come in the Android phase on R2's sync engine.
 - **One currency**: every transaction uses the base currency (R2 FR-007); multi-currency is out of
   scope.
-- **Future dates** are refused; planned and recurring entries come with the payment plan (R7) and
-  scheduled transactions (Phase 2b).
+- **Future dates** are allowed as one-off "upcoming" transactions that the user confirms when due
+  (FR-002a, owner 2026-10-31). Recurring entries come with the payment plan (R7) and scheduled
+  transactions (Phase 2b), which can reuse the same confirm step.
+- **Notifications** in this module are in-app on the web (a count and a list); push notifications on
+  Android come with the Android phase; no email is sent.
 - **Navigation**: the existing Transactions entry (an R1 placeholder) becomes the transactions screen;
   each account and person page lists its own transactions.
 - **Attachments, warranty flag** (R9), **quick-add templates** (R8), **custom fields** and

@@ -34,3 +34,6 @@
 - Iteration 1: two draft placeholders (future dates, uncategorised) replaced by defaults; both go to
   `/speckit-clarify` together with the other owner choices: whether a category is required, dates
   before the opening-balance date, person shares inside splits, interest rounding and timing.
+- Clarify session 2026-10-31: 4 questions answered (Uncategorised allowed — FR-003; dates before
+  the opening date refused; future dates allowed as "upcoming" and confirmed when due — FR-002a;
+  automatic interest waits in "To confirm" — FR-014). Re-validated: 16/16 items pass.
