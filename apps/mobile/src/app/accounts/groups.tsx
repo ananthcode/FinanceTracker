@@ -5,6 +5,7 @@ import { Button } from "@/components/Button";
 import { useSync, useSyncedData } from "@/components/providers/SyncProvider";
 import { Screen } from "@/components/Screen";
 import { groupFromRow } from "@/lib/sync/accounts";
+import { newId } from "@/lib/ids";
 
 const input = { flex: 1, borderWidth: 1, borderColor: "#d0d7de", borderRadius: 8, padding: 10, fontSize: 16 } as const;
 const byKey = (a: GroupView, b: GroupView) => (a.sortKey < b.sortKey ? -1 : a.sortKey > b.sortKey ? 1 : a.id < b.id ? -1 : 1);
@@ -23,7 +24,7 @@ export default function GroupsScreen() {
     setError(null);
     await record({
       entity: "account_group",
-      entityId: globalThis.crypto.randomUUID(),
+      entityId: newId(),
       kind: "create",
       fields: { name: trimmed, sortKey: keyBetween(groups.at(-1)?.sortKey ?? null, null) },
       options: { onNameConflict: "suffix" },
