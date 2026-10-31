@@ -116,7 +116,7 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order. Paths as R3.
 ## Phase 10: User Story 8 — Offline on Android (P3)
 
 - [X] T052 [P] [US8] Integration (server side, now): 50 offline changes across two devices incl. conflicting amount+lines and fields; 0 lost or duplicated; balances identical after pull (SC-008 server side)
-- [ ] T053 [US8] *Deferred* Android local store tables and screens for transactions and rates
+- [ ] T053 [US8] Android local store tables and screens for transactions and rates — **in progress**: store, Home (cards, list), add/edit/delete expense, income and transfer done (android/r4-transactions); refunds, person movements, splits, To confirm actions and person rates still web-only
 - [ ] T054 [US8] *Deferred* Android push notification for "To confirm"
 
 ## Phase 11: Polish

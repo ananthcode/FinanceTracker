@@ -19,6 +19,7 @@ import { Screen } from "@/components/Screen";
 import { SyncStatusBar } from "@/components/SyncStatusBar";
 import { api } from "@/lib/api";
 import { accountFromRow, groupFromRow } from "@/lib/sync/accounts";
+import { useMoney } from "@/components/providers/useLists";
 
 /**
  * Accounts on Android (R2 US5, T062): the same summary, groups by type and labels as the web,
@@ -32,9 +33,10 @@ export default function AccountsScreen() {
     [],
   );
   const groups = useSyncedData(async () => (await rows("account_group")).map(groupFromRow), [] as ReturnType<typeof groupFromRow>[]);
+  const { movements } = useMoney();
   const { me, refreshMe } = useSession();
   const [view, setView] = useState<AccountsView>(me?.preferences.accountsView ?? "by_type");
-  const summary = summarise(accounts, { view, groups });
+  const summary = summarise(accounts, { view, groups, movements });
   const active = accounts.filter((a) => a.state === "active");
 
   return (

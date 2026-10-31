@@ -17,6 +17,7 @@ import { Button } from "./Button";
 import { CategoryPicker } from "./CategoryPicker";
 import { useSync } from "./providers/SyncProvider";
 import { ErrorText, LabeledInput, Muted } from "./ui";
+import { newId } from "@/lib/ids";
 
 /** Same starting look as the web form for a new top-level category (components/lists/CategoryForm). */
 const NEW_TOP_LEVEL: Record<CategoryKind, { colour: string; icon: string }> = {
@@ -57,7 +58,7 @@ export function CategoryForm({
       const look = parent ? { colour: index.get(parent)!.colour, icon: index.get(parent)!.icon } : NEW_TOP_LEVEL[kind];
       const clash = categories.some((c) => c.kind === kind && c.parentId === parent && c.name.localeCompare(trimmed, "en", { sensitivity: "base" }) === 0);
       if (clash) return setError(REASONS.NAME_TAKEN);
-      await record({ entity: "category", entityId: globalThis.crypto.randomUUID(), kind: "create", fields: { name: trimmed, kind, parentId: parent, ...look } });
+      await record({ entity: "category", entityId: newId(), kind: "create", fields: { name: trimmed, kind, parentId: parent, ...look } });
       return router.back();
     }
     const changed: Record<string, unknown> = {};
