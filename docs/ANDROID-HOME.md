@@ -24,6 +24,9 @@ T053) onward; the web app keeps its own layout.
 - The centre **+** is a large round button that opens "Add transaction" from anywhere.
 - Everything else (People, Categories, Payees, Tags, Payment plan, Dashboard, Settings, App lock,
   User management) moves into a menu opened from the header.
+- The menu is also opened by **dragging down from the top** of the Home screen: a pull-down panel
+  with large, labelled shortcuts. It closes by dragging it back up, tapping outside or Back. Drag is
+  never the only way in — the header menu button does the same (Principle XIII, TalkBack users).
 
 ## Look
 
