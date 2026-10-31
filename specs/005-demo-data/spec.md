@@ -15,6 +15,13 @@ Reset clears the signed-in user's own data (accounts, groups, categories, tags, 
 rates) so they can start again or reload the demo. Web first (Settings), Android in the Android phase.
 Must respect the constitution's synthetic-data and own-data-only rules."
 
+## Clarifications
+
+### Session 2026-10-31
+
+- Q: When a user resets their data, should the change history of the removed records be removed too, or kept? → A: Removed with the records; one "data reset" entry (who, when, device) is kept.
+- Q: When a user who already has records chooses to load the demo, what happens? → A: The demo loads only into empty data; otherwise "Reset and load demo data" is offered (clears first, one confirmed step).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Load the demo household (Priority: P1)
