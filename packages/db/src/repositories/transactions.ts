@@ -67,6 +67,9 @@ export interface TransactionFilters {
   accountId?: string;
   /** A category id (its sub-categories included) or "uncategorised". */
   categoryId?: string;
+  /** R6: the category itself only, not its sub-categories (the last drill-down level). */
+  categoryExact?: boolean;
+  /** A payee id, or "none" for transactions without one (R6). */
   payeeId?: string;
   tagId?: string;
   kinds?: TransactionView["kind"][];

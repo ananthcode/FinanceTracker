@@ -28,12 +28,12 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order.
 
 ## Phase 2: Foundational
 
-- [ ] T004 [P] Vectors `packages/core/test/vectors/reports.json` (nested categories, refunds above spending, splits with person shares, Uncategorised, no payee, void/unconfirmed/deleted left out, months) and `packages/core/test/reports.test.ts`
-- [ ] T005 `packages/core/src/reports/` (`periods.ts` presets incl. Apr–Mar; `tree.ts` `categoryTree` from total rows; `trend.ts`; `safe.ts` `safeToSpend`) — passes T004
-- [ ] T006 [P] pgTAP `rpt_readers.test.sql`: own data only; counting rules; range checks; `categoryExact` and `payeeId: none` search filters; `statementSign` applied
-- [ ] T007 Migration `<ts>_rpt_readers.sql`: `app.category_payee_totals`, `app.month_totals`; search filters — passes T006
-- [ ] T008 [P] Integration `apps/web/lib/reports-parity.int.test.ts`: reports vectors through the readers equal core; the payee-level search count/total equal the tree's
-- [ ] T009 `packages/db/src/repositories/reports.ts` (`categoryPayeeTotals`, `monthTotals`) — passes T008
+- [X] T004 [P] Vectors `packages/core/test/vectors/reports.json` (nested categories, refunds above spending, splits with person shares, Uncategorised, no payee, void/unconfirmed/deleted left out, months) and `packages/core/test/reports.test.ts`
+- [X] T005 `packages/core/src/reports/` (`periods.ts` presets incl. Apr–Mar; `tree.ts` `categoryTree` from total rows; `trend.ts`; `safe.ts` `safeToSpend`) — passes T004
+- [X] T006 [P] pgTAP `rpt_readers.test.sql`: own data only; counting rules; range checks; `categoryExact` and `payeeId: none` search filters; `statementSign` applied
+- [X] T007 Migration `<ts>_rpt_readers.sql`: `app.category_payee_totals`, `app.month_totals`; search filters — passes T006
+- [X] T008 [P] Integration `apps/web/lib/reports-parity.int.test.ts`: reports vectors through the readers equal core; the payee-level search count/total equal the tree's
+- [X] T009 `packages/db/src/repositories/reports.ts` (`categoryPayeeTotals`, `monthTotals`) — passes T008
 
 ## Phase 3: User Story 1 — Dashboard (P1) 🎯 MVP
 

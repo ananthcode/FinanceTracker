@@ -98,6 +98,9 @@ export type Database = {
 "_repoint_tag":
 { Args: { "p_hlc": string,"p_source": string,"p_target": string,"p_user": string }; Returns: number
                            },
+"_report_range":
+{ Args: { "p_from": string,"p_to": string }; Returns: undefined
+                           },
 "_reset_user_data":
 { Args: { "p_device": string,"p_user": string }; Returns: Json
                            },
@@ -135,6 +138,9 @@ export type Database = {
 "category_has_activity":
 { Args: { "p_category": string }; Returns: boolean
                            },
+"category_payee_totals":
+{ Args: { "p_from": string,"p_to": string }; Returns: Json
+                           },
 "clear_failed_sign_ins":
 { Args: { "p_email": string }; Returns: undefined
                            },
@@ -155,6 +161,9 @@ export type Database = {
                            },
 "merge_field_versions":
 { Args: { "p_fields": (string)[],"p_hlc": string,"p_received_at": string,"p_versions": Json }; Returns: Json
+                           },
+"month_totals":
+{ Args: { "p_from": string,"p_to": string }; Returns: Json
                            },
 "payee_has_activity":
 { Args: { "p_payee": string }; Returns: boolean
