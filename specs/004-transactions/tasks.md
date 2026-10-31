@@ -125,7 +125,7 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order. Paths as R3.
 - [X] T056 [P] Performance `apps/web/e2e/r4-performance.spec.ts` (E2E_PRODUCTION): 20,000 transactions, list < 2 s, search/filter < 1 s (SC-003)
 - [X] T057 [P] Demo `packages/core/src/demo/transactions.ts` (research R4-10) with `packages/core/test/demo-transactions.test.ts`; `seedTransactions` e2e helper; hide-balances screens list gains transaction screens (SC-006)
 - [X] T058 Write `specs/004-transactions/review-notes.md`
-- [ ] T059 Run every suite; write `specs/004-transactions/validation.md`
+- [X] T059 Run every suite; write `specs/004-transactions/validation.md`
 - [X] T060 Converge: contracts, ROADMAP status, Android tasks carried to the Android phase
 
 ## Dependencies

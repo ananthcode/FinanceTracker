@@ -1,5 +1,6 @@
 import { expect, type APIRequestContext, type Page } from "@playwright/test";
 import { admin, completeSetup, seedInvitation, uniqueEmail } from "./db";
+import { waitHydrated } from "../fixtures";
 import { PASSWORD } from "./users";
 
 /**
@@ -23,7 +24,7 @@ export async function ensureOwner(request: APIRequestContext): Promise<string> {
 
 export async function signInUI(page: Page, email: string, password = PASSWORD): Promise<void> {
   await page.goto("/sign-in");
-  await page.waitForLoadState("networkidle");
+  await waitHydrated(page); // also for pages from new browser contexts, which the fixture does not wrap
   await page.getByLabel("Email").fill(email);
   await page.getByLabel("Password").fill(password);
   await page.getByRole("button", { name: "Sign in" }).click();

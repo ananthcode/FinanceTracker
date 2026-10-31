@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { newSignedInMember } from "./helpers/accounts";
 import { seedAccounts, seedLists } from "./helpers/db";
 import { isoDay, seedBusiness, seedTransactions, transactionRows } from "./helpers/transactions";

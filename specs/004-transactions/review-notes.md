@@ -131,7 +131,11 @@ logs carry no amounts or notes; 50 offline changes from two devices).
   start choice) threw "document is not defined" there. It now renders once in the browser.
 - **Android `applyLocally`** did not handle the new `relocate` change kind (typecheck failure after
   merging `main`).
-- Several e2e steps clicked before the page was interactive; they now retry until the page reacts.
+- **The person page's interest section** did not always show a rate just added right after changing
+  the setting (the later refresh could be overtaken); it now shows saved changes at once.
+- **E2E stability**: clicks and typing before hydration were lost on a busy machine. The root layout
+  marks `<html data-hydrated>` (no visible effect) and the e2e fixture waits for it after every
+  navigation (validation.md).
 
 ## Carried to the Android phase (`ft-side`)
 

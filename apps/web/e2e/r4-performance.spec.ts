@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { seedAccounts, seedLists, uniqueEmail } from "./helpers/db";
 import { ensureOwner, signInUI } from "./helpers/owner";
 import { seedManyTransactions } from "./helpers/transactions";

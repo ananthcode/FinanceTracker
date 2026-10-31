@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { addAccount, newSignedInMember } from "./helpers/accounts";
 import { seedAccounts, seedLists, uniqueEmail } from "./helpers/db";
 import { addPerson } from "./helpers/lists";

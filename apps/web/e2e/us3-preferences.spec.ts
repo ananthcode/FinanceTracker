@@ -1,5 +1,5 @@
 import { formatTimestamp } from "@ft/core";
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { seedInvitation, uniqueEmail } from "./helpers/db";
 import { PASSWORD } from "./helpers/users";
 

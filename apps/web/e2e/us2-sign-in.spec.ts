@@ -1,5 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { createHash } from "node:crypto";
 import { admin, uniqueEmail } from "./helpers/db";
 import { countEmailsTo, extractLink, latestEmailTo } from "./helpers/mailpit";

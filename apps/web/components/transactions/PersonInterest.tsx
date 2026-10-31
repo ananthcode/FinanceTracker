@@ -46,6 +46,15 @@ export function PersonInterest({ person, rates }: { person: PayeeView; rates: Pe
   const [rate, setRate] = useState("");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
+  // Saved changes show at once: two quick saves each refresh the page, and the later refresh's data
+  // can be overtaken by the earlier one. The server's rows take over as they arrive.
+  const [chosenMode, setChosenMode] = useState<InterestMode | null>(null);
+  const [added, setAdded] = useState<PersonRateView[]>([]);
+  const [removed, setRemoved] = useState<ReadonlySet<string>>(new Set());
+  const mode = chosenMode ?? person.interestMode;
+  const shown = [...rates.filter((r) => !removed.has(r.id)), ...added.filter((a) => !rates.some((r) => r.id === a.id))].sort((a, b) =>
+    a.effectiveMonth < b.effectiveMonth ? -1 : a.effectiveMonth > b.effectiveMonth ? 1 : 0,
+  );
 
   async function run(list: Parameters<typeof push>[0], fallback: string): Promise<boolean> {
     setBusy(true);
@@ -62,9 +71,11 @@ export function PersonInterest({ person, rates }: { person: PayeeView; rates: Pe
     const e4 = parseRate(rate);
     if (!month) return setError("Choose the month the rate starts.");
     if (e4 === null) return setError("Enter a monthly rate from 0 to 10, with up to four decimals, like 1.5.");
-    if (rates.some((r) => r.effectiveMonth === `${month}-01`)) return setError("There is already a rate from that month. Change or remove it.");
-    const ok = await run([changes.createPersonRate(crypto.randomUUID(), { payeeId: person.id, effectiveMonth: `${month}-01`, rateE4: e4 })], "The rate could not be added.");
+    if (shown.some((r) => r.effectiveMonth === `${month}-01`)) return setError("There is already a rate from that month. Change or remove it.");
+    const created = { id: crypto.randomUUID(), payeeId: person.id, effectiveMonth: `${month}-01`, rateE4: e4 };
+    const ok = await run([changes.createPersonRate(created.id, { payeeId: created.payeeId, effectiveMonth: created.effectiveMonth, rateE4: e4 })], "The rate could not be added.");
     if (ok) {
+      setAdded((list) => [...list, created]);
       setMonth("");
       setRate("");
     }
@@ -88,25 +99,27 @@ export function PersonInterest({ person, rates }: { person: PayeeView; rates: Pe
               <input
                 type="radio"
                 name={`${ids}-mode`}
-                checked={person.interestMode === m}
+                checked={mode === m}
                 disabled={busy}
-                onChange={() => void run([changes.updatePayee(person.id, { interestMode: m })], "The setting could not be saved.")}
+                onChange={async () => {
+                  if (await run([changes.updatePayee(person.id, { interestMode: m })], "The setting could not be saved.")) setChosenMode(m);
+                }}
               />
               {MODE_TEXT[m].label}
             </label>
           ))}
         </div>
-        {MODE_TEXT[person.interestMode].hint && <p className="text-sm text-muted-foreground">{MODE_TEXT[person.interestMode].hint}</p>}
+        {MODE_TEXT[mode].hint && <p className="text-sm text-muted-foreground">{MODE_TEXT[mode].hint}</p>}
       </fieldset>
 
-      {person.interestMode !== "none" && (
+      {mode !== "none" && (
         <>
           <h3 className="text-sm font-medium">Monthly rates</h3>
-          {rates.length === 0 ? (
+          {shown.length === 0 ? (
             <p className="text-sm text-muted-foreground">No rate yet.</p>
           ) : (
             <ul aria-label="Monthly rates" className="flex flex-col divide-y divide-border">
-              {rates.map((r) => (
+              {shown.map((r) => (
                 <li key={r.id} className="flex items-center gap-3 py-1.5 text-sm">
                   <span>
                     {rateText(r.rateE4)} a month from <DateText date={r.effectiveMonth} />
@@ -118,7 +131,9 @@ export function PersonInterest({ person, rates }: { person: PayeeView; rates: Pe
                     className="ml-auto"
                     disabled={busy}
                     aria-label={`Remove the rate from ${r.effectiveMonth.slice(0, 7)}`}
-                    onClick={() => void run([changes.deletePersonRate(r.id)], "The rate could not be removed.")}
+                    onClick={async () => {
+                      if (await run([changes.deletePersonRate(r.id)], "The rate could not be removed.")) setRemoved((s) => new Set([...s, r.id]));
+                    }}
                   >
                     Remove
                   </Button>
