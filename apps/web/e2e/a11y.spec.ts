@@ -108,6 +108,8 @@ test("accounts: keyboard reordering announces positions and Move buttons work wi
   await page.keyboard.press("Space");
   await expect(page.getByText(/Picked up Joint Current, position 1 of 3/)).toBeAttached();
   await page.keyboard.press("ArrowDown");
+  // Drop only once the move has registered; on a slow runner Space can otherwise land first.
+  await expect(page.getByText(/Joint Current is over position 2/)).toBeAttached();
   await page.keyboard.press("Space");
   await expect.poll(names).toEqual(["Everyday Savings", "Joint Current", "Family Savings"]);
 });
