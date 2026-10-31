@@ -54,10 +54,10 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order. Paths as R3.
 
 ### Data access
 
-- [ ] T017 [P] `packages/db/src/repositories/transactions.ts`: `getTransaction`, `searchTransactions` (wraps `app.search_transactions`), `toConfirmCount`, `listPersonRates`; money as text → bigint; paging past 1,000 rows where lists are read
-- [ ] T018 [P] Sync client builders in `apps/web/lib/sync-client.ts` (`createTransaction`, `updateTransaction`, `deleteTransaction`, `confirmTransactions`, `createPersonRate`, `updatePersonRate`, `deletePersonRate`, `relocateCategory`, `relocatePayee`)
-- [ ] T019 [P] Integration `apps/web/app/api/sync/tx-sync.int.test.ts`: push/pull of transactions; two devices editing amount+lines and other fields (lines win or lose together); duplicate delivery; another user's ids rejected; logs carry no amounts or names
-- [ ] T020 [P] Parity `apps/web/lib/sync-parity.int.test.ts`: `transactions.json` against postings and balance functions
+- [X] T017 [P] `packages/db/src/repositories/transactions.ts`: `getTransaction`, `searchTransactions` (wraps `app.search_transactions`), `toConfirmCount`, `listPersonRates`; money as text → bigint; paging past 1,000 rows where lists are read
+- [X] T018 [P] Sync client builders in `apps/web/lib/sync-client.ts` (`createTransaction`, `updateTransaction`, `deleteTransaction`, `confirmTransactions`, `createPersonRate`, `updatePersonRate`, `deletePersonRate`, `relocateCategory`, `relocatePayee`)
+- [X] T019 [P] Integration `apps/web/app/api/sync/tx-sync.int.test.ts`: push/pull of transactions; two devices editing amount+lines and other fields (lines win or lose together); duplicate delivery; another user's ids rejected; logs carry no amounts or names
+- [X] T020 [P] Parity `apps/web/lib/sync-parity.int.test.ts`: `transactions.json` against postings and balance functions
 
 ---
 
@@ -104,7 +104,7 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order. Paths as R3.
 - [ ] T044 [P] [US6] pgTAP `tx_search.test.sql`: each filter; category roll-up; Uncategorised; text over payee/category names, notes, reference; keyset paging without gaps; count and total; RLS via INVOKER
 - [ ] T045 [P] [US6] pgTAP (relocate part) in `tx_apply.test.sql`: relocate category (and lines) and payee keep the source; kinds must match; R3 merges now repoint transactions, lines and tags; tag delete removes from transactions; activity blocks deletes
 - [ ] T046 [P] [US6] Playwright `apps/web/e2e/r4-us6-find.spec.ts`: spec US6 1–5, S6-a, S-del
-- [ ] T047 [US6] Migration `<ts>_tx_search.sql`: `app.search_transactions`, `app.to_confirm_count` — passes T044
+- [X] T047 [US6] Migration `<ts>_tx_search.sql`: `app.search_transactions`, `app.to_confirm_count` — passes T044
 - [ ] T048 [US6] Migration `<ts>_tx_relocate.sql`: `relocate` for categories and payees; extend R3 merges and tag delete — passes T045
 - [ ] T049 [US6] `FilterPanel.tsx`, search box, count/total, selection and `BulkBar.tsx` (category, payee, status, add/remove tags, delete; chunked pushes); Relocate actions in Settings › Categories and Payees; `TagList` delete confirmation shows the real number of transactions using the tag (FR-021) — passes T046
 

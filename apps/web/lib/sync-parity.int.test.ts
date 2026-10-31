@@ -4,6 +4,7 @@ import { currentBalance, mergeFields, personBalance } from "@ft/core";
 import balances from "../../../packages/core/test/vectors/balances.json";
 import merge from "../../../packages/core/test/vectors/merge.json";
 import people from "../../../packages/core/test/vectors/people.json";
+import transactions from "../../../packages/core/test/vectors/transactions.json";
 import { testAdmin } from "@/test/fixtures";
 import { newMember } from "@/test/sync";
 
@@ -78,4 +79,77 @@ describe("SQL parity with packages/core", () => {
       }
     }
   });
+
+  it("the postings trigger and balance functions agree with postingsOf for every transactions vector (R4 T020)", async () => {
+    const db = testAdmin();
+    for (const c of transactions.cases) {
+      const m = await newMember("paritytx");
+      // Vector ids are names; each run maps them to fresh uuids.
+      const ids = new Map<string, string>();
+      const uuid = (name: string | undefined) => (name === undefined ? null : (ids.get(name) ?? ids.set(name, randomUUID()).get(name)!));
+      const insert = async (table: string, row: Record<string, unknown>) => {
+        const { error } = await db.from(table).insert({ user_id: m.id, server_seq: 0, ...row });
+        expect(error, `${c.name}: ${table}`).toBeNull();
+      };
+      for (const a of c.accounts) {
+        await insert("accounts", {
+          id: uuid(a.id), name: `Parity ${a.id}`, type: a.type, opening_balance_minor: a.openingBalanceMinor,
+          opening_balance_date: a.openingBalanceDate, currency: "INR", colour: "blue", icon: "bank", sort_key: "a0",
+        });
+      }
+      for (const p of c.people) {
+        await insert("payees", { id: uuid(p.id), name: `Parity ${p.id}`, kind: "person", opening_balance_minor: p.openingBalanceMinor, opening_balance_date: "2026-04-01" });
+      }
+      const categoryKinds = new Map<string, "expense" | "income">();
+      for (const t of c.transactions as VectorTx[]) {
+        const kind = t.kind === "income" ? "income" : "expense";
+        if (t.categoryId) categoryKinds.set(t.categoryId, kind);
+        for (const l of t.lines ?? []) if (l.categoryId) categoryKinds.set(l.categoryId, kind);
+      }
+      for (const [name, kind] of categoryKinds) {
+        await insert("categories", { id: uuid(name), name: `Parity ${name}`, kind, colour: "green", icon: "utensils" });
+      }
+      for (const t of c.transactions as VectorTx[]) {
+        await insert("transactions", {
+          id: uuid(t.id), date: t.date, kind: t.kind, flow: t.flow, account_id: uuid(t.accountId), to_account_id: uuid(t.toAccountId),
+          amount_minor: t.amountMinor, payee_id: uuid(t.payeeId), person_action: t.personAction ?? null, category_id: uuid(t.categoryId),
+          lines: (t.lines ?? []).map((l) => ({
+            id: randomUUID(), amountMinor: l.amountMinor, categoryId: uuid(l.categoryId), personId: uuid(l.personId),
+            personAction: l.personAction ?? null, notes: null, tagIds: [],
+          })),
+          status: t.status ?? "uncleared", confirmed: t.confirmed ?? true, state: t.state ?? "active",
+          deleted_at: t.state === "deleted" ? new Date().toISOString() : null,
+        });
+      }
+
+      const expected = c.expect as unknown as { accountBalances: Record<string, string>; personBalances: Record<string, string> };
+      for (const a of c.accounts) {
+        const { data, error } = await db.schema("app").rpc("account_balance_minor", { p_account: uuid(a.id) });
+        expect(error).toBeNull();
+        expect(String(data), `${c.name}: ${a.id}`).toBe(expected.accountBalances[a.id]);
+      }
+      for (const p of c.people) {
+        const { data, error } = await db.schema("app").rpc("person_balance_minor", { p_payee: uuid(p.id) });
+        expect(error).toBeNull();
+        expect(String(data), `${c.name}: ${p.id}`).toBe(expected.personBalances[p.id]);
+      }
+    }
+  });
 });
+
+interface VectorTx {
+  id: string;
+  date: string;
+  kind: string;
+  flow: string;
+  accountId?: string;
+  toAccountId?: string;
+  amountMinor: string;
+  payeeId?: string;
+  personAction?: string;
+  categoryId?: string;
+  status?: string;
+  confirmed?: boolean;
+  state?: string;
+  lines?: { amountMinor: string; categoryId?: string; personId?: string; personAction?: string }[];
+}
