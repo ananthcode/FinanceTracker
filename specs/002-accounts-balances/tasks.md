@@ -201,11 +201,11 @@ sync and the clarified per-field rule.
 
 ### Android client (Deferred — Android phase)
 
-- [ ] T059 [P] [US5] *Deferred* Jest tests `apps/mobile/src/__tests__/sync-engine.test.ts` with a fake server: local write + outbox in one transaction, retry after network failure, duplicate results handled, pull overwrites rows without pending changes and re-applies pending fields, HLC observe after pull, renamed/converted/rejected results surfaced
-- [ ] T060 [US5] *Deferred* Implement the local store `apps/mobile/src/lib/sync/store.ts` (expo-sqlite per user: `accounts`, `account_groups`, `pending_changes`, `sync_state` — data-model.md §On device)
-- [ ] T061 [US5] *Deferred* Implement the sync loop `apps/mobile/src/lib/sync/engine.ts` (triggers: connectivity regained via `useOffline`, app foreground, 2 s after a local change while online, every 5 min online; push then pull; research R2-15)
-- [ ] T062 [US5] *Deferred* Implement Android accounts screens replacing the placeholder `apps/mobile/src/app/(tabs)/accounts.tsx` (+ add/edit/groups screens) per contracts/client-accounts.md, reading the local store
-- [ ] T063 [US5] *Deferred* Show the pending-changes count and include account changes in the R1 sign-out warning (`apps/mobile/src/lib/sign-out.ts`); keep `pending_changes` sealed and user-tagged on the 5-wrong-PIN wipe (FR-033, R-09)
+- [X] T059 [P] [US5] Jest tests `apps/mobile/src/__tests__/sync-engine.test.ts` with a fake server: local write + outbox in one transaction, retry after network failure, duplicate results handled, pull overwrites rows without pending changes and re-applies pending fields, HLC observe after pull, renamed/converted/rejected results surfaced
+- [X] T060 [US5] Implement the local store `apps/mobile/src/lib/sync/store.ts` (expo-sqlite per user: `accounts`, `account_groups`, `pending_changes`, `sync_state` — data-model.md §On device)
+- [X] T061 [US5] Implement the sync loop `apps/mobile/src/lib/sync/engine.ts` (triggers: connectivity regained via `useOffline`, app foreground, 2 s after a local change while online, every 5 min online; push then pull; research R2-15)
+- [X] T062 [US5] Implement Android accounts screens replacing the placeholder `apps/mobile/src/app/(tabs)/accounts.tsx` (+ add/edit/groups screens) per contracts/client-accounts.md, reading the local store
+- [ ] T063 [US5] *Partly done (pending count, sign-out send; the 5-wrong-PIN sealing lands with the R1 app lock)* Show the pending-changes count and include account changes in the R1 sign-out warning (`apps/mobile/src/lib/sign-out.ts`); keep `pending_changes` sealed and user-tagged on the 5-wrong-PIN wipe (FR-033, R-09)
 
 ---
 
