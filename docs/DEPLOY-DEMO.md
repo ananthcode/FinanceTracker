@@ -21,15 +21,16 @@ Conventions used below:
 - [ ] Note the commit SHA being deployed (needed for rollback).
 - [ ] Tools: Node per `.nvmrc`, pnpm 10, Supabase CLI (repo dev dependency, `pnpm supabase`),
       Vercel dashboard access, EAS CLI (`>= 16.0.0` per `apps/mobile/eas.json`) for Android.
-- [ ] Accounts: Supabase Free project, Vercel Hobby project, Expo/EAS account, SMTP provider,
-      Google Cloud OAuth client (quickstart prerequisites).
+- [ ] Accounts: Supabase Free project, Vercel Hobby project, Expo/EAS account, SMTP provider
+      (no Google Cloud OAuth client needed: Google sign-in is not used for the demo).
 - [ ] Decide whether this is the **first** deploy (do everything) or a **re-deploy** (sections 2,
       4 and 8 only, plus any new env vars).
 
 ## 1. Supabase project (first deploy only)
 
 1. [ ] **[APPROVAL]** Create Supabase Free project (suggested name `finance-tracker-demo`).
-       Region: **to confirm**. Store the database password in a password manager.
+       Region: **Mumbai (ap-south-1)** — owner decision 2026-10-31; set the Vercel function
+       region to **bom1** to match. Store the database password in a password manager.
 2. [ ] Collect from the dashboard (Project Settings › API) — keep them out of the repo:
        project URL `https://<project-ref>.supabase.co`, anon (publishable) key, service-role key.
 
@@ -63,10 +64,11 @@ to the hosted project. Set them in the dashboard (Authentication) to match. Whet
   - Custom access token → `app.hook_custom_access_token` (refuse disabled/locked users)
 - [ ] **Email provider** enabled; email confirmations **off** (local `enable_confirmations = false`;
       to confirm for hosted); minimum password length **8**.
-- [ ] **Google provider** enabled with the Google OAuth client ID and secret (stored only in the
-      Supabase dashboard). In Google Cloud, the authorised redirect URI is
-      `https://<project-ref>.supabase.co/auth/v1/callback`. OAuth consent screen in testing mode with
-      testers listed: **to confirm**.
+- [ ] **Google provider**: **not used for the demo** (owner decision 2026-10-31) — leave it
+      disabled; testers sign in with email and password. To add it later: enable it with the Google
+      OAuth client ID and secret (stored only in the Supabase dashboard), authorised redirect URI
+      `https://<project-ref>.supabase.co/auth/v1/callback`, consent screen in testing mode with the
+      testers listed.
 - [ ] **Custom SMTP** (Authentication › SMTP): host, port, user, password, sender
       `Finance Tracker <no-reply@example.com>`. Same values as the Vercel `SMTP_*` variables.
       Rate limit for emails (local allows 3 password-reset emails per hour per address, test
@@ -106,10 +108,13 @@ to the hosted project. Set them in the dashboard (Authentication) to match. Whet
 
    Do **not** set `IDLE_MINUTES` (local testing only) or `E2E_PRODUCTION`.
    The build fails ("Failed to collect page data") if the `NEXT_PUBLIC_*` values are missing.
-3. [ ] **[APPROVAL]** Deploy the chosen `main` commit (production deployment). Custom domain for
-       `demo.example.com`: to confirm.
-4. [ ] Production branch = `main` and whether every push to `main` auto-deploys: **to confirm**
-       (decide whether auto-deploy is wanted before schema changes land).
+3. [ ] **[APPROVAL]** Deploy the chosen `main` commit (production deployment). Address: the free
+       `<project>.vercel.app` domain, no custom domain (owner decision 2026-10-31). Everywhere this
+       checklist says `https://demo.example.com`, use that address.
+4. [ ] Production branch = `main` with **automatic deploys off** (owner decision 2026-10-31): in
+       Project Settings › Git, turn off auto-deploy of production (or set an Ignored Build Step
+       that exits 0) and promote builds by hand, so migrations (§2) are applied before the code
+       that needs them.
 
 ## 5. Android (EAS `demo` profile)
 
@@ -160,7 +165,7 @@ Supabase Free projects pause after 7 days idle; `.github/workflows/keep-alive.ym
 Use synthetic data only (e.g. tester `asha@example.com`).
 
 - [ ] Home page shows the **Demo** badge; no configuration-error screen.
-- [ ] **Sign-in**: email + password; Google sign-in; forgot password email arrives via SMTP;
+- [ ] **Sign-in**: email + password; forgot password email arrives via SMTP;
       wrong password 5 times locks (optional).
 - [ ] **Invite**: owner invites a tester; email arrives; link opens the app on Android (App Link)
       or the web page otherwise; tester completes setup.
@@ -198,12 +203,18 @@ Use synthetic data only (e.g. tester `asha@example.com`).
 7. Adding GitHub repository secrets for the keep-awake workflow.
 8. Any restore from backup, project rebuild, or secret rotation.
 
+## Decided (2026-10-31)
+
+- Supabase region Mumbai (ap-south-1); Vercel functions in bom1.
+- Address: free `vercel.app` domain, no custom domain.
+- No automatic production deploys; builds are promoted by hand after migrations.
+- No Google sign-in for the demo (email and password only).
+
 ## Open items (to confirm)
 
-- Supabase region; whether `supabase config push` is used instead of manual dashboard settings.
+- Whether `supabase config push` is used instead of manual dashboard settings.
 - Hosted email-confirmation setting, email rate limits and custom templates.
-- Google OAuth consent-screen mode and tester list.
-- Vercel build settings for the pnpm monorepo, custom domain, auto-deploy on push to `main`.
+- Vercel build settings for the pnpm monorepo.
 - Whether web needs `OWNER_EMAIL` at runtime.
 - SMTP provider and port.
 - Where the EAS `EXPO_PUBLIC_*` values are kept (EAS env vars vs profile `env`).
