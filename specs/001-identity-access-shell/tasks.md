@@ -268,18 +268,18 @@ indicator.
 
 ### Tests for User Story 6
 
-- [ ] T105 [P] [US6] Jest `apps/mobile/__tests__/app-lock.test.ts`: timeouts 0/60/300/900 s; PIN 4–6 digits; 5 wrong PINs → sign out + `wipeExceptPending(userId)`; forgot PIN clears PIN after sign-in; biometric key unreadable → fingerprint suspended until PIN
+- [X] T105 [P] [US6] Jest `apps/mobile/__tests__/app-lock.test.ts`: timeouts 0/60/300/900 s; PIN 4–6 digits; 5 wrong PINs → sign out + `wipeExceptPending(userId)`; forgot PIN clears PIN after sign-in; biometric key unreadable → fingerprint suspended until PIN
 
 ### Implementation for User Story 6
 
-- [ ] T106 [P] [US6] Implement `apps/mobile/lib/app-lock/pin.ts` (scrypt hash with per-device random salt in SecureStore; never stores the PIN)
-- [ ] T107 [P] [US6] Implement `apps/mobile/lib/app-lock/settings-store.ts` (enabled, timeout, biometrics, failedAttempts in SecureStore)
-- [ ] T108 [P] [US6] Implement `apps/mobile/lib/app-lock/biometrics.ts` (`expo-local-authentication` strong class only; biometric-bound SecureStore key with `requireAuthentication` to detect enrolment change — FR-026a/b)
-- [ ] T109 [US6] Implement `apps/mobile/lib/app-lock/controller.ts` (AppState background timestamp vs timeout; lock state; 5 wrong PINs → sign out + `LocalDataStore.wipeExceptPending(userId)` with pending entries tagged to the user — FR-028)
-- [ ] T110 [US6] Create Expo config plugin + native module `apps/mobile/plugins/recents-privacy/` calling `setRecentsScreenshotEnabled(false)` on Android 13+ while lock is enabled, and `apps/mobile/components/PrivacyOverlay.tsx` for older Android (screenshots stay allowed — FR-027)
-- [ ] T111 [US6] Implement lock screen `apps/mobile/app/lock.tsx` (PIN pad, fingerprint prompt, "Forgot PIN")
-- [ ] T112 [US6] Implement app-lock settings `apps/mobile/app/(tabs)/settings/app-lock.tsx` (setup with confirmation, timeout choice, fingerprint toggle, FR-028 explanation)
-- [ ] T113 [US6] Implement `POST /api/me/audit` in `apps/web/app/api/me/audit/route.ts` and call it on enable/disable (`app_lock_enabled`/`app_lock_disabled`)
+- [X] T106 [P] [US6] Implement `apps/mobile/lib/app-lock/pin.ts` (scrypt hash with per-device random salt in SecureStore; never stores the PIN)
+- [X] T107 [P] [US6] Implement `apps/mobile/lib/app-lock/settings-store.ts` (enabled, timeout, biometrics, failedAttempts in SecureStore)
+- [X] T108 [P] [US6] Implement `apps/mobile/lib/app-lock/biometrics.ts` (`expo-local-authentication` strong class only; biometric-bound SecureStore key with `requireAuthentication` to detect enrolment change — FR-026a/b)
+- [X] T109 [US6] Implement `apps/mobile/lib/app-lock/controller.ts` (AppState background timestamp vs timeout; lock state; 5 wrong PINs → sign out + `LocalDataStore.wipeExceptPending(userId)` with pending entries tagged to the user — FR-028)
+- [X] T110 [US6] Create Expo config plugin + native module `apps/mobile/plugins/recents-privacy/` calling `setRecentsScreenshotEnabled(false)` on Android 13+ while lock is enabled, and `apps/mobile/components/PrivacyOverlay.tsx` for older Android (screenshots stay allowed — FR-027)
+- [X] T111 [US6] Implement lock screen `apps/mobile/app/lock.tsx` (PIN pad, fingerprint prompt, "Forgot PIN")
+- [X] T112 [US6] Implement app-lock settings `apps/mobile/app/(tabs)/settings/app-lock.tsx` (setup with confirmation, timeout choice, fingerprint toggle, FR-028 explanation)
+- [X] T113 [US6] Implement `POST /api/me/audit` in `apps/web/app/api/me/audit/route.ts` and call it on enable/disable (`app_lock_enabled`/`app_lock_disabled`)
 
 **Checkpoint**: App lock works on a physical Android device
 

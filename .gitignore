@@ -34,6 +34,8 @@ coverage/
 .expo-shared/
 android/
 ios/
+# Local Expo modules keep their native source in android/ (R1 T110 recents-privacy).
+!apps/mobile/modules/*/android/
 *.apk
 *.aab
 *.keystore

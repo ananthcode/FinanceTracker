@@ -6,6 +6,7 @@ import { useColorScheme } from "react-native";
 import { DisplayProvider } from "@/components/providers/DisplayProvider";
 import { SessionProvider, useSession } from "@/components/providers/SessionProvider";
 import { SyncProvider } from "@/components/providers/SyncProvider";
+import { AppLockProvider } from "@/components/providers/AppLockProvider";
 import { StatusFrame } from "@/components/StatusFrame";
 import { envResult } from "@/lib/env";
 import { useSessionWatch } from "@/lib/session-watch";
@@ -50,6 +51,7 @@ function Gate() {
         <Stack.Screen name="accounts/[id]" options={{ headerShown: true, title: "Edit account" }} />
         <Stack.Screen name="accounts/groups" options={{ headerShown: true, title: "Groups" }} />
         <Stack.Screen name="accounts/arrange" options={{ headerShown: true, title: "Arrange accounts" }} />
+        <Stack.Screen name="settings/app-lock" options={{ headerShown: true, title: "App lock" }} />
       </Stack.Protected>
       <Stack.Protected guard={isOwner}>
         <Stack.Screen name="admin/index" options={{ headerShown: true, title: "User management" }} />
@@ -79,7 +81,9 @@ export default function RootLayout() {
       <SessionProvider>
         <DisplayFromSession>
           <SyncProvider>
-            <Gate />
+            <AppLockProvider>
+              <Gate />
+            </AppLockProvider>
           </SyncProvider>
         </DisplayFromSession>
       </SessionProvider>
