@@ -128,6 +128,9 @@ apps/web/
 └── e2e/r3-*.spec.ts
 ```
 
+*As built (2026-10-30)*: see tasks.md § Converge notes — eight consolidated migrations; people
+logic in `people/index.ts`; components as listed in contracts/client-lists.md § As built.
+
 **Structure Decision**: Unchanged layout. New domain folders in `packages/core` per record type;
 the three tables share one set of migrations and pgTAP files ("lists"). The web places People in
 the app's main navigation and the three management screens under Settings.

@@ -1,6 +1,6 @@
 -- T023 The one-time start choice for the default categories (FR-007, research R3-06; SC-008).
 begin;
-select plan(11);
+select plan(12);
 
 select tests.as_superuser();
 select tests.create_user('lists.start.a@example.com') as asha_id \gset
@@ -20,6 +20,9 @@ select is((select c.parent_id from public.categories c where c.name = 'Groceries
 select is(app.start_categories('suggested', :'defaults'::jsonb), '{"choice":"suggested","added":0}'::jsonb,
           'a second call adds nothing (never twice)');
 select is(app.start_categories('empty', :'defaults'::jsonb) ->> 'choice', 'suggested', 'the first answer is kept');
+
+select throws_ok($$ update public.user_preferences set categories_start = 'empty' $$, '42501', null,
+                 'clients cannot set the start choice directly');
 
 select tests.authenticate_as(:'ravi_id');
 select is(app.start_categories('empty', :'defaults'::jsonb), '{"choice":"empty","added":0}'::jsonb, 'empty adds nothing');

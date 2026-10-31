@@ -27,4 +27,6 @@ Accept and return the R3 entities ([sync-protocol.md](sync-protocol.md)). No oth
 ## Web reads (no HTTP endpoint)
 
 Server components read categories, tags and payees through the RLS-scoped client
-(`packages/db` repositories `listCategories`, `listTags`, `listPayees`), money columns as text.
+(`packages/db` repositories `listCategories`, `listTags`, `listPayees`, `getPayee`), money columns as
+text. The API returns at most 1,000 rows per request (`max_rows`), so the list repositories read
+every page ordered by id (converged 2026-10-30; a user may have 2,000 payees).

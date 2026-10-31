@@ -18,6 +18,21 @@ sidebar and phone drawer). Settings gains a "Lists" section linking Categories, 
 | `/settings/payees` (+ `new`, `[id]`) | Search-as-you-type list with kind filter (All / Businesses / People) and "Show hidden"; payee form (kind, default category, notes; person fields when kind is Person); Merge and Delete |
 | `/settings/tags` | Alphabetical tag list; add, rename inline; Merge and Delete with confirmation |
 
+## As built (converged 2026-10-30)
+
+- Categories: each row has a disclosure button and one **Manage** button; the Manage panel (a
+  dialog) holds Add sub-category, Edit, Move, Hide/Unhide, Merge (with a preview) and Delete.
+  Components: `CategoriesScreen`, `CategoryActions`, `CategoryForm`, `MoveCategoryForm`,
+  `CategoryPicker`, `StartCategoriesDialog`, `AppearancePicker`.
+- Payees and people: `PayeeForm` (both kinds; `fixedKind` on People), `PayeeList`, `PeopleList`,
+  `PersonBalance`, and `PayeeManage` (Hide/Unhide, Merge, Delete) under the form. Tags: `TagList`
+  (rename in place, merge via a target list, delete).
+- The Payees list renders 200 rows at a time with "Show more"; the count and search cover all.
+- Pickers render their suggestions in the page flow (not floating), so inside dialogs they never
+  cover the action buttons; "no matches" is a status message outside the listbox.
+- The shared `Dialog` is portalled to `<body>` and stops submit events, so a dialog form opened
+  inside another form (the start choice from a picker) is never nested in it.
+
 ## Screen rules
 
 - Every category shown outside its tree uses its full path; every category choice uses the shared
