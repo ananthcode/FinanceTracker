@@ -181,6 +181,9 @@ export function applyLocally(row: SyncRow | null, change: ChangeInput): SyncRow 
     case "merge":
       // The server moves children and references; the next pull brings them.
       return { ...base, state: "deleted", mergedInto: fields.targetId, fieldVersions: { ...versions, state: change.hlc } };
+    case "relocate":
+      // R4: the server moves the transactions and keeps this row as it is; the next pull brings them.
+      return base;
   }
 }
 
