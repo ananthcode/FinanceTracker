@@ -8,12 +8,19 @@ import { AccountCreateFields, AccountUpdateFields, GroupCreateFields, GroupUpdat
 import { CategoryCreateFields, CategoryUpdateFields } from "../categories/schemas";
 import { PayeeCreateFields, PayeeUpdateFields } from "../payees/schemas";
 import { TagFields } from "../tags";
+import {
+  PersonRateCreateFields,
+  PersonRateUpdateFields,
+  RelocateFields,
+  TransactionCreateFields,
+  TransactionUpdateFields,
+} from "../transactions/schemas";
 import { HLC_PATTERN } from "./hlc";
 
-export const SYNC_ENTITIES = ["account", "account_group", "category", "tag", "payee"] as const;
+export const SYNC_ENTITIES = ["account", "account_group", "category", "tag", "payee", "transaction", "person_rate"] as const;
 export type SyncEntity = (typeof SYNC_ENTITIES)[number];
 
-export const CHANGE_KINDS = ["create", "update", "archive", "restore", "delete", "merge"] as const;
+export const CHANGE_KINDS = ["create", "update", "archive", "restore", "delete", "merge", "relocate"] as const;
 export type ChangeKind = (typeof CHANGE_KINDS)[number];
 
 export const MAX_CHANGES_PER_PUSH = 100;
@@ -25,18 +32,22 @@ export type MergeFields = z.infer<typeof MergeFields>;
 const FIELD_SCHEMAS: Record<SyncEntity, Partial<Record<ChangeKind, z.ZodType>>> = {
   account: { create: AccountCreateFields, update: AccountUpdateFields },
   account_group: { create: GroupCreateFields, update: GroupUpdateFields },
-  category: { create: CategoryCreateFields, update: CategoryUpdateFields, merge: MergeFields },
+  category: { create: CategoryCreateFields, update: CategoryUpdateFields, merge: MergeFields, relocate: RelocateFields },
   tag: { create: TagFields, update: TagFields, merge: MergeFields },
-  payee: { create: PayeeCreateFields, update: PayeeUpdateFields, merge: MergeFields },
+  payee: { create: PayeeCreateFields, update: PayeeUpdateFields, merge: MergeFields, relocate: RelocateFields },
+  transaction: { create: TransactionCreateFields, update: TransactionUpdateFields },
+  person_rate: { create: PersonRateCreateFields, update: PersonRateUpdateFields },
 };
 
-/** Groups are only created, renamed, reordered and deleted (FR-009a); only R3 lists merge. */
+/** Groups are only created, renamed, reordered and deleted (FR-009a); R3 lists merge; R4 relocates. */
 const ALLOWED_KINDS: Record<SyncEntity, readonly ChangeKind[]> = {
   account: ["create", "update", "archive", "restore", "delete"],
   account_group: ["create", "update", "delete"],
-  category: ["create", "update", "delete", "merge"],
+  category: ["create", "update", "delete", "merge", "relocate"],
   tag: ["create", "update", "delete", "merge"],
-  payee: ["create", "update", "delete", "merge"],
+  payee: ["create", "update", "delete", "merge", "relocate"],
+  transaction: ["create", "update", "delete"],
+  person_rate: ["create", "update", "delete"],
 };
 
 export const Change = z
@@ -94,6 +105,11 @@ export const REJECTION_CODES = [
   "HAS_SUBCATEGORIES",
   "INVALID_MOVE",
   "INVALID_MERGE",
+  "DATE_BEFORE_OPENING",
+  "LINES_MISMATCH",
+  "ACCOUNT_INACTIVE",
+  "INVALID_PERSON",
+  "INVALID_CATEGORY",
 ] as const;
 export type RejectionCode = (typeof REJECTION_CODES)[number];
 
@@ -123,6 +139,8 @@ export const PullResponse = z.object({
     category: z.array(PulledRow),
     tag: z.array(PulledRow),
     payee: z.array(PulledRow),
+    transaction: z.array(PulledRow),
+    person_rate: z.array(PulledRow),
   }),
 });
 export type PullResponse = z.output<typeof PullResponse>;

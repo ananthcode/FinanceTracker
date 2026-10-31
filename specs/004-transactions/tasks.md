@@ -24,22 +24,22 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order. Paths as R3.
 
 ## Phase 1: Setup
 
-- [ ] T001 [P] Add `DATE_BEFORE_OPENING`, `LINES_MISMATCH`, `ACCOUNT_INACTIVE`, `INVALID_PERSON`, `INVALID_CATEGORY` to `ERROR_CODES` (`packages/core/src/schemas/common.ts`) and `REJECTION_CODES` (`packages/core/src/sync/schemas.ts`)
+- [X] T001 [P] Add `DATE_BEFORE_OPENING`, `LINES_MISMATCH`, `ACCOUNT_INACTIVE`, `INVALID_PERSON`, `INVALID_CATEGORY` to `ERROR_CODES` (`packages/core/src/schemas/common.ts`) and `REJECTION_CODES` (`packages/core/src/sync/schemas.ts`)
 - [ ] T002 [P] Create `packages/core/src/transactions/index.ts` and `packages/core/src/interest/index.ts` barrels and export them from `packages/core/src/index.ts`
 
 ## Phase 2: Foundational
 
 ### Tests first
 
-- [ ] T003 [P] Unit tests `packages/core/test/transaction-schemas.test.ts`: every kind's required fields; amount "1…999999999999 paise" as decimal strings; `kind` create-only; person action must match flow; lines 0 or 2–50 with category xor person; `amountMinor` and `lines` must travel together in updates; notes ≤ 1,000, reference ≤ 40; server-controlled fields (`generated`, `interestMonth`, `userEdited`, `state`, `fieldVersions`, `serverSeq`) rejected; `relocate` takes exactly `{ targetId }`; person-rate `effectiveMonth` day 1 and `rateE4` 0–100000
+- [X] T003 [P] Unit tests `packages/core/test/transaction-schemas.test.ts`: every kind's required fields; amount "1…999999999999 paise" as decimal strings; `kind` create-only; person action must match flow; lines 0 or 2–50 with category xor person; `amountMinor` and `lines` must travel together in updates; notes ≤ 1,000, reference ≤ 40; server-controlled fields (`generated`, `interestMonth`, `userEdited`, `state`, `fieldVersions`, `serverSeq`) rejected; `relocate` takes exactly `{ targetId }`; person-rate `effectiveMonth` day 1 and `rateE4` 0–100000
 - [ ] T004 [P] Shared vectors `packages/core/test/vectors/transactions.json` (each kind × held/owed account; refund; transfer bank → card; person actions both flows incl. a balance that flips; adjustment; interest; split with category and person lines; void; unconfirmed; maximum amount) with expected postings, account balances, person balances, spending/income per category; tests `packages/core/test/postings.test.ts` (SC-002)
 - [ ] T005 [P] pgTAP `supabase/tests/tx_rls.test.sql`: contracts/database.md rules 1–6 (SC-004)
 - [ ] T006 [P] pgTAP `supabase/tests/tx_audit.test.sql`: create / edit / confirm / delete rows with before/after, device type, owner; postings changes not audited; relocate recorded (SC-005)
 
 ### Core
 
-- [ ] T007 [P] `packages/core/src/transactions/schemas.ts`: `TransactionCreateFields`, `TransactionUpdateFields`, `PersonRateFields`, `RelocateFields`, read models `TransactionView`, `PersonRateView` — passes T003
-- [ ] T008 Register `transaction` and `person_rate` entities, `relocate` kind for `category`/`payee`, pull rows, in `packages/core/src/sync/schemas.ts` — passes T003
+- [X] T007 [P] `packages/core/src/transactions/schemas.ts`: `TransactionCreateFields`, `TransactionUpdateFields`, `PersonRateFields`, `RelocateFields`, read models `TransactionView`, `PersonRateView` — passes T003
+- [X] T008 Register `transaction` and `person_rate` entities, `relocate` kind for `category`/`payee`, pull rows, in `packages/core/src/sync/schemas.ts` — passes T003
 - [ ] T009 `packages/core/src/transactions/postings.ts`: `postingsOf`, `movementsOf`, `personMovementsOf`, `isCounted` (research R4-02, R4-03) — passes T004
 
 ### Database

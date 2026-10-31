@@ -1,4 +1,5 @@
 /** Payee vocabulary (R3 data-model.md). Money is always `bigint` minor units. */
+import type { InterestMode } from "../transactions/types";
 
 export const PAYEE_KINDS = ["business", "person"] as const;
 export type PayeeKind = (typeof PAYEE_KINDS)[number];
@@ -17,4 +18,6 @@ export interface PayeeView {
   openingBalanceMinor: bigint;
   openingBalanceDate: string | null;
   includeInNetWorth: boolean;
+  /** People only (R4 FR-013). */
+  interestMode: InterestMode;
 }

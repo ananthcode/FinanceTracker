@@ -12,6 +12,7 @@ export * from "./categories";
 export * from "./tags";
 export * from "./payees";
 export * from "./people";
+export * from "./transactions";
 export * from "./sync";
 export * from "./ordering";
 export * from "./demo";
