@@ -44,6 +44,9 @@ export type Database = {
 "_change_result":
 { Args: { "p_merge": Json,"p_renamed"?: string,"p_status": string }; Returns: Json
                            },
+"_ctx_hlc":
+{ Args: Record<PropertyKey, never>; Returns: string
+                           },
 "_flow_of":
 { Args: { "p_action": Database["public"]['Enums']["person_action"],"p_given": Database["public"]['Enums']["money_flow"],"p_kind": Database["public"]['Enums']["transaction_kind"] }; Returns: Database["public"]['Enums']["money_flow"]
                            },
@@ -65,6 +68,9 @@ export type Database = {
 "_interest_amount":
 { Args: { "p_opening": number,"p_rate_e4": number }; Returns: number
                            },
+"_load_demo":
+{ Args: { "p_changes": Json,"p_device": string,"p_user": string }; Returns: Json
+                           },
 "_merge_category":
 { Args: { "p_hlc": string,"p_source": string,"p_target": string,"p_user": string }; Returns: undefined
                            },
@@ -74,8 +80,26 @@ export type Database = {
 "_merge_tag":
 { Args: { "p_hlc": string,"p_source": string,"p_target": string,"p_user": string }; Returns: undefined
                            },
+"_my_reset_seq":
+{ Args: Record<PropertyKey, never>; Returns: number
+                           },
 "_propose_interest":
 { Args: { "p_today": string,"p_user": string }; Returns: number
+                           },
+"_relocate":
+{ Args: { "p_change_id": string,"p_entity": string,"p_fields": Json,"p_hlc": string,"p_id": string,"p_user": string }; Returns: Json
+                           },
+"_repoint_category":
+{ Args: { "p_hlc": string,"p_source": string,"p_target": string,"p_user": string }; Returns: number
+                           },
+"_repoint_payee":
+{ Args: { "p_hlc": string,"p_merging": boolean,"p_source": string,"p_target": string,"p_user": string }; Returns: number
+                           },
+"_repoint_tag":
+{ Args: { "p_hlc": string,"p_source": string,"p_target": string,"p_user": string }; Returns: number
+                           },
+"_reset_user_data":
+{ Args: { "p_device": string,"p_user": string }; Returns: Json
                            },
 "_set_change_context":
 { Args: { "p_change_id": string,"p_merge": Json,"p_renamed": boolean }; Returns: undefined
@@ -126,6 +150,9 @@ export type Database = {
 "is_active_user":
 { Args: Record<PropertyKey, never>; Returns: boolean
                            },
+"load_demo_data":
+{ Args: { "p_changes": Json,"p_device": string }; Returns: Json
+                           },
 "merge_field_versions":
 { Args: { "p_fields": (string)[],"p_hlc": string,"p_received_at": string,"p_versions": Json }; Returns: Json
                            },
@@ -152,6 +179,12 @@ export type Database = {
                            },
 "register_failed_sign_in":
 { Args: { "p_email": string }; Returns: Json
+                           },
+"reset_and_load_demo":
+{ Args: { "p_changes": Json,"p_device": string }; Returns: Json
+                           },
+"reset_my_data":
+{ Args: { "p_device": string }; Returns: Json
                            },
 "scrub_user_from_audit":
 { Args: { "p_email": string,"p_user": string }; Returns: string
@@ -427,7 +460,7 @@ isOneToOne: false
             [_ in never]: never
           }
           Enums: {
-            "access_status": "active"|"disabled","account_type": "bank"|"cash"|"wallet"|"credit_card","accounts_view": "by_type"|"my_groups","audit_action": "invitation_created"|"invitation_resent"|"invitation_revoked"|"invitation_accepted"|"invitation_expired"|"invitation_delivery_failed"|"owner_recovered"|"user_disabled"|"user_enabled"|"user_erased"|"sign_in_succeeded"|"sign_in_failed"|"sign_in_locked"|"password_reset_requested"|"password_reset_completed"|"signed_out"|"preference_changed"|"setup_completed"|"app_lock_enabled"|"app_lock_disabled"|"account_created"|"account_edited"|"account_reordered"|"account_archived"|"account_restored"|"account_deleted"|"account_sync_renamed"|"account_group_created"|"account_group_renamed"|"account_group_reordered"|"account_group_deleted"|"category_created"|"category_edited"|"category_moved"|"category_hidden"|"category_unhidden"|"category_merged"|"category_deleted"|"category_sync_renamed"|"tag_created"|"tag_renamed"|"tag_merged"|"tag_deleted"|"tag_sync_renamed"|"payee_created"|"payee_edited"|"payee_hidden"|"payee_unhidden"|"payee_merged"|"payee_deleted"|"payee_sync_renamed"|"transaction_created"|"transaction_edited"|"transaction_confirmed"|"transaction_deleted"|"person_rate_created"|"person_rate_edited"|"person_rate_deleted"|"category_relocated"|"payee_relocated","categories_start": "suggested"|"empty","category_kind": "expense"|"income","date_format": "dd-MMM-yyyy"|"dd/MM/yyyy"|"yyyy-MM-dd","interest_mode": "none"|"automatic"|"manual","invitation_delivery_status": "sent"|"failed","invitation_status": "pending"|"accepted"|"revoked"|"superseded","money_flow": "out"|"in","number_format": "indian"|"international","payee_kind": "business"|"person","person_action": "lent"|"repaid_to"|"paid_on_behalf"|"borrowed"|"received_back"|"collected_on_behalf"|"adjustment","record_state": "active"|"archived"|"deleted","transaction_kind": "expense"|"income"|"refund"|"transfer"|"person"|"interest","transaction_status": "uncleared"|"cleared"|"follow_up"|"void","user_role": "owner"|"member"
+            "access_status": "active"|"disabled","account_type": "bank"|"cash"|"wallet"|"credit_card","accounts_view": "by_type"|"my_groups","audit_action": "invitation_created"|"invitation_resent"|"invitation_revoked"|"invitation_accepted"|"invitation_expired"|"invitation_delivery_failed"|"owner_recovered"|"user_disabled"|"user_enabled"|"user_erased"|"sign_in_succeeded"|"sign_in_failed"|"sign_in_locked"|"password_reset_requested"|"password_reset_completed"|"signed_out"|"preference_changed"|"setup_completed"|"app_lock_enabled"|"app_lock_disabled"|"account_created"|"account_edited"|"account_reordered"|"account_archived"|"account_restored"|"account_deleted"|"account_sync_renamed"|"account_group_created"|"account_group_renamed"|"account_group_reordered"|"account_group_deleted"|"category_created"|"category_edited"|"category_moved"|"category_hidden"|"category_unhidden"|"category_merged"|"category_deleted"|"category_sync_renamed"|"tag_created"|"tag_renamed"|"tag_merged"|"tag_deleted"|"tag_sync_renamed"|"payee_created"|"payee_edited"|"payee_hidden"|"payee_unhidden"|"payee_merged"|"payee_deleted"|"payee_sync_renamed"|"transaction_created"|"transaction_edited"|"transaction_confirmed"|"transaction_deleted"|"person_rate_created"|"person_rate_edited"|"person_rate_deleted"|"category_relocated"|"payee_relocated"|"demo_data_loaded"|"data_reset","categories_start": "suggested"|"empty","category_kind": "expense"|"income","date_format": "dd-MMM-yyyy"|"dd/MM/yyyy"|"yyyy-MM-dd","interest_mode": "none"|"automatic"|"manual","invitation_delivery_status": "sent"|"failed","invitation_status": "pending"|"accepted"|"revoked"|"superseded","money_flow": "out"|"in","number_format": "indian"|"international","payee_kind": "business"|"person","person_action": "lent"|"repaid_to"|"paid_on_behalf"|"borrowed"|"received_back"|"collected_on_behalf"|"adjustment","record_state": "active"|"archived"|"deleted","transaction_kind": "expense"|"income"|"refund"|"transfer"|"person"|"interest","transaction_status": "uncleared"|"cleared"|"follow_up"|"void","user_role": "owner"|"member"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -547,7 +580,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "access_status": ["active", "disabled"],"account_type": ["bank", "cash", "wallet", "credit_card"],"accounts_view": ["by_type", "my_groups"],"audit_action": ["invitation_created", "invitation_resent", "invitation_revoked", "invitation_accepted", "invitation_expired", "invitation_delivery_failed", "owner_recovered", "user_disabled", "user_enabled", "user_erased", "sign_in_succeeded", "sign_in_failed", "sign_in_locked", "password_reset_requested", "password_reset_completed", "signed_out", "preference_changed", "setup_completed", "app_lock_enabled", "app_lock_disabled", "account_created", "account_edited", "account_reordered", "account_archived", "account_restored", "account_deleted", "account_sync_renamed", "account_group_created", "account_group_renamed", "account_group_reordered", "account_group_deleted", "category_created", "category_edited", "category_moved", "category_hidden", "category_unhidden", "category_merged", "category_deleted", "category_sync_renamed", "tag_created", "tag_renamed", "tag_merged", "tag_deleted", "tag_sync_renamed", "payee_created", "payee_edited", "payee_hidden", "payee_unhidden", "payee_merged", "payee_deleted", "payee_sync_renamed", "transaction_created", "transaction_edited", "transaction_confirmed", "transaction_deleted", "person_rate_created", "person_rate_edited", "person_rate_deleted", "category_relocated", "payee_relocated"],"categories_start": ["suggested", "empty"],"category_kind": ["expense", "income"],"date_format": ["dd-MMM-yyyy", "dd/MM/yyyy", "yyyy-MM-dd"],"interest_mode": ["none", "automatic", "manual"],"invitation_delivery_status": ["sent", "failed"],"invitation_status": ["pending", "accepted", "revoked", "superseded"],"money_flow": ["out", "in"],"number_format": ["indian", "international"],"payee_kind": ["business", "person"],"person_action": ["lent", "repaid_to", "paid_on_behalf", "borrowed", "received_back", "collected_on_behalf", "adjustment"],"record_state": ["active", "archived", "deleted"],"transaction_kind": ["expense", "income", "refund", "transfer", "person", "interest"],"transaction_status": ["uncleared", "cleared", "follow_up", "void"],"user_role": ["owner", "member"]
+            "access_status": ["active", "disabled"],"account_type": ["bank", "cash", "wallet", "credit_card"],"accounts_view": ["by_type", "my_groups"],"audit_action": ["invitation_created", "invitation_resent", "invitation_revoked", "invitation_accepted", "invitation_expired", "invitation_delivery_failed", "owner_recovered", "user_disabled", "user_enabled", "user_erased", "sign_in_succeeded", "sign_in_failed", "sign_in_locked", "password_reset_requested", "password_reset_completed", "signed_out", "preference_changed", "setup_completed", "app_lock_enabled", "app_lock_disabled", "account_created", "account_edited", "account_reordered", "account_archived", "account_restored", "account_deleted", "account_sync_renamed", "account_group_created", "account_group_renamed", "account_group_reordered", "account_group_deleted", "category_created", "category_edited", "category_moved", "category_hidden", "category_unhidden", "category_merged", "category_deleted", "category_sync_renamed", "tag_created", "tag_renamed", "tag_merged", "tag_deleted", "tag_sync_renamed", "payee_created", "payee_edited", "payee_hidden", "payee_unhidden", "payee_merged", "payee_deleted", "payee_sync_renamed", "transaction_created", "transaction_edited", "transaction_confirmed", "transaction_deleted", "person_rate_created", "person_rate_edited", "person_rate_deleted", "category_relocated", "payee_relocated", "demo_data_loaded", "data_reset"],"categories_start": ["suggested", "empty"],"category_kind": ["expense", "income"],"date_format": ["dd-MMM-yyyy", "dd/MM/yyyy", "yyyy-MM-dd"],"interest_mode": ["none", "automatic", "manual"],"invitation_delivery_status": ["sent", "failed"],"invitation_status": ["pending", "accepted", "revoked", "superseded"],"money_flow": ["out", "in"],"number_format": ["indian", "international"],"payee_kind": ["business", "person"],"person_action": ["lent", "repaid_to", "paid_on_behalf", "borrowed", "received_back", "collected_on_behalf", "adjustment"],"record_state": ["active", "archived", "deleted"],"transaction_kind": ["expense", "income", "refund", "transfer", "person", "interest"],"transaction_status": ["uncleared", "cleared", "follow_up", "void"],"user_role": ["owner", "member"]
           }
         }
 } as const

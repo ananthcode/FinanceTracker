@@ -48,6 +48,11 @@ export const ERROR_CODES = [
   "ACCOUNT_INACTIVE",
   "INVALID_PERSON",
   "INVALID_CATEGORY",
+  // R5 — demo data and reset (specs/005-demo-data/contracts/http-api.md)
+  "NOT_EMPTY",
+  "NOT_AVAILABLE",
+  "DEMO_REJECTED",
+  "DATA_RESET",
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];
