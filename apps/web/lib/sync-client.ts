@@ -86,6 +86,21 @@ export const changes = {
     newChange("account_group", id, "create", fields, { onNameConflict: "reject" }),
   updateGroup: (id: string, changed: Record<string, unknown>) => newChange("account_group", id, "update", changed),
   deleteGroup: (id: string) => newChange("account_group", id, "delete"),
+  // R3: categories, tags and payees. A merge moves everything from `id` to `targetId` (R3-05).
+  createCategory: (id: string, fields: Record<string, unknown>) =>
+    newChange("category", id, "create", fields, { onNameConflict: "reject" }),
+  updateCategory: (id: string, changed: Record<string, unknown>) => newChange("category", id, "update", changed),
+  deleteCategory: (id: string) => newChange("category", id, "delete"),
+  mergeCategory: (id: string, targetId: string) => newChange("category", id, "merge", { targetId }),
+  createTag: (id: string, name: string) => newChange("tag", id, "create", { name }, { onNameConflict: "reject" }),
+  renameTag: (id: string, name: string) => newChange("tag", id, "update", { name }),
+  deleteTag: (id: string) => newChange("tag", id, "delete"),
+  mergeTag: (id: string, targetId: string) => newChange("tag", id, "merge", { targetId }),
+  createPayee: (id: string, fields: Record<string, unknown>) =>
+    newChange("payee", id, "create", fields, { onNameConflict: "reject" }),
+  updatePayee: (id: string, changed: Record<string, unknown>) => newChange("payee", id, "update", changed),
+  deletePayee: (id: string) => newChange("payee", id, "delete"),
+  mergePayee: (id: string, targetId: string) => newChange("payee", id, "merge", { targetId }),
 };
 
 export type PushOutcome =

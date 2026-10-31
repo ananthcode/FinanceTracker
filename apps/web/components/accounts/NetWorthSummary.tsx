@@ -1,3 +1,4 @@
+import Link from "next/link";
 import type { AccountsSummary } from "@ft/core";
 import { Money } from "@/components/Money";
 
@@ -10,6 +11,7 @@ export function NetWorthSummary({ summary, currency }: { summary: AccountsSummar
     (r) => !r.excluded,
   ).length;
   const negative = summary.netWorth < 0n;
+  const hasPeople = summary.people.owedToYou !== 0n || summary.people.youOwe !== 0n;
 
   return (
     <section aria-labelledby="net-worth-title" className="rounded-lg border border-border p-4">
@@ -37,7 +39,18 @@ export function NetWorthSummary({ summary, currency }: { summary: AccountsSummar
           </dd>
         </div>
       </dl>
-      {counted === 0 && (
+      {hasPeople && (
+        // R3 FR-020: included people, so Owned, Owed and Net worth still add up from what is shown.
+        <p id="figure-people" className="mt-3 text-sm text-muted-foreground">
+          Includes people you chose to count in net worth: they owe you{" "}
+          <Money value={summary.people.owedToYou} currency={currency} />, you owe them{" "}
+          <Money value={summary.people.youOwe} currency={currency} />.{" "}
+          <Link href="/people" className="text-brand-strong underline dark:text-brand">
+            People
+          </Link>
+        </p>
+      )}
+      {counted === 0 && !hasPeople && (
         <p className="mt-3 text-sm text-muted-foreground">
           Net worth is ₹0.00 because none of your accounts count towards it: they are archived or set not to be
           included in net worth.

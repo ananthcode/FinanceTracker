@@ -13,6 +13,7 @@ export const Timezone = z.string().min(1).max(64).refine(isValidTimezone, "Unkno
 export const FyStartMonth = z.number().int().min(1).max(12);
 /** Accounts screen view (R2 FR-009). */
 export const AccountsViewSchema = z.enum(["by_type", "my_groups"]);
+export const CategoriesStartSchema = z.enum(["suggested", "empty"]);
 
 export const Preferences = z.object({
   baseCurrency: CurrencyCode,
@@ -22,6 +23,8 @@ export const Preferences = z.object({
   timezone: Timezone,
   /** Defaults so R1 setup and older clients need not send it (R2 FR-009). */
   accountsView: AccountsViewSchema.default("by_type"),
+  /** The one-time default-categories choice (R3 FR-007); set only by app.start_categories. */
+  categoriesStart: CategoriesStartSchema.nullable().default(null),
 });
 export type Preferences = z.infer<typeof Preferences>;
 
@@ -32,9 +35,10 @@ export const DEFAULT_PREFERENCES: Preferences = {
   fyStartMonth: 4,
   timezone: "Asia/Kolkata",
   accountsView: "by_type",
+  categoriesStart: null,
 };
 
-export const SetupRequest = Preferences.extend({
+export const SetupRequest = Preferences.omit({ categoriesStart: true }).extend({
   displayName: DisplayName,
   /** Required when the profile has no record yet (Google join path) — FR-036e. */
   privacyNoticeShown: z.boolean().optional(),

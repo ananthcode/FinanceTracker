@@ -24,34 +24,9 @@ export const ACCOUNT_COLOURS = {
 export type AccountColour = keyof typeof ACCOUNT_COLOURS;
 export const ACCOUNT_COLOUR_KEYS = Object.keys(ACCOUNT_COLOURS) as AccountColour[];
 
-export const ACCOUNT_ICON_KEYS = [
-  "bank",
-  "building",
-  "piggy-bank",
-  "safe",
-  "wallet",
-  "banknote",
-  "coins",
-  "credit-card",
-  "smartphone",
-  "briefcase",
-  "home",
-  "car",
-  "fuel",
-  "shopping-bag",
-  "utensils",
-  "gift",
-  "graduation-cap",
-  "heart",
-  "plane",
-  "receipt",
-  "users",
-  "baby",
-  "star",
-  "globe",
-] as const;
-
-export type AccountIcon = (typeof ACCOUNT_ICON_KEYS)[number];
+// The icon keys live in ../appearance (shared with categories, R3-09); accounts use the first 24.
+import type { AccountIcon } from "../appearance/icons";
+export { ACCOUNT_ICON_KEYS, type AccountIcon } from "../appearance/icons";
 
 const DEFAULTS: Record<AccountType, { colour: AccountColour; icon: AccountIcon }> = {
   bank: { colour: "blue", icon: "bank" },

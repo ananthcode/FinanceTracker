@@ -12,9 +12,10 @@ interface PreferencesRow {
   fy_start_month: number;
   timezone: string;
   accounts_view: Preferences["accountsView"];
+  categories_start: Preferences["categoriesStart"];
 }
 
-const COLUMNS = "base_currency, number_format, date_format, fy_start_month, timezone, accounts_view";
+const COLUMNS = "base_currency, number_format, date_format, fy_start_month, timezone, accounts_view, categories_start";
 
 function fromRow(row: PreferencesRow): Preferences {
   return {
@@ -24,9 +25,11 @@ function fromRow(row: PreferencesRow): Preferences {
     fyStartMonth: row.fy_start_month,
     timezone: row.timezone,
     accountsView: row.accounts_view,
+    categoriesStart: row.categories_start,
   };
 }
 
+/** categoriesStart is never written here: only app.start_categories sets it (R3-06). */
 function toRow(patch: Partial<Preferences>): Partial<PreferencesRow> {
   const row: Partial<PreferencesRow> = {};
   if (patch.baseCurrency !== undefined) row.base_currency = patch.baseCurrency;

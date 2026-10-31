@@ -38,6 +38,10 @@ export const ERROR_CODES = [
   "HAS_ACTIVITY",
   "LIMIT_REACHED",
   "DATE_IN_FUTURE",
+  // R3 — categories, tags & payees (specs/003-categories-tags-payees/contracts/sync-protocol.md)
+  "HAS_SUBCATEGORIES",
+  "INVALID_MOVE",
+  "INVALID_MERGE",
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];

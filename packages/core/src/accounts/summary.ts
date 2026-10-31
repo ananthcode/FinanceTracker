@@ -6,6 +6,7 @@
  * "archived with a balance"), in both cases only when included in net worth. Group subtotals cover
  * the accounts listed in that group.
  */
+import { peopleTotals, type PeopleTotals } from "../people";
 import { availableCredit, currentBalance, type AvailableCredit, type Movement } from "./balance";
 import { balanceLabel, type BalanceLabel } from "./labels";
 import { isOwedType, TYPE_ORDER, type AccountState, type AccountType, type AccountsView, type GroupState } from "./types";
@@ -58,12 +59,22 @@ export interface AccountsSummary<A extends AccountForSummary = AccountForSummary
   netWorth: bigint;
   sections: SummarySection<A>[];
   archived: SummaryRow<A>[];
+  /** The "People" line (R3 FR-020): what included people owe the user / the user owes them. */
+  people: PeopleTotals;
+}
+
+/** A payee as the summary needs it; only people with the switch on count (R3 FR-020). */
+export interface PayeeForSummary {
+  kind: "business" | "person";
+  openingBalanceMinor: bigint;
+  includeInNetWorth: boolean;
 }
 
 export interface SummaryOptions {
   view: AccountsView;
   groups?: readonly GroupForSummary[];
   movements?: readonly Movement[];
+  people?: readonly PayeeForSummary[];
 }
 
 const byKey = <T extends { sortKey: string; id: string }>(a: T, b: T): number =>
@@ -129,7 +140,12 @@ export function summarise<A extends AccountForSummary>(accounts: readonly A[], o
     if (ungrouped.length > 0) sections.push({ key: "ungrouped", kind: "ungrouped", rows: ungrouped, ...subtotalOf(ungrouped) });
   }
 
-  return { owned, owed, netWorth: owned - owed, sections, archived };
+  // People switched into net worth add to Owned (they owe) or Owed (the user owes) — R3 FR-020.
+  const people = peopleTotals((options.people ?? []).filter((p) => p.includeInNetWorth));
+  owned += people.owedToYou;
+  owed += people.youOwe;
+
+  return { owned, owed, netWorth: owned - owed, sections, archived, people };
 }
 
 /** Accounts that may be chosen for new records (FR-021): active only, in the user's order. */

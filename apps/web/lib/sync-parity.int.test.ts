@@ -1,8 +1,9 @@
 import { randomUUID } from "node:crypto";
 import { describe, expect, it } from "vitest";
-import { currentBalance, mergeFields } from "@ft/core";
+import { currentBalance, mergeFields, personBalance } from "@ft/core";
 import balances from "../../../packages/core/test/vectors/balances.json";
 import merge from "../../../packages/core/test/vectors/merge.json";
+import people from "../../../packages/core/test/vectors/people.json";
 import { testAdmin } from "@/test/fixtures";
 import { newMember } from "@/test/sync";
 
@@ -58,6 +59,23 @@ describe("SQL parity with packages/core", () => {
       const { data } = await db.schema("app").rpc("account_balance_minor", { p_account: id });
       const ts = currentBalance({ id, openingBalanceMinor: BigInt(a.openingBalanceMinor), openingBalanceDate: a.openingBalanceDate });
       expect(BigInt(String(data))).toBe(ts);
+    }
+  });
+
+  it("app.person_balance_minor equals personBalance for every people vector (R3 T045)", async () => {
+    const db = testAdmin();
+    const m = await newMember("parityppl");
+    for (const c of people.cases) {
+      for (const p of c.people) {
+        const id = randomUUID();
+        const { error } = await db.from("payees").insert({
+          id, user_id: m.id, name: `Parity ${id.slice(0, 8)}`, kind: "person", opening_balance_minor: p.openingBalanceMinor,
+          opening_balance_date: "2026-04-01", server_seq: 0,
+        });
+        expect(error, c.name).toBeNull();
+        const { data } = await db.schema("app").rpc("person_balance_minor", { p_payee: id });
+        expect(BigInt(String(data)), c.name).toBe(personBalance({ openingBalanceMinor: BigInt(p.openingBalanceMinor) }));
+      }
     }
   });
 });

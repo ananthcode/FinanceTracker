@@ -1,4 +1,4 @@
-import { ArrowLeftRight, CalendarClock, Landmark, LayoutDashboard, Settings, Users, type LucideIcon } from "lucide-react";
+import { ArrowLeftRight, CalendarClock, HandCoins, Landmark, LayoutDashboard, Settings, Users, type LucideIcon } from "lucide-react";
 
 export interface NavItem {
   href: string;
@@ -10,6 +10,7 @@ export interface NavItem {
 export const NAV_ITEMS: NavItem[] = [
   { href: "/", label: "Dashboard", icon: LayoutDashboard },
   { href: "/accounts", label: "Accounts", icon: Landmark },
+  { href: "/people", label: "People", icon: HandCoins }, // R3 FR-034
   { href: "/transactions", label: "Transactions", icon: ArrowLeftRight },
   { href: "/payment-plan", label: "Payment plan", icon: CalendarClock },
   { href: "/settings", label: "Settings", icon: Settings },

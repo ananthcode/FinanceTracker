@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { ChangeResult, type PullResponse, type PushRequest } from "@ft/core";
+import { ChangeResult, SYNC_ENTITIES, type PullResponse, type PushRequest, type SyncEntity } from "@ft/core";
 
 /**
  * Sync RPC wrappers (T030, contracts/sync-protocol.md). Call with the user's own client so
@@ -45,10 +45,7 @@ function toWire(row: Record<string, unknown>): Record<string, unknown> {
 export async function pullChanges(db: SupabaseClient, cursor: string, limit = 500): Promise<PullResponse> {
   const { data, error } = await db.schema("app").rpc("pull_changes", { p_cursor: cursor, p_limit: limit });
   if (error) raise("SYNC_PULL_FAILED", error.message);
-  const raw = data as { cursor: string; hasMore: boolean; rows: { account: Record<string, unknown>[]; account_group: Record<string, unknown>[] } };
-  return {
-    cursor: raw.cursor,
-    hasMore: raw.hasMore,
-    rows: { account: raw.rows.account.map(toWire), account_group: raw.rows.account_group.map(toWire) } as PullResponse["rows"],
-  };
+  const raw = data as { cursor: string; hasMore: boolean; rows: Record<SyncEntity, Record<string, unknown>[]> };
+  const rows = Object.fromEntries(SYNC_ENTITIES.map((entity) => [entity, (raw.rows[entity] ?? []).map(toWire)]));
+  return { cursor: raw.cursor, hasMore: raw.hasMore, rows: rows as PullResponse["rows"] };
 }

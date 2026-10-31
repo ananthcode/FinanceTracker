@@ -8,16 +8,8 @@ import { z } from "zod";
 import { ORDER_KEY_PATTERN } from "../ordering/keys";
 import { MAX_AMOUNT_MINOR } from "../money/parse";
 import { ACCOUNT_COLOUR_KEYS, ACCOUNT_ICON_KEYS } from "./appearance";
+import { Notes, trimmedName } from "../schemas/text";
 import { ACCOUNT_TYPES } from "./types";
-
-/** Length in characters (code points), matching Postgres `char_length`. */
-const chars = (s: string) => [...s].length;
-
-const trimmedName = (max: number) =>
-  z
-    .string()
-    .transform((s) => s.trim())
-    .refine((s) => chars(s) >= 1 && chars(s) <= max, `Must be 1–${max} characters`);
 
 const MINOR_PATTERN = /^-?\d{1,12}$/;
 
@@ -63,10 +55,7 @@ const accountFields = {
   sortKey: OrderKey,
   groupId: z.uuid().nullable(),
   includeInNetWorth: z.boolean(),
-  notes: z
-    .string()
-    .refine((s) => chars(s) <= 500, "At most 500 characters")
-    .nullable(),
+  notes: Notes,
   creditLimitMinor: PositiveMinorString.nullable(),
 };
 

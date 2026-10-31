@@ -1,29 +1,42 @@
 /**
  * Sync protocol shapes (contracts/sync-protocol.md). These are the only accepted shapes for push
- * and pull (Principle VIII). A change that fails them makes the whole push fail with 422; checks
+ * and pull (Principle VIII). A change that fails them makes the whole push fail with 400; checks
  * only the database can make reject a single change inside a 200 response.
  */
 import { z } from "zod";
 import { AccountCreateFields, AccountUpdateFields, GroupCreateFields, GroupUpdateFields } from "../accounts/schemas";
+import { CategoryCreateFields, CategoryUpdateFields } from "../categories/schemas";
+import { PayeeCreateFields, PayeeUpdateFields } from "../payees/schemas";
+import { TagFields } from "../tags";
 import { HLC_PATTERN } from "./hlc";
 
-export const SYNC_ENTITIES = ["account", "account_group"] as const;
+export const SYNC_ENTITIES = ["account", "account_group", "category", "tag", "payee"] as const;
 export type SyncEntity = (typeof SYNC_ENTITIES)[number];
 
-export const CHANGE_KINDS = ["create", "update", "archive", "restore", "delete"] as const;
+export const CHANGE_KINDS = ["create", "update", "archive", "restore", "delete", "merge"] as const;
 export type ChangeKind = (typeof CHANGE_KINDS)[number];
 
 export const MAX_CHANGES_PER_PUSH = 100;
 
+/** A merge moves everything from the change's entity (the source) to the target (R3-05). */
+export const MergeFields = z.object({ targetId: z.uuid() }).strict();
+export type MergeFields = z.infer<typeof MergeFields>;
+
 const FIELD_SCHEMAS: Record<SyncEntity, Partial<Record<ChangeKind, z.ZodType>>> = {
   account: { create: AccountCreateFields, update: AccountUpdateFields },
   account_group: { create: GroupCreateFields, update: GroupUpdateFields },
+  category: { create: CategoryCreateFields, update: CategoryUpdateFields, merge: MergeFields },
+  tag: { create: TagFields, update: TagFields, merge: MergeFields },
+  payee: { create: PayeeCreateFields, update: PayeeUpdateFields, merge: MergeFields },
 };
 
-/** Groups are only created, renamed, reordered and deleted (FR-009a). */
+/** Groups are only created, renamed, reordered and deleted (FR-009a); only R3 lists merge. */
 const ALLOWED_KINDS: Record<SyncEntity, readonly ChangeKind[]> = {
-  account: CHANGE_KINDS,
+  account: ["create", "update", "archive", "restore", "delete"],
   account_group: ["create", "update", "delete"],
+  category: ["create", "update", "delete", "merge"],
+  tag: ["create", "update", "delete", "merge"],
+  payee: ["create", "update", "delete", "merge"],
 };
 
 export const Change = z
@@ -78,6 +91,9 @@ export const REJECTION_CODES = [
   "LIMIT_REACHED",
   "DATE_IN_FUTURE",
   "NOT_FOUND",
+  "HAS_SUBCATEGORIES",
+  "INVALID_MOVE",
+  "INVALID_MERGE",
 ] as const;
 export type RejectionCode = (typeof REJECTION_CODES)[number];
 
@@ -101,6 +117,12 @@ const PulledRow = z.object({ id: z.uuid(), serverSeq: z.string().regex(/^\d+$/) 
 export const PullResponse = z.object({
   cursor: z.string().regex(/^\d+$/),
   hasMore: z.boolean(),
-  rows: z.object({ account: z.array(PulledRow), account_group: z.array(PulledRow) }),
+  rows: z.object({
+    account: z.array(PulledRow),
+    account_group: z.array(PulledRow),
+    category: z.array(PulledRow),
+    tag: z.array(PulledRow),
+    payee: z.array(PulledRow),
+  }),
 });
 export type PullResponse = z.output<typeof PullResponse>;

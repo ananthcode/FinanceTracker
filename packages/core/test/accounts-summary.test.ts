@@ -110,3 +110,42 @@ describe("availableCredit", () => {
     });
   });
 });
+
+/** R3 T043 — people switched into net worth (FR-020; SC-004). */
+describe("summarise with people (R3 FR-020)", () => {
+  const accounts = vectors.cases[0]!.accounts.map(toAccount); // Owned 5434050, Owed 1825000
+  const person = (openingBalanceMinor: bigint, includeInNetWorth: boolean, hidden = false) => ({
+    kind: "person" as const,
+    openingBalanceMinor,
+    includeInNetWorth,
+    hidden,
+  });
+
+  it("leaves the figures unchanged when no person is included", () => {
+    const s = summarise(accounts, { view: "by_type", people: [person(1500000n, false), person(-450000n, false)] });
+    expect([s.owned, s.owed, s.netWorth]).toEqual([5434050n, 1825000n, 3609050n]);
+    expect(s.people).toEqual({ owedToYou: 0n, youOwe: 0n });
+  });
+
+  it("adds what included people owe to Owned and what the user owes them to Owed", () => {
+    const s = summarise(accounts, {
+      view: "my_groups",
+      people: [person(1500000n, true), person(-450000n, true), person(999n, false), person(0n, true)],
+    });
+    expect(s.people).toEqual({ owedToYou: 1500000n, youOwe: 450000n });
+    expect([s.owned, s.owed, s.netWorth]).toEqual([6934050n, 2275000n, 4659050n]);
+  });
+
+  it("counts a hidden person whose switch is on", () => {
+    const s = summarise(accounts, { view: "by_type", people: [person(100n, true, true)] });
+    expect(s.owned).toBe(5434150n);
+  });
+
+  it("ignores businesses", () => {
+    const s = summarise(accounts, {
+      view: "by_type",
+      people: [{ kind: "business", openingBalanceMinor: 0n, includeInNetWorth: false }],
+    });
+    expect(s.people).toEqual({ owedToYou: 0n, youOwe: 0n });
+  });
+});

@@ -1,6 +1,6 @@
 import AxeBuilder from "@axe-core/playwright";
 import { expect, test, type Page } from "@playwright/test";
-import { seedAccounts, uniqueEmail } from "./helpers/db";
+import { seedAccounts, seedLists, uniqueEmail } from "./helpers/db";
 import { ensureOwner, signInUI } from "./helpers/owner";
 import { createMember } from "./helpers/users";
 
@@ -49,10 +49,10 @@ test("keyboard only: Tab reaches the navigation in order and Enter opens a secti
     await page.keyboard.press("Tab");
     order.push(await page.evaluate(() => document.activeElement?.getAttribute("aria-label") ?? document.activeElement?.textContent?.trim() ?? ""));
   }
-  expect(order.slice(0, 7)).toEqual(["Hide balances", "Dashboard", "Accounts", "Transactions", "Payment plan", "Settings", order[6]]);
+  expect(order.slice(0, 8)).toEqual(["Hide balances", "Dashboard", "Accounts", "People", "Transactions", "Payment plan", "Settings", order[7]]);
   // Focus is visibly outlined (not colour of text alone).
-  // Focus is on stop 8; three Shift+Tabs go back to stop 5, "Payment plan".
-  for (let i = 0; i < 3; i++) await page.keyboard.press("Shift+Tab");
+  // Focus is on stop 8; two Shift+Tabs go back to stop 6, "Payment plan" (R3 added People at stop 4).
+  for (let i = 0; i < 2; i++) await page.keyboard.press("Shift+Tab");
   await expect(page.locator(":focus")).toHaveText("Payment plan");
   const outline = await page.evaluate(() => getComputedStyle(document.activeElement!).outlineStyle);
   expect(outline).not.toBe("none");
@@ -118,4 +118,47 @@ test("admin area", async ({ page, request }) => {
   await signInUI(page, owner);
   await page.goto("/admin");
   await expectNoViolations(page, "/admin");
+});
+
+test("R3 lists: people, categories (start dialog, tree, manage, picker), payees and tags (T073)", async ({ page, request }) => {
+  test.slow(); // many page scans
+  await ensureOwner(request);
+  const member = uniqueEmail("a11ylists");
+  await createMember(request, member);
+  await signInUI(page, member);
+
+  // The start dialog, before any categories exist.
+  await page.setViewportSize({ width: 1280, height: 844 });
+  await page.goto("/settings/categories");
+  await expect(page.getByRole("dialog", { name: "How would you like to start?" })).toBeVisible();
+  await expectNoViolations(page, "start dialog");
+
+  await seedLists(member, { demo: true });
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    for (const path of ["/people", "/people/new", "/settings/categories", "/settings/payees", "/settings/payees/new", "/settings/tags"]) {
+      await page.goto(path);
+      await expectNoViolations(page, `${path} @${width}px`);
+    }
+  }
+
+  // Tree disclosure, the Manage panel and the merge picker are keyboard operable and pass axe.
+  await page.setViewportSize({ width: 1280, height: 844 });
+  await page.goto("/settings/categories");
+  const toggle = page.getByRole("button", { name: "Show sub-categories of Education", exact: true });
+  await toggle.focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("button", { name: "Hide sub-categories of Education", exact: true })).toHaveAttribute("aria-expanded", "true");
+  await page.getByRole("button", { name: "Manage Kids", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("dialog", { name: "Education › Kids" })).toBeVisible();
+  await expectNoViolations(page, "manage panel");
+  await page.getByRole("button", { name: "Merge into another category" }).click();
+  const box = page.getByRole("combobox", { name: "Merge into" });
+  await box.focus();
+  await page.keyboard.type("swim");
+  await page.keyboard.press("ArrowDown");
+  await expectNoViolations(page, "merge picker open");
+  await page.keyboard.press("Escape");
+  await expect(box).toHaveAttribute("aria-expanded", "false");
 });
