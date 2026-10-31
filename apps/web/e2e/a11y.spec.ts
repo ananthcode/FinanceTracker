@@ -216,3 +216,35 @@ test("R4 transactions: list, To confirm, filters, bulk bar, every form type, spl
   await page.getByRole("button", { name: "Add line" }).click();
   await expectNoViolations(page, "split editor");
 });
+
+test("R5 Settings › Your data: both states and both dialogs, keyboard only (T023)", async ({ page, request }) => {
+  test.slow();
+  await ensureOwner(request);
+  const member = uniqueEmail("a11ydata");
+  await createMember(request, member);
+  await signInUI(page, member);
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto("/settings");
+    await expectNoViolations(page, `settings (empty) @${width}px`);
+  }
+  await page.setViewportSize({ width: 1280, height: 844 });
+  const section = page.getByRole("region", { name: "Your data" });
+  await section.getByRole("button", { name: "Load demo data" }).click();
+  await expectNoViolations(page, "load dialog");
+  await page.getByRole("dialog", { name: "Load demo data?" }).getByRole("button", { name: "Load demo data" }).click();
+  await expect(section.getByRole("status")).toContainText("Demo data loaded", { timeout: 20_000 });
+  await expectNoViolations(page, "settings (with data)");
+
+  // Keyboard: open the reset dialog, type the word, the button becomes available; Escape closes it.
+  await section.getByRole("button", { name: "Reset my data" }).focus();
+  await page.keyboard.press("Enter");
+  const dialog = page.getByRole("dialog", { name: "Reset your data?" });
+  await expect(dialog).toBeVisible();
+  await expectNoViolations(page, "reset dialog");
+  await dialog.getByLabel("Type RESET to confirm").focus();
+  await page.keyboard.type("RESET");
+  await expect(dialog.getByRole("button", { name: "Reset my data" })).toBeEnabled();
+  await page.keyboard.press("Escape");
+  await expect(dialog).toBeHidden();
+});
