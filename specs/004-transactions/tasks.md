@@ -64,12 +64,12 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order. Paths as R3.
 ## Phase 3: User Story 1 — Record spending and income (P1) 🎯 MVP
 
 - [X] T021 [P] [US1] pgTAP `tx_apply.test.sql` (US1 part): expense/income/refund effects on held and owed accounts; category kind checks; Uncategorised; archived account refused for new; date before opening refused; future date → unconfirmed and not counted; confirm counts from its date; void not counted; amount bounds
-- [ ] T022 [P] [US1] Unit `packages/core/test/transaction-labels.test.ts`: `transactionLabel` words per kind/action/direction
-- [ ] T023 [P] [US1] Playwright `apps/web/e2e/r4-us1-record.spec.ts`: spec US1 scenarios 1–9, quickstart S1-a … S1-e, SC-001 (< 20 s)
-- [ ] T024 [US1] `packages/core/src/transactions/labels.ts` (`transactionLabel`) and `totals.ts` (`categoryTotals` with roll-up, Uncategorised) — passes T022
-- [ ] T025 [US1] Components (new entries offer only active accounts, unhidden payees and categories — FR-006; an existing transaction keeps showing what it uses) `apps/web/components/transactions/PayeeCombobox.tsx` (search, create new business/person inline), `TagPicker.tsx` (multi-select, create inline), `TransactionForm.tsx` (type tabs; Expense/Income/Refund fields; default category from payee; date with Upcoming note; optional time; notes; reference; status)
-- [ ] T026 [US1] Pages `apps/web/app/(app)/transactions/page.tsx` (list newest first, Load more, To confirm section), `new/page.tsx`, `[id]/page.tsx`; `TransactionRow.tsx`, `ToConfirm.tsx` (confirm one / all); nav badge "N to confirm" in `apps/web/components/shell/` using `toConfirmCount`; replace the R1 placeholder and update `us5-shell.spec.ts`
-- [ ] T027 [US1] Account page `apps/web/app/(app)/accounts/[id]/page.tsx` lists the account's latest transactions; accounts summary counts transactions (balances via `app.account_balance_minor` parity); `AccountForm` explains `DATE_BEFORE_OPENING` when the opening date is moved after existing transactions — passes T023
+- [X] T022 [P] [US1] Unit `packages/core/test/transaction-labels.test.ts`: `transactionLabel` words per kind/action/direction
+- [X] T023 [P] [US1] Playwright `apps/web/e2e/r4-us1-record.spec.ts`: spec US1 scenarios 1–9, quickstart S1-a … S1-e, SC-001 (< 20 s)
+- [X] T024 [US1] `packages/core/src/transactions/labels.ts` (`transactionLabel`) and `totals.ts` (`categoryTotals` with roll-up, Uncategorised) — passes T022
+- [X] T025 [US1] Components (new entries offer only active accounts, unhidden payees and categories — FR-006; an existing transaction keeps showing what it uses) `apps/web/components/transactions/PayeeCombobox.tsx` (search, create new business/person inline), `TagPicker.tsx` (multi-select, create inline), `TransactionForm.tsx` (type tabs; Expense/Income/Refund fields; default category from payee; date with Upcoming note; optional time; notes; reference; status)
+- [X] T026 [US1] Pages `apps/web/app/(app)/transactions/page.tsx` (list newest first, Load more, To confirm section), `new/page.tsx`, `[id]/page.tsx`; `TransactionRow.tsx`, `ToConfirm.tsx` (confirm one / all); nav badge "N to confirm" in `apps/web/components/shell/` using `toConfirmCount`; replace the R1 placeholder and update `us5-shell.spec.ts`
+- [X] T027 [US1] Account page `apps/web/app/(app)/accounts/[id]/page.tsx` lists the account's latest transactions; accounts summary counts transactions (balances via `app.account_balance_minor` parity); `AccountForm` explains `DATE_BEFORE_OPENING` when the opening date is moved after existing transactions — passes T023
 
 ## Phase 4: User Story 2 — Transfers (P1)
 

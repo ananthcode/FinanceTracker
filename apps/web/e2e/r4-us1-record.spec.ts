@@ -119,8 +119,11 @@ test("archived accounts and hidden payees are not offered for new transactions (
 test("an upcoming transaction counts only once confirmed after its date (US1 8–9, S1-e)", async ({ page, request }) => {
   const email = await memberWithSavings(page, request, "txupcoming");
   await page.goto("/transactions/new");
-  await page.getByLabel("Date", { exact: true }).fill(isoDay(4));
-  await expect(page.getByText("Upcoming: it won’t change any balance yet.")).toBeVisible();
+  // Until the page is interactive a typed date is not seen: type it again until the note shows.
+  await expect(async () => {
+    await page.getByLabel("Date", { exact: true }).fill(isoDay(4));
+    await expect(page.getByText("Upcoming: it won’t change any balance yet.")).toBeVisible({ timeout: 1_000 });
+  }).toPass();
   await fillTransaction(page, { amount: "25,000.00", notes: "Rent" });
   await expect(page).toHaveURL(/\/transactions$/);
   await expect(transactionRows(page).first()).toContainText("Upcoming");

@@ -77,7 +77,10 @@ export type TransactionFormMode =
   | { type: "create"; kind?: Tab; accountId?: string | null; payeeId?: string | null }
   | { type: "edit"; transaction: TransactionView };
 
-const categoryKindOf = (kind: TransactionKind) => (kind === "income" ? "income" : "expense");
+/** "Everyday Savings’", "Ravi Kumar’s" (contracts/client-transactions.md wording). */
+const possessive = (name: string) => (/s$/i.test(name) ? `${name}’` : `${name}’s`);
+
+const categoryKindOf =(kind: TransactionKind) => (kind === "income" ? "income" : "expense");
 const isCategorised = (kind: TransactionKind) => kind === "expense" || kind === "income" || kind === "refund";
 
 function lineDraft(l: TransactionView["lines"][number], currency: string): SplitLineDraft {
@@ -450,10 +453,10 @@ export function TransactionForm({
       {opening && (
         <Alert variant="destructive" role="alert">
           <AlertDescription>
-            This date is before {opening.name}&rsquo;s opening balance of <DateText date={opening.date} />.{" "}
+            This date is before {possessive(opening.name)} opening balance of <DateText date={opening.date} />.{" "}
             {opening.whose === "account" ? "Change the account's opening date first." : "Change their opening date first."}{" "}
             <Link href={opening.href} className="font-medium underline">
-              Change {opening.name}&rsquo;s opening date
+              Change {possessive(opening.name)} opening date
             </Link>
           </AlertDescription>
         </Alert>

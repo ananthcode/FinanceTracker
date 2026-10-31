@@ -1,7 +1,7 @@
 -- R4 T021, T028, T031, T041 Transaction rules in app.apply_changes (contracts/sync-protocol.md,
 -- data-model.md; FR-001 – FR-012, FR-002a, FR-020).
 begin;
-select plan(48);
+select plan(54);
 
 select tests.as_superuser();
 select tests.create_user('tx.apply@example.com') as asha_id \gset
@@ -150,6 +150,18 @@ select is(tests.outcome(tests.lchange('transaction', gen_random_uuid(), 'create'
 -- ---------------------------------------------------------------- activity (FR-021)
 select is(tests.outcome(tests.lchange('category', :'groceries', 'delete')), 'HAS_ACTIVITY', 'a used category cannot be deleted');
 select is(tests.outcome(tests.lchange('payee', :'shop', 'delete')), 'HAS_ACTIVITY', 'a used payee cannot be deleted');
+
+-- ---------------------------------------------------------------- interest setting on payees (FR-013)
+select gen_random_uuid() as p_int \gset
+select is(tests.outcome(tests.lchange('payee', :'p_int', 'create', jsonb_build_object('name', 'Interest Friend', 'kind', 'person',
+            'openingBalanceDate', '2026-04-01', 'interestMode', 'automatic'))), 'applied', 'a person can be created with an interest setting');
+select is((select interest_mode::text from public.payees where id = :'p_int'), 'automatic', 'the setting is stored');
+select is(tests.outcome(tests.lchange('payee', gen_random_uuid(), 'create', jsonb_build_object('name', 'New Shop', 'kind', 'business',
+            'interestMode', 'none'))), 'applied', 'a business created with interestMode none is accepted');
+select is(tests.outcome(tests.lchange('payee', gen_random_uuid(), 'create', jsonb_build_object('name', 'Interest Shop', 'kind', 'business',
+            'interestMode', 'automatic'))), 'VALIDATION_FAILED', 'a business cannot charge interest');
+select is(tests.outcome(tests.lchange('payee', :'p_int', 'update', '{"kind":"business"}')), 'applied', 'a settled person becomes a business');
+select is((select interest_mode::text from public.payees where id = :'p_int'), 'none', 'and their interest setting goes back to none');
 
 select * from finish();
 rollback;

@@ -62,6 +62,7 @@ test("the net-worth switch moves a person's balance into the accounts summary (U
   await page.getByRole("link", { name: "Ravi Kumar" }).click();
   await page.getByLabel("Include in net worth").uncheck();
   await page.getByRole("button", { name: "Save" }).click();
+  await expect(page).toHaveURL(/\/people$/); // saved before leaving
   await page.goto("/accounts");
   await expect(page.locator("#figure-net-worth")).toContainText("₹52,340.50");
 });

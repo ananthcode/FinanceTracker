@@ -57,6 +57,21 @@ describe("transactions through push and pull", () => {
     expect(rows.transaction[0]).not.toHaveProperty("userId");
   });
 
+  it("creates a new payee and the transaction that uses it in one push (FR-005)", async () => {
+    const m = await newMember("txnewpayee");
+    const d = new FakeDevice();
+    const w = await world(m, d);
+    const payee = randomUUID();
+    const results = await pushAs(m, [
+      d.change("payee", payee, "create", { name: "Corner Bakery", kind: "business" }, { options: { onNameConflict: "reject" } }),
+      d.change("transaction", randomUUID(), "create", {
+        ...expense(w.bank, "12000", { payeeId: payee, timeOfDay: null, toAccountId: null, personAction: null, categoryId: null }),
+        lines: [], tagIds: [], notes: null, reference: null, status: "uncleared", confirmed: true,
+      }),
+    ]);
+    expect(results.map((r) => `${r.status} ${r.code ?? ""}`.trim())).toEqual(["applied", "applied"]);
+  });
+
   it("applies a transaction delivered twice once", async () => {
     const m = await newMember("txdupe");
     const d = new FakeDevice();
