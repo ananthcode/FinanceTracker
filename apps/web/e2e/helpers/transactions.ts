@@ -182,6 +182,43 @@ export async function seedDemoTransactions(email: string, todayIso = isoDay(0)):
   if (error) throw new Error(`seedDemoTransactions rates: ${error.message}`);
 }
 
+/**
+ * Seeds `count` generated expenses and incomes over the last two years for a user with the demo
+ * accounts and lists (performance tests, SC-003). Spread over accounts, categories and payees.
+ */
+export async function seedManyTransactions(email: string, count: number): Promise<void> {
+  const db = admin();
+  const { data: profile } = await db.from("profiles").select("user_id").eq("email", email).single();
+  const userId = profile!.user_id as string;
+  const live = async (table: "accounts" | "categories" | "payees", columns: string) => {
+    const { data, error } = await db.from(table).select(columns).eq("user_id", userId).eq("state", "active");
+    if (error) throw new Error(error.message);
+    return data as unknown as { id: string; kind?: string }[];
+  };
+  const accounts = (await live("accounts", "id")).map((a) => a.id);
+  const categories = await live("categories", "id, kind");
+  const expense = categories.filter((c) => c.kind === "expense").map((c) => c.id);
+  const income = categories.filter((c) => c.kind === "income").map((c) => c.id);
+  const payees = (await live("payees", "id, kind")).filter((p) => p.kind === "business").map((p) => p.id);
+  const rows = [];
+  for (let i = 0; i < count; i++) {
+    const isIncome = i % 10 === 0;
+    rows.push({
+      id: crypto.randomUUID(), user_id: userId, date: isoDay(-(i % 700) - 1), time_of_day: null,
+      kind: isIncome ? "income" : "expense", flow: isIncome ? "in" : "out",
+      account_id: accounts[i % accounts.length], to_account_id: null, amount_minor: String(1000 + ((i * 7919) % 500000)),
+      payee_id: payees[i % payees.length], person_action: null,
+      category_id: isIncome ? income[i % income.length] : expense[i % expense.length],
+      lines: [], tag_ids: [], notes: i % 50 === 0 ? `Seeded note ${i}` : null, reference: null, status: "cleared",
+      confirmed: true, generated: false, interest_month: null, user_edited: false, state: "active", server_seq: 0,
+    });
+  }
+  for (let i = 0; i < rows.length; i += 1000) {
+    const { error } = await db.from("transactions").insert(rows.slice(i, i + 1000));
+    if (error) throw new Error(`seedManyTransactions: ${error.message}`);
+  }
+}
+
 /** Adds a business payee straight into the LOCAL database. */
 export async function seedBusiness(email: string, name: string): Promise<void> {
   const db = admin();
