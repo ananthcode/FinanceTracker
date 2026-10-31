@@ -10,6 +10,7 @@ type SymbolName = SymbolViewProps["name"];
 const TABS: { name: string; title: string; icon: SymbolName }[] = [
   { name: "index", title: "Dashboard", icon: { ios: "square.grid.2x2", android: "dashboard" } },
   { name: "accounts", title: "Accounts", icon: { ios: "building.columns", android: "account_balance" } },
+  { name: "people", title: "People", icon: { ios: "person.2", android: "handshake" } },
   { name: "transactions", title: "Transactions", icon: { ios: "arrow.left.arrow.right", android: "swap_horiz" } },
   { name: "payment-plan", title: "Payment plan", icon: { ios: "calendar", android: "calendar_month" } },
   { name: "settings", title: "Settings", icon: { ios: "gearshape", android: "settings" } },

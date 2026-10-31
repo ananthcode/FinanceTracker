@@ -227,9 +227,9 @@ never-used "Pets" deleted with its payee default cleared.
 
 **Android client (Deferred)**
 
-- [ ] T070 [US6] *Deferred* Local store tables for categories, tags, payees in `apps/mobile/src/lib/sync/store.ts` (extends R2's T060)
-- [ ] T071 [US6] *Deferred* Android screens: People tab, Categories / Payees / Tags under settings, start choice when online
-- [ ] T072 [US6] *Deferred* Offline create/edit/move/hide; merge and delete queued and reported if refused (FR-033)
+- [X] T070 [US6] Local store tables for categories, tags, payees in `apps/mobile/src/lib/sync/store.ts` (extends R2's T060)
+- [X] T071 [US6] Android screens: People tab, Categories / Payees / Tags under settings, start choice when online
+- [X] T072 [US6] Offline create/edit/move/hide; merge and delete queued and reported if refused (FR-033)
 
 ---
 
