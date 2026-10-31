@@ -62,7 +62,7 @@ export async function listTags(db: SupabaseClient): Promise<TagView[]> {
 }
 
 const PAYEE_COLUMNS =
-  "id, name, kind, default_category_id, notes, hidden, opening_balance_minor::text, opening_balance_date, include_in_net_worth, interest_mode";
+  "id, name, kind, default_category_id, notes, hidden, opening_balance_minor::text, opening_balance_date, include_in_net_worth, interest_mode, statement_sign";
 
 interface PayeeRow {
   id: string;
@@ -75,6 +75,7 @@ interface PayeeRow {
   opening_balance_date: string | null;
   include_in_net_worth: boolean;
   interest_mode: PayeeView["interestMode"];
+  statement_sign: PayeeView["statementSign"];
 }
 
 function payeeFromRow(row: PayeeRow): PayeeView {
@@ -89,6 +90,7 @@ function payeeFromRow(row: PayeeRow): PayeeView {
     openingBalanceDate: row.opening_balance_date,
     includeInNetWorth: row.include_in_net_worth,
     interestMode: row.interest_mode,
+    statementSign: row.statement_sign,
   };
 }
 

@@ -77,6 +77,7 @@ export function demoChanges(todayIso: string, options: DemoChangesOptions = {}):
       openingBalanceDate: p.openingBalanceDate,
       includeInNetWorth: p.includeInNetWorth,
       interestMode: p.interestMode,
+      statementSign: p.statementSign,
     });
   }
 

@@ -22,9 +22,9 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order.
 
 ## Phase 1: Setup
 
-- [ ] T001 [P] Migration `<ts>_rpt_fields.sql`: enum `statement_sign`; `payees.statement_sign`; `user_preferences.buffer_minor`; `_apply_payee` accepts `statementSign`; preferences update path accepts `buffer_minor`
-- [ ] T002 [P] Core: `PayeeView.statementSign`, payee schemas, `PreferencesSchema.bufferMinor`, demo lists (Ravi: they owe positive, Meera: I owe positive); lists repository, pull, mobile `payeeFromRow` and mobile/web preferences forms carry or omit the new fields (R3/R4 lessons)
-- [ ] T003 `pnpm db:types`
+- [X] T001 [P] Migration `<ts>_rpt_fields.sql`: enum `statement_sign`; `payees.statement_sign`; `user_preferences.buffer_minor`; `_apply_payee` accepts `statementSign`; preferences update path accepts `buffer_minor`
+- [X] T002 [P] Core: `PayeeView.statementSign`, payee schemas, `PreferencesSchema.bufferMinor`, demo lists (Ravi: they owe positive, Meera: I owe positive); lists repository, pull, mobile `payeeFromRow` and mobile/web preferences forms carry or omit the new fields (R3/R4 lessons)
+- [X] T003 `pnpm db:types`
 
 ## Phase 2: Foundational
 

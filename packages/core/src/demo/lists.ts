@@ -69,6 +69,7 @@ export function demoLists(): DemoLists {
     openingBalanceDate: null,
     includeInNetWorth: false,
     interestMode: "none",
+    statementSign: "they_owe_positive",
   });
   const person = (i: number, name: string, opening: bigint, extra: Partial<PayeeView> = {}): PayeeView => ({
     id: payeeId(i),
@@ -81,6 +82,7 @@ export function demoLists(): DemoLists {
     openingBalanceDate: OPENING_DATE,
     includeInNetWorth: false,
     interestMode: "none",
+    statementSign: "they_owe_positive",
     ...extra,
   });
 
@@ -94,7 +96,7 @@ export function demoLists(): DemoLists {
     business(7, "Corner Cafe", "Food & groceries › Eating out"),
     business(8, "Metro Rail", "Transport › Public transport"),
     person(11, "Ravi Kumar", 1_500_000n, { includeInNetWorth: true, notes: "Lent for his bike, Apr 2025", interestMode: "automatic" }),
-    person(12, "Meera Iyer", -450_000n, { interestMode: "manual" }),
+    person(12, "Meera Iyer", -450_000n, { interestMode: "manual", statementSign: "i_owe_positive" }),
     person(13, "Anil Rao", 0n),
     person(14, "Priya Nair", 2_500_050n),
     person(15, "Old Neighbour", 75_000n, { hidden: true }),

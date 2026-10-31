@@ -14,6 +14,8 @@ export const FyStartMonth = z.number().int().min(1).max(12);
 /** Accounts screen view (R2 FR-009). */
 export const AccountsViewSchema = z.enum(["by_type", "my_groups"]);
 export const CategoriesStartSchema = z.enum(["suggested", "empty"]);
+/** 0 … 999,999,999,999 paise. */
+export const BufferMinor = z.string().regex(/^\d{1,12}$/, "Use a whole number of paise from 0");
 
 export const Preferences = z.object({
   baseCurrency: CurrencyCode,
@@ -25,6 +27,8 @@ export const Preferences = z.object({
   accountsView: AccountsViewSchema.default("by_type"),
   /** The one-time default-categories choice (R3 FR-007); set only by app.start_categories. */
   categoriesStart: CategoriesStartSchema.nullable().default(null),
+  /** Kept back from what is safe to spend (R6 FR-002, FR-003); paise as a decimal string. */
+  bufferMinor: BufferMinor.default("0"),
 });
 export type Preferences = z.infer<typeof Preferences>;
 
@@ -36,6 +40,7 @@ export const DEFAULT_PREFERENCES: Preferences = {
   timezone: "Asia/Kolkata",
   accountsView: "by_type",
   categoriesStart: null,
+  bufferMinor: "0",
 };
 
 export const SetupRequest = Preferences.omit({ categoriesStart: true }).extend({
@@ -54,6 +59,7 @@ export const PreferencesUpdate = z
     fyStartMonth: FyStartMonth,
     timezone: Timezone,
     accountsView: AccountsViewSchema,
+    bufferMinor: BufferMinor,
   })
   .partial()
   .strict();
