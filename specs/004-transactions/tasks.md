@@ -45,7 +45,7 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order. Paths as R3.
 ### Database
 
 - [X] T010 Migration `<ts>_tx_enums.sql`: enums and audit actions (data-model.md); `target_type` gains `transaction`, `person_rate`
-- [X] T011 Migration `<ts>_tx_tables.sql`: `public.transactions`, `public.person_rates`, `app.transaction_postings`, `payees.interest_mode` exactly per data-model.md (checks, composite FKs to accounts/payees/categories within the user, generated-interest unique index across states, GIN on `tag_ids`); RLS select-own; SELECT grants only (none on postings); stamp + audit triggers
+- [X] T011 Migration `<ts>_tx_tables.sql`: `public.transactions`, `public.person_rates`, `private.transaction_postings`, `payees.interest_mode` exactly per data-model.md (checks, composite FKs to accounts/payees/categories within the user, generated-interest unique index across states, GIN on `tag_ids`); RLS select-own; SELECT grants only (none on postings); stamp + audit triggers
 - [X] T012 Migration `<ts>_tx_postings.sql`: `app._rebuild_postings()` trigger (after insert/update on transactions) implementing research R4-02/R4-03 exactly like `postingsOf`
 - [X] T013 Migration `<ts>_tx_rules.sql`: replace `app.account_balance_minor`, `app.person_balance_minor`, `app.account_has_activity`, `app.category_has_activity`, `app.payee_has_activity`, `app.tag_usage_count` to read postings/transactions; refuse an account or person opening date moved after an existing transaction (`DATE_BEFORE_OPENING`)
 - [X] T014 Migration `<ts>_tx_apply.sql`: `app._apply_transaction` (create/update/delete; validation per contracts/sync-protocol.md; amount+lines shared version; future date → unconfirmed; editing a generated amount sets `user_edited`), `app._apply_person_rate`; dispatch in `_apply_one`; new codes mapped — passes T005, T006
@@ -124,9 +124,9 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order. Paths as R3.
 - [X] T055 [P] Accessibility: extend `apps/web/e2e/a11y.spec.ts` to `/transactions` (list, filters, bulk bar, To confirm), `/transactions/new` (each tab, split editor), the person interest editor (axe at 1280/390 px, keyboard)
 - [X] T056 [P] Performance `apps/web/e2e/r4-performance.spec.ts` (E2E_PRODUCTION): 20,000 transactions, list < 2 s, search/filter < 1 s (SC-003)
 - [X] T057 [P] Demo `packages/core/src/demo/transactions.ts` (research R4-10) with `packages/core/test/demo-transactions.test.ts`; `seedTransactions` e2e helper; hide-balances screens list gains transaction screens (SC-006)
-- [ ] T058 Write `specs/004-transactions/review-notes.md`
+- [X] T058 Write `specs/004-transactions/review-notes.md`
 - [ ] T059 Run every suite; write `specs/004-transactions/validation.md`
-- [ ] T060 Converge: contracts, ROADMAP status, Android tasks carried to the Android phase
+- [X] T060 Converge: contracts, ROADMAP status, Android tasks carried to the Android phase
 
 ## Dependencies
 

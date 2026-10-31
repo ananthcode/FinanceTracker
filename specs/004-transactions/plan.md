@@ -20,7 +20,7 @@ shared vectors. Decisions: [research.md](research.md).
 
 **Primary Dependencies**: As R3. **No new dependencies.**
 
-**Storage**: new synced tables `transactions`, `person_rates`; derived `app.transaction_postings`;
+**Storage**: new synced tables `transactions`, `person_rates`; derived `private.transaction_postings`;
 `payees.interest_mode`; enums per data-model.md.
 
 **Testing**: Vitest (core vectors, integration incl. parity), pgTAP, Playwright (+ axe); production

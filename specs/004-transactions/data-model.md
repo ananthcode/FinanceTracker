@@ -45,7 +45,7 @@ select-own + active user, `sync.stamp_row` and `audit.capture_record_change`). M
 
 **Counted** (in balances and totals) = `state = active` and `confirmed` and `status <> void`.
 
-## Entity: Posting — `app.transaction_postings` (derived, server only)
+## Entity: Posting — `private.transaction_postings` (derived, server only)
 
 One row per effect, rebuilt by trigger from each transaction row (research R4-02):
 

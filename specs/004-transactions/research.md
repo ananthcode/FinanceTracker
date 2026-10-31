@@ -19,7 +19,7 @@ entity per change; storing lines only in a derived table — the device needs th
 
 ## R4-02 Derived `transaction_postings` for balances, totals and filters
 
-**Decision**: a server-only table `app.transaction_postings`, rebuilt by trigger whenever a
+**Decision**: a server-only table `private.transaction_postings`, rebuilt by trigger whenever a
 transaction row is inserted or updated: one posting per effect — account effect (signed in the
 account's convention), person effect (positive = they owe more), category effect (signed: spending
 positive for expense lines, refund lines negative; income positive), with date, `counted` (active,
