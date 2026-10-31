@@ -88,10 +88,10 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order. Paths as R3.
 - [X] T034 [P] [US4] Vectors `packages/core/test/vectors/interest.json` (rates from different months, 0 %, rate changes, compounding over 24 months, movements mid-month, flips, half-paisa rounding, confirmed in random order) and `packages/core/test/interest.test.ts` (SC-007)
 - [X] T035 [P] [US4] pgTAP `tx_interest.test.sql`: proposals once per person per month (also two concurrent calls); deleted proposal never recreated; edited proposal not recomputed; unconfirmed proposals recompute in month order; manual mode creates none; rate day-1 rule; other users untouched
 - [X] T036 [P] [US4] Integration parity: `interest.json` against `app.propose_interest` results
-- [ ] T037 [P] [US4] Playwright `apps/web/e2e/r4-us4-interest.spec.ts`: spec US4 1–5 (month ends simulated by back-dated rates and opening balances)
+- [X] T037 [P] [US4] Playwright `apps/web/e2e/r4-us4-interest.spec.ts`: spec US4 1–5 (month ends simulated by back-dated rates and opening balances)
 - [X] T038 [US4] `packages/core/src/interest/amount.ts`, `propose.ts` — passes T034
 - [X] T039 [US4] Migration `<ts>_tx_interest.sql`: `app._interest_amount`, `app._month_opening_balance`, `app.propose_interest()` — passes T035, T036
-- [ ] T040 [US4] `POST /api/interest/propose` (`apps/web/app/api/interest/propose/route.ts`, rate limit 30/min) called once per page load from the signed-in layout; person page: interest mode, rate history editor, "Record interest" — passes T037
+- [X] T040 [US4] `POST /api/interest/propose` (`apps/web/app/api/interest/propose/route.ts`, rate limit 30/min) called once per page load from the signed-in layout; person page: interest mode, rate history editor, "Record interest" — passes T037
 
 ## Phase 7: User Story 5 — Splits (P2)
 

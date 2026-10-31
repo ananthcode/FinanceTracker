@@ -8,9 +8,12 @@ import {
   listAccounts,
   listCategories,
   listPayees,
+  listPersonRates,
   listTags,
+  runInterestProposals,
   searchTransactions,
 } from "@ft/db";
+import { PersonInterest } from "@/components/transactions/PersonInterest";
 import { PayeeForm } from "@/components/lists/PayeeForm";
 import { PayeeManage } from "@/components/lists/PayeeManage";
 import { PersonBalance } from "@/components/lists/PersonBalance";
@@ -27,6 +30,7 @@ export default async function EditPersonPage({ params }: { params: Promise<{ id:
   const { id } = await params;
   const supabase = await createServerSupabase();
   const { data } = await supabase.auth.getUser();
+  await runInterestProposals(supabase).catch(() => 0); // after a rate or setting change
   const [person, categories, payees, preferences, totals, accounts, tags] = await Promise.all([
     getPayee(supabase, id),
     listCategories(supabase),
@@ -41,7 +45,10 @@ export default async function EditPersonPage({ params }: { params: Promise<{ id:
   const todayIso = todayInZone(prefs.timezone);
   const balance = personBalanceOf(person, totals.people);
   // The latest 50 movements; the full history is in Transactions filtered by this person.
-  const page = await searchTransactions(supabase, { payeeId: person.id }, null, 50);
+  const [page, rates] = await Promise.all([
+    searchTransactions(supabase, { payeeId: person.id }, null, 50),
+    listPersonRates(supabase, person.id),
+  ]);
   const after = runningPersonBalances(page.rows, person.id, balance);
   const rows = page.rows.map((tx, i) => ({ tx, balanceAfter: after[i]!, counted: isCounted(tx) }));
   const returnTo = `/people/${person.id}`;
@@ -81,6 +88,8 @@ export default async function EditPersonPage({ params }: { params: Promise<{ id:
           <PersonMovements rows={rows} names={namesOf(accounts, payees, categories, tags)} todayIso={todayIso} returnTo={returnTo} />
         )}
       </section>
+
+      <PersonInterest person={person} rates={rates} />
 
       <h2 className="border-t border-border pt-4 text-lg font-semibold">Details</h2>
       <PayeeForm

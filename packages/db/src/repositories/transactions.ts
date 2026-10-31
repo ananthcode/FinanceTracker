@@ -128,6 +128,19 @@ export async function balanceMovements(db: SupabaseClient): Promise<BalanceMovem
   return { accounts: toTotals(raw.accounts), people: toTotals(raw.people) };
 }
 
+/**
+ * Proposes interest for the caller's automatic people for every month that has ended (FR-014,
+ * app.propose_interest). Returns how many proposals were created or changed.
+ */
+export async function runInterestProposals(db: SupabaseClient): Promise<number> {
+  const { data, error } = await db.schema("app").rpc("propose_interest");
+  if (error) {
+    if (error.message.includes("USER_INACTIVE")) throw new Error("USER_INACTIVE");
+    throw new Error(`INTEREST_PROPOSE_FAILED: ${error.code ?? ""}`);
+  }
+  return Number((data as { changed: number }).changed);
+}
+
 /** A person's rate history, oldest first (FR-013). */
 export async function listPersonRates(db: SupabaseClient, payeeId: string): Promise<PersonRateView[]> {
   const { data, error } = await db

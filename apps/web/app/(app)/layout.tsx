@@ -5,7 +5,7 @@ import { DisplayProvider } from "@/components/providers/DisplayProvider";
 import { AppShell } from "@/components/shell/AppShell";
 import { DemoBadge } from "@/components/shell/DemoBadge";
 import { HideBalancesToggle } from "@/components/shell/HideBalancesToggle";
-import { getPreferences, getProfile, toConfirmCount } from "@ft/db";
+import { getPreferences, getProfile, runInterestProposals, toConfirmCount } from "@ft/db";
 import { checkEnvironment } from "@/lib/environment-guard";
 import { publicEnv } from "@/lib/env";
 import { KEEP_SIGNED_IN_COOKIE } from "@/lib/session-cookies";
@@ -31,8 +31,14 @@ export default async function SignedInLayout({ children }: { children: React.Rea
   const [profile, preferences] = data.user
     ? await Promise.all([getProfile(supabase, data.user.id), getPreferences(supabase, data.user.id)])
     : [null, null];
-  // R4 FR-002a: "N to confirm" on the Transactions entry. A failed count only hides the badge.
-  const toConfirm = profile?.setupComplete ? await toConfirmCount(supabase).catch(() => 0) : 0;
+  // R4 FR-014: interest for months that have ended waits in To confirm, so propose it first (once per
+  // page load: layouts are not re-rendered on client navigation). FR-002a: "N to confirm" on the
+  // Transactions entry. A failure here only leaves the proposals or the badge for the next load.
+  let toConfirm = 0;
+  if (profile?.setupComplete) {
+    await runInterestProposals(supabase).catch(() => 0);
+    toConfirm = await toConfirmCount(supabase).catch(() => 0);
+  }
 
   return (
     <DisplayProvider preferences={preferences ?? undefined}>

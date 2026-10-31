@@ -74,7 +74,7 @@ interface OpeningProblem {
 }
 
 export type TransactionFormMode =
-  | { type: "create"; kind?: Tab; accountId?: string | null; payeeId?: string | null }
+  | { type: "create"; kind?: Tab | "interest"; accountId?: string | null; payeeId?: string | null }
   | { type: "edit"; transaction: TransactionView };
 
 /** "Everyday Savings’", "Ravi Kumar’s" (contracts/client-transactions.md wording). */
@@ -472,7 +472,7 @@ export function TransactionForm({
         </Alert>
       )}
 
-      {mode.type === "create" ? (
+      {mode.type === "create" && kind !== "interest" ? (
         <fieldset className="flex flex-col gap-2">
           <legend className="mb-1 text-sm font-medium">Type</legend>
           <div className="flex flex-wrap gap-1 rounded-lg border border-border p-1">
@@ -492,8 +492,13 @@ export function TransactionForm({
       ) : (
         <p className="text-sm text-muted-foreground">
           Type: <span className="font-medium text-foreground">{TRANSACTION_KIND_TEXT[kind]}</span>
-          {saved?.generated && saved.interestMonth && <> · proposed for {saved.interestMonth.slice(0, 7)}</>}. To change the type, delete
-          this one and add it again.
+          {saved?.generated && saved.interestMonth && (
+            <>
+              {" "}
+              · proposed automatically for the month of <DateText date={saved.interestMonth} />
+            </>
+          )}
+          .{saved && " To change the type, delete this one and add it again."}
         </p>
       )}
 

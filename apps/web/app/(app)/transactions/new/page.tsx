@@ -6,7 +6,8 @@ import { createServerSupabase } from "@/lib/supabase/server";
 import { safeReturn } from "@/lib/transactions";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
-const TYPES = ["expense", "income", "refund", "transfer", "person"] as const;
+// "interest" is recorded by hand from a person's page (FR-015).
+const TYPES = ["expense", "income", "refund", "transfer", "person", "interest"] as const;
 
 /** Add a transaction (R4 US1–US3, US5). `?type=`, `?account=` and `?payee=` preselect; `?returnTo=` comes back. */
 export default async function NewTransactionPage({ searchParams }: { searchParams: Promise<Record<string, string | string[] | undefined>> }) {

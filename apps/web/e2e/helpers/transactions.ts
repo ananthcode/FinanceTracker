@@ -12,7 +12,14 @@ export function isoDay(days = 0): string {
   return d.toISOString().slice(0, 10);
 }
 
-export type TransactionType = "Expense" | "Income" | "Refund" | "Transfer" | "Person";
+/** The 1st of the month `months` away from this month (Asia/Kolkata), `yyyy-MM-dd`. */
+export function isoMonth(months = 0): string {
+  const d = new Date(`${isoDay(0).slice(0, 7)}-01T00:00:00Z`);
+  d.setUTCMonth(d.getUTCMonth() + months);
+  return d.toISOString().slice(0, 10);
+}
+
+export type TransactionType ="Expense" | "Income" | "Refund" | "Transfer" | "Person";
 
 export interface TransactionInput {
   type?: TransactionType;

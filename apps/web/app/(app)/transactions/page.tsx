@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { DEFAULT_PREFERENCES, todayInZone } from "@ft/core";
-import { getPreferences, listAccounts, listCategories, listPayees, listTags, searchTransactions } from "@ft/db";
+import { getPreferences, listAccounts, listCategories, listPayees, listTags, runInterestProposals, searchTransactions } from "@ft/db";
 import { ToConfirm } from "@/components/transactions/ToConfirm";
 import { TransactionList } from "@/components/transactions/TransactionList";
 import { buttonVariants } from "@/components/ui/button";
@@ -19,6 +19,8 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
   const { data } = await supabase.auth.getUser();
   const preferences = (await getPreferences(supabase, data.user?.id ?? "")) ?? DEFAULT_PREFERENCES;
   const todayIso = todayInZone(preferences.timezone);
+  // Proposals follow edits made since the layout last ran (it does not re-render on navigation).
+  await runInterestProposals(supabase).catch(() => 0);
   const [page, toConfirm, accounts, payees, categories, tags] = await Promise.all([
     searchTransactions(supabase, filters, null, 50),
     searchTransactions(supabase, { upcoming: true, to: todayIso, statuses: ["uncleared", "cleared", "follow_up"] }, null, 200),
