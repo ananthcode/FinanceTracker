@@ -15,6 +15,13 @@ owes you'), with the sign direction set per person; share a statement as a PNG i
 download now; Android share sheet in the Android phase). Replaces the R1 Dashboard placeholder. Web
 first; Android in the Android phase."
 
+## Clarifications
+
+### Session 2026-11-01
+
+- Q: What should "safe to spend" count? → A: Held accounts in net worth − credit-card amounts owed − this month's upcoming and to-confirm outgoings − the buffer. Upcoming income is not counted; upcoming transfers into a credit card or between the user's own held accounts are skipped (no double counting); R7 adds unpaid planned payments later.
+- Q: Should a shared person statement include each movement's notes? → A: Off by default, with an "Include notes" switch before downloading; the on-screen statement always shows them.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - See where I stand at a glance (Priority: P1)
@@ -38,9 +45,10 @@ transactions, and safe to spend that changes when the user changes their buffer.
    people.
 2. **Given** the Dashboard, **When** the user selects any figure, **Then** they land on the matching
    screen (Accounts, the filtered transactions list, To confirm, People).
-3. **Given** a buffer amount the user set, **When** the Dashboard is shown, **Then** safe to spend
-   equals the money in their counted held accounts minus the buffer, and is shown as "₹0.00" with
-   words when the buffer exceeds it.
+3. **Given** ₹1,00,000.00 in held accounts, ₹18,250.00 owed on a card, rent of ₹25,000.00 recorded
+   for later this month and a buffer of ₹5,000.00, **When** the Dashboard is shown, **Then** safe to
+   spend is ₹51,750.00, with the four parts listed; an upcoming card-bill transfer of ₹18,250.00 does
+   not lower it further; when the result is below zero it shows ₹0.00 and the shortfall in words.
 4. **Given** a new user with no records, **When** they open the Dashboard, **Then** it explains what
    will appear and offers "Add account" and, in the demo environment, "Load demo data".
 5. **Given** hide-balances is on, **When** the Dashboard is shown, **Then** every amount is masked.
@@ -126,8 +134,10 @@ downloaded image and PDF show the same figures.
    positive", **When** the statement is shown, **Then** amounts and balances use that sign, and the
    closing line is in words either way.
 3. **Given** a statement, **When** the user downloads it as an image or a PDF, **Then** the file shows
-   the person's name, the range, every row and the closing balance, with the household's display name
-   and no other person's data.
+   the user's display name, the person's name, the range, every row (date, type, signed amount,
+   running balance) and the closing balance, and nothing else of theirs (no account names, no other
+   person); notes appear only if the user turned on "Include notes" before downloading (off by
+   default), while the on-screen statement always shows them.
 4. **Given** a range with no movements, **When** shown, **Then** the opening and closing balances are
    equal and the statement says there were no movements.
 5. **Given** hide-balances is on, **When** the statement is shown on screen, **Then** amounts are
@@ -178,9 +188,13 @@ Android share sheet.
 - **FR-001**: The Dashboard MUST show net worth (owned, owed, net) equal to the Accounts screen's;
   this month's income, spending and net; safe to spend; the "To confirm" count; and people owe you /
   you owe people — each linking to its screen.
-- **FR-002**: Safe to spend MUST equal the total of the user's held accounts (bank, cash, wallet) that
-  count in net worth, minus a buffer amount the user sets (default ₹0.00); never shown below ₹0.00 —
-  a shortfall is stated in words.
+- **FR-002**: Safe to spend MUST equal: the balance of the user's held accounts (bank, cash, wallet)
+  that count in net worth, minus the amounts owed on credit cards that count in net worth, minus the
+  outgoing money of transactions not yet confirmed and dated up to the end of this month (upcoming
+  and "To confirm": expenses and person movements out of an account; transfers into a credit card or
+  between held accounts are skipped; upcoming income is not added), minus a buffer amount the user
+  sets (default ₹0.00). The Dashboard lists these parts; the figure is never shown below ₹0.00 — a
+  shortfall is stated in words. (Clarified 2026-11-01; R7 adds unpaid planned payments.)
 - **FR-003**: Users MUST be able to set their buffer amount (Settings and from the Dashboard).
 - **FR-004**: An empty Dashboard MUST explain what will appear and offer the first steps.
 
@@ -205,7 +219,9 @@ Android share sheet.
 - **FR-010**: Each person MUST have a statement sign setting (they owe me positive — default — or I owe
   them positive), synced like other person fields.
 - **FR-011**: Users MUST be able to download a statement as a PNG image and as a PDF containing the
-  same figures; the file names the person and the range.
+  same figures; the file names the person and the range. Notes are left out of the file unless the
+  user turns on "Include notes" for that download (off by default; clarified 2026-11-01). The app
+  sends nothing itself — the user shares the file.
 - **FR-012**: Statement balances MUST equal the person's balance rules (R3/R4): opening = balance at
   the start of the range; closing = balance at its end.
 
@@ -243,8 +259,8 @@ Android share sheet.
   (demo data for realistic charts).
 - "This month" and the financial year (Apr–Mar) are in the user's timezone; the financial year start
   month is April (India).
-- Safe to spend uses held accounts only (credit cards and people are not money in hand); planned
-  payments are added to it by R7 (payment plan).
+- Safe to spend leaves people out (money owed by people is not money in hand); planned payments that
+  are not recorded as transactions are added to it by R7 (payment plan).
 - The statement shows the household's display name as its source; it contains no account names.
 - Charts are rendered in the browser; no external charting or file service is used.
 - Android (US5) is deferred to the Android phase.
