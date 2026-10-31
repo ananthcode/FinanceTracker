@@ -110,8 +110,8 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order. Paths as R3.
 
 ## Phase 9: User Story 7 — Statuses and corrections (P3)
 
-- [ ] T050 [P] [US7] Playwright `apps/web/e2e/r4-us7-status.spec.ts`: spec US7 1–2, S7-a
-- [ ] T051 [US7] Status control in the form and list; Void styling and exclusion — passes T050
+- [X] T050 [P] [US7] Playwright `apps/web/e2e/r4-us7-status.spec.ts`: spec US7 1–2, S7-a
+- [X] T051 [US7] Status control in the form and list; Void styling and exclusion — passes T050
 
 ## Phase 10: User Story 8 — Offline on Android (P3)
 
