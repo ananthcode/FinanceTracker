@@ -1,3 +1,4 @@
+import { isCounted, postingsOf } from "@ft/core";
 import { evaluateAmount, pressKey } from "@/lib/calc";
 import { byDay, monthSummary, transactionFromRow } from "@/lib/sync/transactions";
 
@@ -58,5 +59,19 @@ describe("amount pad calculator", () => {
     expect(type(["0", "7"])).toBe("7");
     expect(type(["1", ".", "2", ".", "3"])).toBe("1.23");
     expect(type(["4", "5", "back"])).toBe("4");
+  });
+});
+
+describe("person movements", () => {
+  it("lent and received back move the person's balance; borrowed goes the other way", () => {
+    const txs = [
+      row({ kind: "person", personAction: "lent", payeeId: "p", amountMinor: "50000" }),
+      row({ kind: "person", personAction: "received_back", payeeId: "p", amountMinor: "20000" }),
+      row({ kind: "person", personAction: "borrowed", payeeId: "q", amountMinor: "10000" }),
+    ];
+    const totals: Record<string, bigint> = {};
+    for (const tx of txs) if (isCounted(tx)) for (const p of postingsOf(tx, () => "bank")) if (p.type === "person") totals[p.personId] = (totals[p.personId] ?? 0n) + p.effect;
+    expect(totals).toEqual({ p: 30000n, q: -10000n });
+    expect(monthSummary(txs, "2026-10")).toEqual({ income: 0n, expenses: 0n, cashflow: 0n });
   });
 });

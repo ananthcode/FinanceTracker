@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { movementsOf, type AccountView, type CategoryView, type Movement, type PayeeView, type TagView, type TransactionView } from "@ft/core";
+import { isCounted, movementsOf, postingsOf, type AccountView, type MovementTotals, type CategoryView, type Movement, type PayeeView, type TagView, type TransactionView } from "@ft/core";
 import { accountFromRow } from "@/lib/sync/accounts";
 import { categoryFromRow, payeeFromRow, tagFromRow } from "@/lib/sync/lists";
 import { transactionFromRow } from "@/lib/sync/transactions";
@@ -16,7 +16,7 @@ export function useLists(): { categories: CategoryView[]; payees: PayeeView[]; t
 }
 
 /** Accounts and transactions from the phone's store, with the account movements for balances (R4). */
-export function useMoney(): { accounts: AccountView[]; transactions: TransactionView[]; movements: Movement[] } {
+export function useMoney(): { accounts: AccountView[]; transactions: TransactionView[]; movements: Movement[]; personTotals: MovementTotals } {
   const { rows } = useSync();
   const { preferences } = useDisplay();
   const accounts = useSyncedData(async () => (await rows("account")).map((r) => accountFromRow(r, preferences.baseCurrency)), [] as AccountView[]);
@@ -25,5 +25,14 @@ export function useMoney(): { accounts: AccountView[]; transactions: Transaction
     const types = new Map(accounts.map((a) => [a.id, a.type]));
     return movementsOf(transactions, (id) => types.get(id) ?? "bank");
   }, [accounts, transactions]);
-  return { accounts, transactions, movements };
+  const personTotals = useMemo(() => {
+    const types = new Map(accounts.map((a) => [a.id, a.type]));
+    const totals: Record<string, bigint> = {};
+    for (const tx of transactions) {
+      if (!isCounted(tx)) continue;
+      for (const p of postingsOf(tx, (id) => types.get(id) ?? "bank")) if (p.type === "person") totals[p.personId] = (totals[p.personId] ?? 0n) + p.effect;
+    }
+    return totals;
+  }, [accounts, transactions]);
+  return { accounts, transactions, movements, personTotals };
 }

@@ -3,7 +3,8 @@ import { SymbolView } from "expo-symbols";
 import { useMemo, useState } from "react";
 import { Alert, Pressable, ScrollView, Text, TextInput, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { categoryPath, currentBalance, formatAmountInput, indexCategories, todayInZone, type TransactionView } from "@ft/core";
+import { categoryPath, currentBalance, formatAmountInput, indexCategories, PERSON_ACTION_TEXT, personBalanceOf, todayInZone, type MovementTotals, type PersonAction, type TransactionView } from "@ft/core";
+import { BalanceWords } from "@/components/PayeeForm";
 import { Money } from "@/components/Money";
 import { useDisplay } from "@/components/providers/DisplayProvider";
 import { useLists, useMoney } from "@/components/providers/useLists";
@@ -13,11 +14,20 @@ import { colours } from "@/lib/theme";
 import { AccountChips, AmountPad, CategoryChips } from "./parts";
 import { newId } from "@/lib/ids";
 
-export type EntryKind = "expense" | "income" | "transfer";
+export type EntryKind = "expense" | "income" | "transfer" | "refund" | "person";
+
+/** The person movements the phone records; adjustments and interest stay on the web. */
+const PERSON_ACTIONS: { action: PersonAction; hint: string }[] = [
+  { action: "lent", hint: "money out" },
+  { action: "repaid_to", hint: "money out" },
+  { action: "borrowed", hint: "money in" },
+  { action: "received_back", hint: "money in" },
+];
+const moneyIn = (a: PersonAction) => a === "borrowed" || a === "received_back" || a === "collected_on_behalf";
 type Step = "amount" | "category" | "review";
 
-const TONE: Record<EntryKind, string> = { expense: colours.expense, income: colours.income, transfer: colours.action };
-const TITLE: Record<EntryKind, string> = { expense: "Expense", income: "Income", transfer: "Transfer" };
+const TONE: Record<EntryKind, string> = { expense: colours.expense, income: colours.income, transfer: colours.action, refund: colours.incomeInk, person: "#993556" };
+const TITLE: Record<EntryKind, string> = { expense: "Expense", income: "Income", transfer: "Transfer", refund: "Refund", person: "Person" };
 
 function shiftDate(iso: string, days: number): string {
   const d = new Date(`${iso}T00:00:00Z`);
@@ -34,7 +44,7 @@ export function TransactionEntry({ kind, existing, prefill }: { kind: EntryKind;
   const { record } = useSync();
   const { preferences } = useDisplay();
   const { categories, payees, tags } = useLists();
-  const { accounts, transactions, movements } = useMoney();
+  const { accounts, transactions, movements, personTotals } = useMoney();
   const today = todayInZone(preferences.timezone);
   const seed = existing ?? prefill;
   // Most-used accounts first, so the usual one is visible without swiping; the chosen one leads.
@@ -55,12 +65,16 @@ export function TransactionEntry({ kind, existing, prefill }: { kind: EntryKind;
   const [payeeId, setPayeeId] = useState<string | null>(seed?.payeeId ?? null);
   const [typedPayee, setPayeeText] = useState<string | null>(null);
   const payeeText = typedPayee ?? (payeeId ? (payees.find((p) => p.id === payeeId)?.name ?? "") : "");
+  const [personAction, setPersonAction] = useState<PersonAction>(seed?.personAction ?? "lent");
+  const people = payees.filter((p) => p.kind === "person" && (!p.hidden || p.id === payeeId));
+  const direct = kind === "transfer" || kind === "person";
   const [tagIds, setTagIds] = useState<string[]>(seed?.tagIds ?? []);
   const [notes, setNotes] = useState(existing?.notes ?? "");
   const [date, setDate] = useState(existing?.date ?? today);
   const [query, setQuery] = useState("");
   const [busy, setBusy] = useState(false);
 
+  const intoAccount = kind === "income" || kind === "refund" || (kind === "person" && moneyIn(personAction));
   const amount = evaluateAmount(expr.replace(/,/g, ""));
   const tone = TONE[kind];
   const catKind = kind === "income" ? "income" : "expense";
@@ -89,11 +103,12 @@ export function TransactionEntry({ kind, existing, prefill }: { kind: EntryKind;
     if (amount === null || amount <= 0n) return Alert.alert("Enter an amount", "The amount must be more than zero.");
     if (!accountId) return Alert.alert("Choose an account");
     if (kind === "transfer" && (!toAccountId || toAccountId === accountId)) return Alert.alert("Choose two different accounts");
+    if (kind === "person" && !people.some((p) => p.id === payeeId)) return Alert.alert("Choose the person");
     setBusy(true);
     try {
       let payee = payeeId;
       const typed = payeeText.trim();
-      if (kind !== "transfer" && !payee && typed !== "") {
+      if (!direct && !payee && typed !== "") {
         const same = payees.find((p) => p.name.localeCompare(typed, "en", { sensitivity: "base" }) === 0);
         if (same) payee = same.id;
         else {
@@ -107,7 +122,8 @@ export function TransactionEntry({ kind, existing, prefill }: { kind: EntryKind;
         toAccountId: kind === "transfer" ? toAccountId : null,
         amountMinor: amount.toString(),
         payeeId: kind === "transfer" ? null : payee,
-        categoryId: kind === "transfer" ? null : categoryId,
+        categoryId: direct ? null : categoryId,
+        personAction: kind === "person" ? personAction : null,
         tagIds,
         notes: notes.trim() === "" ? null : notes.trim(),
       };
@@ -121,6 +137,7 @@ export function TransactionEntry({ kind, existing, prefill }: { kind: EntryKind;
           amountMinor: existing.amountMinor.toString(),
           payeeId: existing.payeeId,
           categoryId: existing.categoryId,
+          personAction: existing.personAction,
           tagIds: existing.tagIds,
           notes: existing.notes,
         };
@@ -149,7 +166,7 @@ export function TransactionEntry({ kind, existing, prefill }: { kind: EntryKind;
 
   const header = (
     <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", paddingHorizontal: 16, paddingTop: 8 }}>
-      <Pressable accessibilityRole="button" accessibilityLabel={step === "amount" || existing ? "Close" : "Back"} hitSlop={10} onPress={() => (step === "amount" || existing ? close() : setStep(step === "review" && kind !== "transfer" ? "category" : "amount"))}>
+      <Pressable accessibilityRole="button" accessibilityLabel={step === "amount" || existing ? "Close" : "Back"} hitSlop={10} onPress={() => (step === "amount" || existing ? close() : setStep(step === "review" && !direct ? "category" : "amount"))}>
         <SymbolView name={step === "amount" || existing ? { ios: "xmark", android: "close" } : { ios: "arrow.left", android: "arrow_back" }} size={24} tintColor={colours.text} />
       </Pressable>
       <View style={{ backgroundColor: tone, borderRadius: 16, paddingHorizontal: 12, paddingVertical: 5 }}>
@@ -163,7 +180,7 @@ export function TransactionEntry({ kind, existing, prefill }: { kind: EntryKind;
       <SafeAreaView style={{ flex: 1, backgroundColor: colours.page }}>
         {header}
         <View style={{ flex: 1, padding: 16, gap: 10 }}>
-          <AccountChips label={kind === "income" ? "Into" : kind === "transfer" ? "From" : "Pay from"} accounts={lead(accountId)} value={accountId} onChange={setAccountId} balances={balances} />
+          <AccountChips label={kind === "transfer" ? "From" : intoAccount ? "Into" : "Pay from"} accounts={lead(accountId)} value={accountId} onChange={setAccountId} balances={balances} />
           <View style={{ alignItems: "center", marginTop: 8 }}>
             {/[+−×÷]/.test(expr) && <Text style={{ color: colours.faint, fontSize: 15 }}>{expr} =</Text>}
             {amount !== null ? <Money value={amount} style={{ fontSize: 42, fontWeight: "700", color: colours.text }} /> : <Text style={{ fontSize: 42, fontWeight: "700", color: colours.faint }}>0</Text>}
@@ -179,10 +196,10 @@ export function TransactionEntry({ kind, existing, prefill }: { kind: EntryKind;
           <AmountPad expr={expr} onChange={setExpr} />
           <Pressable
             accessibilityRole="button"
-            onPress={() => (amount !== null && amount > 0n ? setStep(kind === "transfer" ? "review" : "category") : Alert.alert("Enter an amount"))}
+            onPress={() => (amount !== null && amount > 0n ? setStep(direct ? "review" : "category") : Alert.alert("Enter an amount"))}
             style={{ backgroundColor: colours.income, borderRadius: 16, paddingVertical: 14, alignItems: "center", marginTop: 4 }}
           >
-            <Text style={{ color: "#FFFFFF", fontWeight: "700", fontSize: 16 }}>{kind === "transfer" ? "Next: accounts" : "Next: category"}</Text>
+            <Text style={{ color: "#FFFFFF", fontWeight: "700", fontSize: 16 }}>{kind === "transfer" ? "Next: accounts" : kind === "person" ? "Next: person" : "Next: category"}</Text>
           </Pressable>
         </View>
       </SafeAreaView>
@@ -210,7 +227,8 @@ export function TransactionEntry({ kind, existing, prefill }: { kind: EntryKind;
     <SafeAreaView style={{ flex: 1, backgroundColor: colours.page }}>
       {header}
       <ScrollView contentContainerStyle={{ padding: 16, gap: 10 }} keyboardShouldPersistTaps="handled">
-        {kind !== "transfer" && (
+        {kind === "person" && <PersonPicker totals={personTotals} people={people} payeeId={payeeId} onPerson={setPayeeId} action={personAction} onAction={setPersonAction} />}
+        {!direct && (
           <View style={{ gap: 6 }}>
             <TextInput
               accessibilityLabel="Payee or title"
@@ -296,7 +314,7 @@ export function TransactionEntry({ kind, existing, prefill }: { kind: EntryKind;
         )}
       </ScrollView>
       <View style={{ backgroundColor: colours.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 16, gap: 10, elevation: 8 }}>
-        {kind !== "transfer" && <AccountChips label={kind === "income" ? "Into" : "Pay with"} accounts={lead(accountId)} value={accountId} onChange={setAccountId} />}
+        {kind !== "transfer" && <AccountChips label={intoAccount ? "Into" : "Pay with"} accounts={lead(accountId)} value={accountId} onChange={setAccountId} />}
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
           <Pressable accessibilityRole="button" accessibilityLabel="Change amount" onPress={() => setStep("amount")}>
             {amount !== null ? <Money value={amount} style={{ fontSize: 30, fontWeight: "700", color: colours.text }} /> : <Text style={{ fontSize: 30 }}>—</Text>}
@@ -307,5 +325,62 @@ export function TransactionEntry({ kind, existing, prefill }: { kind: EntryKind;
         </View>
       </View>
     </SafeAreaView>
+  );
+}
+
+/** Who and what happened, for a person movement (R4 FR-011): money lent, repaid, borrowed or received back. */
+function PersonPicker({
+  totals,
+  people,
+  payeeId,
+  onPerson,
+  action,
+  onAction,
+}: {
+  totals: MovementTotals;
+  people: ReturnType<typeof useLists>["payees"];
+  payeeId: string | null;
+  onPerson: (id: string) => void;
+  action: PersonAction;
+  onAction: (a: PersonAction) => void;
+}) {
+  const chosen = people.find((p) => p.id === payeeId);
+  return (
+    <View style={{ gap: 12 }}>
+      <View style={{ gap: 6 }}>
+        <Text style={{ color: colours.muted, fontSize: 13 }}>What happened</Text>
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }} accessibilityRole="radiogroup" accessibilityLabel="What happened">
+          {PERSON_ACTIONS.map(({ action: a, hint }) => {
+            const on = a === action;
+            return (
+              <Pressable key={a} accessibilityRole="radio" accessibilityState={{ checked: on }} onPress={() => onAction(a)} style={{ width: "48%", padding: 10, borderRadius: 14, backgroundColor: on ? "#FBEAF0" : colours.card, borderWidth: on ? 2 : 1, borderColor: on ? "#993556" : colours.line }}>
+                <Text style={{ fontWeight: "600", color: on ? "#72243E" : colours.text }}>{PERSON_ACTION_TEXT[a]}…</Text>
+                <Text style={{ fontSize: 12, color: colours.muted }}>{hint}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+      </View>
+      <View style={{ gap: 6 }}>
+        <Text style={{ color: colours.muted, fontSize: 13 }}>Person</Text>
+        {people.length === 0 && <Text style={{ color: colours.muted }}>No people yet. Add one from the menu → People.</Text>}
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }} accessibilityRole="radiogroup" accessibilityLabel="Person">
+          {people.map((p) => {
+            const on = p.id === payeeId;
+            return (
+              <Pressable key={p.id} accessibilityRole="radio" accessibilityState={{ checked: on }} onPress={() => onPerson(p.id)} style={{ paddingVertical: 8, paddingHorizontal: 14, borderRadius: 18, backgroundColor: on ? "#993556" : colours.card, borderWidth: on ? 0 : 1, borderColor: colours.line }}>
+                <Text style={{ color: on ? "#FFFFFF" : colours.text, fontWeight: "600" }}>{p.name}</Text>
+              </Pressable>
+            );
+          })}
+        </View>
+        {chosen && (
+          <View style={{ flexDirection: "row", gap: 6, alignItems: "center" }}>
+            <Text style={{ color: colours.muted, fontSize: 12 }}>Now:</Text>
+            <BalanceWords balance={personBalanceOf(chosen, totals)} />
+          </View>
+        )}
+      </View>
+    </View>
   );
 }

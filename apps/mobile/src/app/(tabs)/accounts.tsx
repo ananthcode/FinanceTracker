@@ -33,10 +33,10 @@ export default function AccountsScreen() {
     [],
   );
   const groups = useSyncedData(async () => (await rows("account_group")).map(groupFromRow), [] as ReturnType<typeof groupFromRow>[]);
-  const { movements } = useMoney();
+  const { movements, personTotals } = useMoney();
   const { me, refreshMe } = useSession();
   const [view, setView] = useState<AccountsView>(me?.preferences.accountsView ?? "by_type");
-  const summary = summarise(accounts, { view, groups, movements });
+  const summary = summarise(accounts, { view, groups, movements, personMovements: personTotals });
   const active = accounts.filter((a) => a.state === "active");
 
   return (

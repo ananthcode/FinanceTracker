@@ -1,10 +1,10 @@
 import { router } from "expo-router";
 import { Pressable, Text, View } from "react-native";
-import { compareNames, peopleTotals, personBalance, type PayeeView } from "@ft/core";
+import { compareNames, peopleTotals, personBalanceOf, type MovementTotals, type PayeeView } from "@ft/core";
 import { Button } from "@/components/Button";
 import { Money } from "@/components/Money";
 import { BalanceWords } from "@/components/PayeeForm";
-import { useLists } from "@/components/providers/useLists";
+import { useLists, useMoney } from "@/components/providers/useLists";
 import { Screen } from "@/components/Screen";
 import { SyncStatusBar } from "@/components/SyncStatusBar";
 
@@ -15,7 +15,8 @@ import { SyncStatusBar } from "@/components/SyncStatusBar";
 export default function PeopleScreen() {
   const { payees } = useLists();
   const people = payees.filter((p) => p.kind === "person").sort((a, b) => compareNames(a.name, b.name));
-  const totals = peopleTotals(people);
+  const { personTotals } = useMoney();
+  const totals = peopleTotals(people, (p) => personBalanceOf(p, personTotals));
   const shown = people.filter((p) => !p.hidden);
   const hidden = people.filter((p) => p.hidden);
 
@@ -37,7 +38,7 @@ export default function PeopleScreen() {
         <Text>No people yet. Add the people you lend to or borrow from — family, friends, a landlord — to keep track of who owes whom.</Text>
       )}
       {shown.map((p) => (
-        <PersonRow key={p.id} person={p} />
+        <PersonRow key={p.id} person={p} totals={personTotals} />
       ))}
       {hidden.length > 0 && (
         <View style={{ gap: 4 }}>
@@ -45,7 +46,7 @@ export default function PeopleScreen() {
             Hidden people ({hidden.length})
           </Text>
           {hidden.map((p) => (
-            <PersonRow key={p.id} person={p} />
+            <PersonRow key={p.id} person={p} totals={personTotals} />
           ))}
         </View>
       )}
@@ -53,7 +54,7 @@ export default function PeopleScreen() {
   );
 }
 
-function PersonRow({ person }: { person: PayeeView }) {
+function PersonRow({ person, totals }: { person: PayeeView; totals: MovementTotals }) {
   return (
     <Pressable
       accessibilityRole="button"
@@ -65,7 +66,7 @@ function PersonRow({ person }: { person: PayeeView }) {
         <Text style={{ fontWeight: "600" }}>{person.name}</Text>
         {person.includeInNetWorth && <Text style={{ color: "#57606a", fontSize: 12 }}>In net worth</Text>}
       </View>
-      <BalanceWords balance={personBalance(person)} />
+      <BalanceWords balance={personBalanceOf(person, totals)} />
     </Pressable>
   );
 }

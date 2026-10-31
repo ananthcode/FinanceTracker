@@ -9,6 +9,7 @@ import { Money } from "@/components/Money";
 import { useDisplay } from "@/components/providers/DisplayProvider";
 import { useSession } from "@/components/providers/SessionProvider";
 import { useLists, useMoney } from "@/components/providers/useLists";
+import { useSync } from "@/components/providers/SyncProvider";
 import { SyncStatusBar } from "@/components/SyncStatusBar";
 import { byDay, monthSummary, type HomeFilter } from "@/lib/sync/transactions";
 import { colours } from "@/lib/theme";
@@ -31,15 +32,18 @@ export default function HomeScreen() {
   const { me } = useSession();
   const { preferences, hideBalances, setHideBalances } = useDisplay();
   const { payees, categories } = useLists();
-  const { accounts, transactions, movements } = useMoney();
+  const { accounts, transactions, movements, personTotals } = useMoney();
   const people = payees.filter((p) => p.kind === "person");
-  const total = summarise(accounts, { view: "by_type", movements, people }).netWorth;
+  const total = summarise(accounts, { view: "by_type", movements, people, personMovements: personTotals }).netWorth;
   const [menu, setMenu] = useState(false);
   const [month, setMonth] = useState(() => todayInZone(preferences.timezone).slice(0, 7));
   const [filter, setFilter] = useState<HomeFilter>("all");
   const summary = monthSummary(transactions, month);
   const days = byDay(transactions, month, filter);
-  const toConfirm = transactions.filter((t) => t.state === "active" && !t.confirmed).length;
+  const today = todayInZone(preferences.timezone);
+  const waiting = transactions.filter((t) => t.state === "active" && !t.confirmed);
+  const due = waiting.filter((t) => t.date <= today).sort((a, b) => a.date.localeCompare(b.date));
+  const upcoming = waiting.length - due.length;
   const monthName = `${MONTHS[Number(month.slice(5)) - 1]}${month.slice(0, 4) === todayInZone(preferences.timezone).slice(0, 4) ? "" : ` ${month.slice(0, 4)}`}`;
 
   const pull = useMemo(
@@ -112,12 +116,7 @@ export default function HomeScreen() {
           Cashflow: {summary.cashflow < 0n ? "−" : "+"}
           <Money value={summary.cashflow < 0n ? -summary.cashflow : summary.cashflow} style={{ color: summary.cashflow < 0n ? colours.danger : colours.incomeInk, fontWeight: "600" }} />
         </Text>
-        {toConfirm > 0 && (
-          <View style={{ backgroundColor: "#FAEEDA", borderRadius: 14, padding: 12 }}>
-            <Text style={{ color: "#633806", fontWeight: "600" }}>{toConfirm === 1 ? "1 transaction" : `${toConfirm} transactions`} to confirm</Text>
-            <Text style={{ color: "#633806", fontSize: 12 }}>Upcoming or generated entries; confirm them on the web for now.</Text>
-          </View>
-        )}
+        <ToConfirm due={due} upcoming={upcoming} names={{ categories, payees, accounts }} />
         {days.length === 0 && (
           <View style={{ backgroundColor: colours.card, borderRadius: 16, padding: 16, gap: 6 }}>
             <Text style={{ fontWeight: "600", fontSize: 16, color: colours.text }}>Nothing in {monthName} yet</Text>
@@ -212,5 +211,35 @@ function TxRow({ tx, names }: { tx: TransactionView; names: Names }) {
         <Money value={tx.amountMinor} style={{ fontWeight: "700", color: isTransfer ? colours.text : isIn ? colours.incomeInk : colours.text }} />
       </Text>
     </Pressable>
+  );
+}
+
+/** Due entries waiting to be confirmed (R4 FR-002a): upcoming ones whose date has come, and proposed interest. Oldest first. */
+function ToConfirm({ due, upcoming, names }: { due: TransactionView[]; upcoming: number; names: Names }) {
+  const { record } = useSync();
+  if (due.length === 0 && upcoming === 0) return null;
+  const confirm = (ids: string[]) => Promise.all(ids.map((id) => record({ entity: "transaction", entityId: id, kind: "update", fields: { confirmed: true } })));
+  return (
+    <View style={{ backgroundColor: "#FAEEDA", borderRadius: 16, padding: 12, gap: 8 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+        <Text accessibilityRole="header" style={{ color: "#633806", fontWeight: "700" }}>
+          {due.length === 1 ? "1 to confirm" : `${due.length} to confirm`}
+        </Text>
+        {due.length > 1 && (
+          <Pressable accessibilityRole="button" onPress={() => void confirm(due.map((t) => t.id))} style={{ backgroundColor: colours.plan, borderRadius: 14, paddingVertical: 6, paddingHorizontal: 12 }}>
+            <Text style={{ color: "#FFFFFF", fontWeight: "600" }}>Confirm all</Text>
+          </Pressable>
+        )}
+      </View>
+      {due.map((t) => (
+        <View key={t.id} style={{ gap: 6 }}>
+          <TxRow tx={t} names={names} />
+          <Pressable accessibilityRole="button" accessibilityLabel="Confirm" onPress={() => void confirm([t.id])} style={{ alignSelf: "flex-end", borderRadius: 14, borderWidth: 1, borderColor: colours.plan, paddingVertical: 5, paddingHorizontal: 14 }}>
+            <Text style={{ color: "#633806", fontWeight: "600" }}>Confirm</Text>
+          </Pressable>
+        </View>
+      ))}
+      {upcoming > 0 && <Text style={{ color: "#633806", fontSize: 12 }}>{upcoming === 1 ? "1 upcoming entry waits for its date." : `${upcoming} upcoming entries wait for their dates.`}</Text>}
+    </View>
   );
 }
