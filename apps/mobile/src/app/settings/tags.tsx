@@ -8,6 +8,7 @@ import { Screen } from "@/components/Screen";
 import { SearchPicker } from "@/components/SearchPicker";
 import { SyncStatusBar } from "@/components/SyncStatusBar";
 import { ErrorText, LabeledInput, TextLink } from "@/components/ui";
+import { newId } from "@/lib/ids";
 
 const sameName = (a: string, b: string) => a.localeCompare(b, "en", { sensitivity: "base" }) === 0;
 
@@ -32,7 +33,7 @@ export default function TagsScreen() {
   const add = async () => {
     const problem = check(name);
     if (problem) return setError(problem);
-    await record({ entity: "tag", entityId: globalThis.crypto.randomUUID(), kind: "create", fields: { name: name.trim() } });
+    await record({ entity: "tag", entityId: newId(), kind: "create", fields: { name: name.trim() } });
     setName("");
     setError(null);
   };

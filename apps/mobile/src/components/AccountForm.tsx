@@ -19,6 +19,7 @@ import {
 import { Button } from "@/components/Button";
 import { useDisplay } from "@/components/providers/DisplayProvider";
 import { useSync } from "@/components/providers/SyncProvider";
+import { newId } from "@/lib/ids";
 
 const AMOUNT_MESSAGES: Record<AmountInputError, string> = {
   NOT_A_NUMBER: "Enter an amount like 52,340.50.",
@@ -95,7 +96,7 @@ export function AccountForm({ account, accounts, groups }: { account: AccountVie
         const appearance = defaultAppearance(type);
         await record({
           entity: "account",
-          entityId: globalThis.crypto.randomUUID(),
+          entityId: newId(),
           kind: "create",
           fields: { ...fields, ...appearance, sortKey: keyBetween(last, null) },
           options: { onNameConflict: "suffix" },

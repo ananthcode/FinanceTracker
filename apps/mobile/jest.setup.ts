@@ -13,3 +13,6 @@ jest.mock("expo-secure-store", () => {
 jest.mock("@react-native-async-storage/async-storage", () =>
   require("@react-native-async-storage/async-storage/jest/async-storage-mock"),
 );
+
+// expo-crypto's test stand-in returns a fixed id; client ids must be unique (R2 sync protocol).
+jest.mock("expo-crypto", () => ({ ...jest.requireActual("expo-crypto"), randomUUID: () => require("node:crypto").randomUUID() }));

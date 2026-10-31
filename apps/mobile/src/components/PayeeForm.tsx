@@ -22,6 +22,7 @@ import { useDisplay } from "./providers/DisplayProvider";
 import { useSync } from "./providers/SyncProvider";
 import { SearchPicker } from "./SearchPicker";
 import { Choice, ErrorText, LabeledInput, Muted } from "./ui";
+import { newId } from "@/lib/ids";
 
 /**
  * Add or edit a payee or person on Android (R3 US2, US3, US5 on the phone; T071, T072). Saved on
@@ -82,7 +83,7 @@ export function PayeeForm({
     const fields = validate();
     if (!fields) return;
     if (!payee) {
-      await record({ entity: "payee", entityId: globalThis.crypto.randomUUID(), kind: "create", fields, options: { onNameConflict: "suffix" } });
+      await record({ entity: "payee", entityId: newId(), kind: "create", fields, options: { onNameConflict: "suffix" } });
     } else {
       if (payee.kind === "person" && kind === "business" && personBalance(payee) !== 0n) {
         return fail("Settle this person's balance to ₹0.00 before making them a business.");

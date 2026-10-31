@@ -20,6 +20,7 @@ import {
   type SyncEntity,
 } from "@ft/core";
 import type { SyncRow, SyncStore, SyncTransport } from "./types";
+import { newId } from "@/lib/ids";
 
 const STATE_CURSOR = "cursor";
 const STATE_HLC = "hlc";
@@ -193,7 +194,7 @@ export async function liveRows(store: SyncStore, entity: SyncEntity): Promise<Sy
 }
 
 function randomId(): string {
-  return globalThis.crypto.randomUUID();
+  return newId();
 }
 
 function message(err: unknown): string {
