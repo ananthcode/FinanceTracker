@@ -18,3 +18,12 @@ export function Money({ value, currency, ...rest }: { value: bigint; currency?: 
   }
   return <Text {...rest}>{formatMoney(value, code, preferences)}</Text>;
 }
+
+/** The same text as <Money>, for places that need a plain string (alerts, confirmations). */
+export function useMoneyText(): (value: bigint, currency?: string) => string {
+  const { preferences, hideBalances } = useDisplay();
+  return (value, currency) => {
+    const code = currency ?? preferences.baseCurrency;
+    return hideBalances ? maskMoney(code) : formatMoney(value, code, preferences);
+  };
+}

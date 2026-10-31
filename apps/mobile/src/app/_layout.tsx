@@ -51,6 +51,15 @@ function Gate() {
         <Stack.Screen name="accounts/[id]" options={{ headerShown: true, title: "Edit account" }} />
         <Stack.Screen name="accounts/groups" options={{ headerShown: true, title: "Groups" }} />
         <Stack.Screen name="accounts/arrange" options={{ headerShown: true, title: "Arrange accounts" }} />
+        <Stack.Screen name="people/new" options={{ headerShown: true, title: "Add person" }} />
+        <Stack.Screen name="people/[id]" options={{ headerShown: true, title: "Person" }} />
+        <Stack.Screen name="settings/payees/index" options={{ headerShown: true, title: "Payees" }} />
+        <Stack.Screen name="settings/payees/new" options={{ headerShown: true, title: "Add payee" }} />
+        <Stack.Screen name="settings/payees/[id]" options={{ headerShown: true, title: "Edit payee" }} />
+        <Stack.Screen name="settings/categories/index" options={{ headerShown: true, title: "Categories" }} />
+        <Stack.Screen name="settings/categories/new" options={{ headerShown: true, title: "Add category" }} />
+        <Stack.Screen name="settings/categories/[id]" options={{ headerShown: true, title: "Edit category" }} />
+        <Stack.Screen name="settings/tags" options={{ headerShown: true, title: "Tags" }} />
         <Stack.Screen name="settings/app-lock" options={{ headerShown: true, title: "App lock" }} />
       </Stack.Protected>
       <Stack.Protected guard={isOwner}>
