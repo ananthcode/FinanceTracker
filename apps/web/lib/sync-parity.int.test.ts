@@ -5,6 +5,7 @@ import balances from "../../../packages/core/test/vectors/balances.json";
 import merge from "../../../packages/core/test/vectors/merge.json";
 import people from "../../../packages/core/test/vectors/people.json";
 import transactions from "../../../packages/core/test/vectors/transactions.json";
+import interest from "../../../packages/core/test/vectors/interest.json";
 import { testAdmin } from "@/test/fixtures";
 import { newMember } from "@/test/sync";
 
@@ -133,6 +134,58 @@ describe("SQL parity with packages/core", () => {
         expect(error).toBeNull();
         expect(String(data), `${c.name}: ${p.id}`).toBe(expected.personBalances[p.id]);
       }
+    }
+  });
+});
+
+describe("interest parity with packages/core (R4 T036)", () => {
+  it("app._propose_interest leaves the same proposals as proposeInterest for every interest vector", async () => {
+    const db = testAdmin();
+    for (const c of interest.cases) {
+      const m = await newMember("parityint");
+      const account = randomUUID();
+      const person = randomUUID();
+      const insert = async (table: string, row: Record<string, unknown>) => {
+        const { error } = await db.from(table).insert({ user_id: m.id, server_seq: 0, ...row });
+        expect(error, `${c.name}: ${table}`).toBeNull();
+      };
+      await insert("accounts", {
+        id: account, name: "Parity bank", type: "bank", opening_balance_minor: "0", opening_balance_date: "2024-01-01",
+        currency: "INR", colour: "blue", icon: "bank", sort_key: "a0",
+      });
+      await insert("payees", {
+        id: person, name: "Parity person", kind: "person", opening_balance_minor: c.person.openingBalanceMinor,
+        opening_balance_date: c.person.openingBalanceDate, interest_mode: c.person.interestMode,
+      });
+      for (const r of c.rates) await insert("person_rates", { id: randomUUID(), payee_id: person, effective_month: r.effectiveMonth, rate_e4: r.rateE4 });
+      for (const t of c.transactions as Record<string, unknown>[]) {
+        await insert("transactions", {
+          id: randomUUID(), date: t.date, kind: t.kind, flow: t.flow, amount_minor: t.amountMinor, payee_id: person,
+          account_id: t.accountId ? account : null, person_action: t.personAction ?? null,
+          generated: t.generated ?? false, interest_month: t.interestMonth ?? null, confirmed: t.confirmed ?? true,
+          user_edited: t.userEdited ?? false, state: t.state ?? "active", deleted_at: t.state === "deleted" ? new Date().toISOString() : null,
+        });
+      }
+
+      const { error } = await db.schema("app").rpc("_propose_interest", { p_user: m.id, p_today: c.today });
+      expect(error, c.name).toBeNull();
+      const { data } = await db
+        .from("transactions")
+        .select("interest_month, flow, amount_minor::text")
+        .eq("payee_id", person)
+        .eq("generated", true)
+        .eq("state", "active");
+      const proposals = Object.fromEntries(
+        (data as { interest_month: string; flow: string; amount_minor: string }[]).map((r) => [
+          r.interest_month,
+          (r.flow === "out" ? BigInt(r.amount_minor) : -BigInt(r.amount_minor)).toString(),
+        ]),
+      );
+      expect(proposals, c.name).toEqual(c.expect.proposals);
+
+      // Asking again changes nothing (at most once per month; recomputing is stable).
+      const again = await db.schema("app").rpc("_propose_interest", { p_user: m.id, p_today: c.today });
+      expect(again.data, c.name).toBe(0);
     }
   });
 });

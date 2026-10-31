@@ -62,6 +62,9 @@ export type Database = {
 "_free_tag_name":
 { Args: { "p_name": string,"p_user": string }; Returns: string
                            },
+"_interest_amount":
+{ Args: { "p_opening": number,"p_rate_e4": number }; Returns: number
+                           },
 "_merge_category":
 { Args: { "p_hlc": string,"p_source": string,"p_target": string,"p_user": string }; Returns: undefined
                            },
@@ -70,6 +73,9 @@ export type Database = {
                            },
 "_merge_tag":
 { Args: { "p_hlc": string,"p_source": string,"p_target": string,"p_user": string }; Returns: undefined
+                           },
+"_propose_interest":
+{ Args: { "p_today": string,"p_user": string }; Returns: number
                            },
 "_set_change_context":
 { Args: { "p_change_id": string,"p_merge": Json,"p_renamed": boolean }; Returns: undefined
@@ -128,6 +134,9 @@ export type Database = {
                            },
 "person_balance_minor":
 { Args: { "p_payee": string }; Returns: number
+                           },
+"propose_interest":
+{ Args: Record<PropertyKey, never>; Returns: Json
                            },
 "pull_changes":
 { Args: { "p_cursor": number,"p_limit"?: number }; Returns: Json

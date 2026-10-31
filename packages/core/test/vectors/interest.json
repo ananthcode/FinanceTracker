@@ -1,0 +1,91 @@
+{
+  "description": "Interest proposals (R4 FR-013 – FR-016; SC-007). The person is \"p\"; movements go through account \"a\". expect.proposals: every active proposal after the run, month → effect on the person in paise (+ they owe the user more). expect.actions: \"type month amount flow\". Shared by packages/core/test/interest.test.ts and the SQL parity test (app._propose_interest).",
+  "cases": [
+    {
+      "name": "spec: 1% compounds; a movement mid-month does not change that month",
+      "notes": "Oct: 1,00,000.00 × 1% = 1,000.00. Nov opening 1,00,000 + 5,000 lent on 15-Oct + 1,000 waiting = 1,06,000 → 1,060.00.",
+      "today": "2026-12-05",
+      "person": { "openingBalanceMinor": "10000000", "openingBalanceDate": "2026-10-01", "interestMode": "automatic" },
+      "rates": [{ "effectiveMonth": "2026-04-01", "rateE4": 10000 }],
+      "transactions": [{ "id": "t1", "date": "2026-10-15", "kind": "person", "flow": "out", "personAction": "lent", "accountId": "a", "amountMinor": "500000" }],
+      "expect": {
+        "proposals": { "2026-10-01": "100000", "2026-11-01": "106000" },
+        "actions": ["create 2026-10-01 100000 out", "create 2026-11-01 106000 out"]
+      }
+    },
+    {
+      "name": "the user owes: interest flows in, half a paisa rounds away from zero",
+      "notes": "Sep: −25 × 10% = −2.5 → −3. Oct: −28 × 10% = −2.8 → −3.",
+      "today": "2026-11-02",
+      "person": { "openingBalanceMinor": "-25", "openingBalanceDate": "2026-09-01", "interestMode": "automatic" },
+      "rates": [{ "effectiveMonth": "2026-09-01", "rateE4": 100000 }],
+      "transactions": [],
+      "expect": {
+        "proposals": { "2026-09-01": "-3", "2026-10-01": "-3" },
+        "actions": ["create 2026-09-01 3 in", "create 2026-10-01 3 in"]
+      }
+    },
+    {
+      "name": "half a paisa owed to the user rounds up; the current month has not ended",
+      "notes": "Sep: 15 × 10% = 1.5 → 2. Today is 1-Oct: October has not ended.",
+      "today": "2026-10-01",
+      "person": { "openingBalanceMinor": "15", "openingBalanceDate": "2026-09-01", "interestMode": "automatic" },
+      "rates": [{ "effectiveMonth": "2026-09-01", "rateE4": 100000 }],
+      "transactions": [],
+      "expect": { "proposals": { "2026-09-01": "2" }, "actions": ["create 2026-09-01 2 out"] }
+    },
+    {
+      "name": "0% proposes nothing; a rate change applies from its month; a mid-month opening starts next month",
+      "notes": "Opening 15-Aug → first month Sep. Sep at 0% → nothing. Oct at 2%: 10,000 × 2% = 200.00. Today 30-Nov: November has not ended.",
+      "today": "2026-11-30",
+      "person": { "openingBalanceMinor": "1000000", "openingBalanceDate": "2026-08-15", "interestMode": "automatic" },
+      "rates": [{ "effectiveMonth": "2026-08-01", "rateE4": 0 }, { "effectiveMonth": "2026-10-01", "rateE4": 20000 }],
+      "transactions": [],
+      "expect": { "proposals": { "2026-10-01": "20000" }, "actions": ["create 2026-10-01 20000 out"] }
+    },
+    {
+      "name": "existing proposals: confirmed counts, deleted is never recreated, edited is kept, waiting is recomputed",
+      "notes": "Jul confirmed 100.00 counts. Aug deleted: not recreated, not counted. Sep edited to 50.00: kept, counts while waiting. Oct opening 10,000 + 100 + 50 = 10,150 → 101.50 (was 0.01).",
+      "today": "2026-11-10",
+      "person": { "openingBalanceMinor": "1000000", "openingBalanceDate": "2026-07-01", "interestMode": "automatic" },
+      "rates": [{ "effectiveMonth": "2026-07-01", "rateE4": 10000 }],
+      "transactions": [
+        { "id": "jul", "date": "2026-07-31", "kind": "interest", "flow": "out", "amountMinor": "10000", "generated": true, "interestMonth": "2026-07-01", "confirmed": true },
+        { "id": "aug", "date": "2026-08-31", "kind": "interest", "flow": "out", "amountMinor": "10100", "generated": true, "interestMonth": "2026-08-01", "confirmed": false, "state": "deleted" },
+        { "id": "sep", "date": "2026-09-30", "kind": "interest", "flow": "out", "amountMinor": "5000", "generated": true, "interestMonth": "2026-09-01", "confirmed": false, "userEdited": true },
+        { "id": "oct", "date": "2026-10-31", "kind": "interest", "flow": "out", "amountMinor": "1", "generated": true, "interestMonth": "2026-10-01", "confirmed": false }
+      ],
+      "expect": {
+        "proposals": { "2026-07-01": "10000", "2026-09-01": "5000", "2026-10-01": "10150" },
+        "actions": ["update 2026-10-01 10150 out"]
+      }
+    },
+    {
+      "name": "manual interest proposes nothing",
+      "notes": "As the first case, set to manual.",
+      "today": "2026-12-05",
+      "person": { "openingBalanceMinor": "10000000", "openingBalanceDate": "2026-10-01", "interestMode": "manual" },
+      "rates": [{ "effectiveMonth": "2026-04-01", "rateE4": 10000 }],
+      "transactions": [],
+      "expect": { "proposals": {}, "actions": [] }
+    },
+    {
+      "name": "24 months of 1% compound exactly",
+      "notes": "Each month: previous opening + previous interest, × 1%, half away from zero. Final balance 1,26,973.47 = 1,00,000 × 1.01^24 rounded monthly.",
+      "today": "2026-11-05",
+      "person": { "openingBalanceMinor": "10000000", "openingBalanceDate": "2024-11-01", "interestMode": "automatic" },
+      "rates": [{ "effectiveMonth": "2024-11-01", "rateE4": 10000 }],
+      "transactions": [],
+      "expect": {
+        "proposals": {
+          "2024-11-01": "100000", "2024-12-01": "101000", "2025-01-01": "102010", "2025-02-01": "103030", "2025-03-01": "104060",
+          "2025-04-01": "105101", "2025-05-01": "106152", "2025-06-01": "107214", "2025-07-01": "108286", "2025-08-01": "109369",
+          "2025-09-01": "110462", "2025-10-01": "111567", "2025-11-01": "112683", "2025-12-01": "113809", "2026-01-01": "114947",
+          "2026-02-01": "116097", "2026-03-01": "117258", "2026-04-01": "118430", "2026-05-01": "119615", "2026-06-01": "120811",
+          "2026-07-01": "122019", "2026-08-01": "123239", "2026-09-01": "124472", "2026-10-01": "125716"
+        },
+        "actions": null
+      }
+    }
+  ]
+}

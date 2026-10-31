@@ -13,6 +13,7 @@ export * from "./tags";
 export * from "./payees";
 export * from "./people";
 export * from "./transactions";
+export * from "./interest";
 export * from "./sync";
 export * from "./ordering";
 export * from "./demo";
