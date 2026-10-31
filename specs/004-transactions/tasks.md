@@ -33,8 +33,8 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order. Paths as R3.
 
 - [X] T003 [P] Unit tests `packages/core/test/transaction-schemas.test.ts`: every kind's required fields; amount "1…999999999999 paise" as decimal strings; `kind` create-only; person action must match flow; lines 0 or 2–50 with category xor person; `amountMinor` and `lines` must travel together in updates; notes ≤ 1,000, reference ≤ 40; server-controlled fields (`generated`, `interestMonth`, `userEdited`, `state`, `fieldVersions`, `serverSeq`) rejected; `relocate` takes exactly `{ targetId }`; person-rate `effectiveMonth` day 1 and `rateE4` 0–100000
 - [X] T004 [P] Shared vectors `packages/core/test/vectors/transactions.json` (each kind × held/owed account; refund; transfer bank → card; person actions both flows incl. a balance that flips; adjustment; interest; split with category and person lines; void; unconfirmed; maximum amount) with expected postings, account balances, person balances, spending/income per category; tests `packages/core/test/postings.test.ts` (SC-002)
-- [ ] T005 [P] pgTAP `supabase/tests/tx_rls.test.sql`: contracts/database.md rules 1–6 (SC-004)
-- [ ] T006 [P] pgTAP `supabase/tests/tx_audit.test.sql`: create / edit / confirm / delete rows with before/after, device type, owner; postings changes not audited; relocate recorded (SC-005)
+- [X] T005 [P] pgTAP `supabase/tests/tx_rls.test.sql`: contracts/database.md rules 1–6 (SC-004)
+- [X] T006 [P] pgTAP `supabase/tests/tx_audit.test.sql`: create / edit / confirm / delete rows with before/after, device type, owner; postings changes not audited; relocate recorded (SC-005)
 
 ### Core
 
@@ -44,13 +44,13 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order. Paths as R3.
 
 ### Database
 
-- [ ] T010 Migration `<ts>_tx_enums.sql`: enums and audit actions (data-model.md); `target_type` gains `transaction`, `person_rate`
-- [ ] T011 Migration `<ts>_tx_tables.sql`: `public.transactions`, `public.person_rates`, `app.transaction_postings`, `payees.interest_mode` exactly per data-model.md (checks, composite FKs to accounts/payees/categories within the user, generated-interest unique index across states, GIN on `tag_ids`); RLS select-own; SELECT grants only (none on postings); stamp + audit triggers
-- [ ] T012 Migration `<ts>_tx_postings.sql`: `app._rebuild_postings()` trigger (after insert/update on transactions) implementing research R4-02/R4-03 exactly like `postingsOf`
-- [ ] T013 Migration `<ts>_tx_rules.sql`: replace `app.account_balance_minor`, `app.person_balance_minor`, `app.account_has_activity`, `app.category_has_activity`, `app.payee_has_activity`, `app.tag_usage_count` to read postings/transactions; refuse an account or person opening date moved after an existing transaction (`DATE_BEFORE_OPENING`)
-- [ ] T014 Migration `<ts>_tx_apply.sql`: `app._apply_transaction` (create/update/delete; validation per contracts/sync-protocol.md; amount+lines shared version; future date → unconfirmed; editing a generated amount sets `user_edited`), `app._apply_person_rate`; dispatch in `_apply_one`; new codes mapped — passes T005, T006
-- [ ] T015 Migration `<ts>_tx_pull_erasure.sql`: pull includes transactions and person rates; erasure deletes their history
-- [ ] T016 `pnpm db:types`; `pnpm db:test` green
+- [X] T010 Migration `<ts>_tx_enums.sql`: enums and audit actions (data-model.md); `target_type` gains `transaction`, `person_rate`
+- [X] T011 Migration `<ts>_tx_tables.sql`: `public.transactions`, `public.person_rates`, `app.transaction_postings`, `payees.interest_mode` exactly per data-model.md (checks, composite FKs to accounts/payees/categories within the user, generated-interest unique index across states, GIN on `tag_ids`); RLS select-own; SELECT grants only (none on postings); stamp + audit triggers
+- [X] T012 Migration `<ts>_tx_postings.sql`: `app._rebuild_postings()` trigger (after insert/update on transactions) implementing research R4-02/R4-03 exactly like `postingsOf`
+- [X] T013 Migration `<ts>_tx_rules.sql`: replace `app.account_balance_minor`, `app.person_balance_minor`, `app.account_has_activity`, `app.category_has_activity`, `app.payee_has_activity`, `app.tag_usage_count` to read postings/transactions; refuse an account or person opening date moved after an existing transaction (`DATE_BEFORE_OPENING`)
+- [X] T014 Migration `<ts>_tx_apply.sql`: `app._apply_transaction` (create/update/delete; validation per contracts/sync-protocol.md; amount+lines shared version; future date → unconfirmed; editing a generated amount sets `user_edited`), `app._apply_person_rate`; dispatch in `_apply_one`; new codes mapped — passes T005, T006
+- [X] T015 Migration `<ts>_tx_pull_erasure.sql`: pull includes transactions and person rates; erasure deletes their history
+- [X] T016 `pnpm db:types`; `pnpm db:test` green
 
 ### Data access
 
@@ -63,7 +63,7 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order. Paths as R3.
 
 ## Phase 3: User Story 1 — Record spending and income (P1) 🎯 MVP
 
-- [ ] T021 [P] [US1] pgTAP `tx_apply.test.sql` (US1 part): expense/income/refund effects on held and owed accounts; category kind checks; Uncategorised; archived account refused for new; date before opening refused; future date → unconfirmed and not counted; confirm counts from its date; void not counted; amount bounds
+- [X] T021 [P] [US1] pgTAP `tx_apply.test.sql` (US1 part): expense/income/refund effects on held and owed accounts; category kind checks; Uncategorised; archived account refused for new; date before opening refused; future date → unconfirmed and not counted; confirm counts from its date; void not counted; amount bounds
 - [ ] T022 [P] [US1] Unit `packages/core/test/transaction-labels.test.ts`: `transactionLabel` words per kind/action/direction
 - [ ] T023 [P] [US1] Playwright `apps/web/e2e/r4-us1-record.spec.ts`: spec US1 scenarios 1–9, quickstart S1-a … S1-e, SC-001 (< 20 s)
 - [ ] T024 [US1] `packages/core/src/transactions/labels.ts` (`transactionLabel`) and `totals.ts` (`categoryTotals` with roll-up, Uncategorised) — passes T022
@@ -73,13 +73,13 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order. Paths as R3.
 
 ## Phase 4: User Story 2 — Transfers (P1)
 
-- [ ] T028 [P] [US2] pgTAP (US2 part): transfer effects held→owed, owed→held; same account refused; another user's to-account refused; transfers in no category totals
+- [X] T028 [P] [US2] pgTAP (US2 part): transfer effects held→owed, owed→held; same account refused; another user's to-account refused; transfers in no category totals
 - [ ] T029 [P] [US2] Playwright `apps/web/e2e/r4-us2-transfer.spec.ts`: spec US2 1–3, S2-a, SC-001
 - [ ] T030 [US2] Transfer tab in `TransactionForm` (from/to accounts, amount, date, notes) — passes T029
 
 ## Phase 5: User Story 3 — People (P1)
 
-- [ ] T031 [P] [US3] pgTAP (US3 part): every person action's effect and flow check; business refused (`INVALID_PERSON`); adjustment without account requires notes (reason); person date rule; balance flips; none in totals; person → business refused once movements exist
+- [X] T031 [P] [US3] pgTAP (US3 part): every person action's effect and flow check; business refused (`INVALID_PERSON`); adjustment without account requires notes (reason); person date rule; balance flips; none in totals; person → business refused once movements exist
 - [ ] T032 [P] [US3] Playwright `apps/web/e2e/r4-us3-people.spec.ts`: spec US3 1–4 and 6, S3-a (scenario 5 in US5's test)
 - [ ] T033 [US3] Person tab in `TransactionForm` (action select with plain words, person combobox limited to people, account except for adjustment, reason for adjustment); person page `apps/web/app/(app)/people/[id]/page.tsx` lists the person's movements with running balance; `PayeeForm` explains `DATE_BEFORE_OPENING` for a person's opening date
 
@@ -95,7 +95,7 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order. Paths as R3.
 
 ## Phase 7: User Story 5 — Splits (P2)
 
-- [ ] T041 [P] [US5] pgTAP (US5 part): lines must add up (`LINES_MISMATCH`); 1 line or > 50 refused; category kind per line; person lines' action matches flow; postings per line
+- [X] T041 [P] [US5] pgTAP (US5 part): lines must add up (`LINES_MISMATCH`); 1 line or > 50 refused; category kind per line; person lines' action matches flow; postings per line
 - [ ] T042 [P] [US5] Playwright `apps/web/e2e/r4-us5-splits.spec.ts`: spec US5 1–2, US3 scenario 5, S3-b, S5-a
 - [ ] T043 [US5] `SplitEditor.tsx` (add/remove lines, category or person share, amount left to allocate, keyboard operable) in `TransactionForm` — passes T042
 

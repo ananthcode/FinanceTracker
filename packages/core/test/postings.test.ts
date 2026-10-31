@@ -56,14 +56,14 @@ describe("postings vectors", () => {
       const movements = movementsOf(transactions, typeOf);
       for (const a of c.accounts) {
         const balance = currentBalance({ id: a.id, openingBalanceMinor: BigInt(a.openingBalanceMinor), openingBalanceDate: a.openingBalanceDate }, movements);
-        expect(balance, a.id).toBe(BigInt((c.expect.accountBalances as Record<string, string>)[a.id]!));
+        expect(balance, a.id).toBe(BigInt((c.expect.accountBalances as unknown as Record<string, string>)[a.id]!));
       }
     });
 
     it(`${c.name}: person balances`, () => {
       for (const p of c.people) {
         const balance = personBalance({ openingBalanceMinor: BigInt(p.openingBalanceMinor) }, personMovementsOf(transactions, p.id, typeOf));
-        expect(balance, p.id).toBe(BigInt((c.expect.personBalances as Record<string, string>)[p.id]!));
+        expect(balance, p.id).toBe(BigInt((c.expect.personBalances as unknown as Record<string, string>)[p.id]!));
       }
     });
 
