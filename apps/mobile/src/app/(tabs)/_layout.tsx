@@ -1,20 +1,18 @@
-import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { Tabs } from "expo-router/js-tabs";
-import { Text } from "react-native";
+import { BottomBar } from "@/components/home/BottomBar";
 import { HeaderActions } from "@/components/HeaderActions";
 import { HideBalancesToggle } from "@/components/HideBalancesToggle";
 import { useSession } from "@/components/providers/SessionProvider";
+import { colours } from "@/lib/theme";
 
-type SymbolName = SymbolViewProps["name"];
-
-/** Bottom tabs (FR-034, contracts/client-shell.md); later modules replace the placeholders. */
-const TABS: { name: string; title: string; icon: SymbolName }[] = [
-  { name: "index", title: "Dashboard", icon: { ios: "square.grid.2x2", android: "dashboard" } },
-  { name: "accounts", title: "Accounts", icon: { ios: "building.columns", android: "account_balance" } },
-  { name: "people", title: "People", icon: { ios: "person.2", android: "handshake" } },
-  { name: "transactions", title: "Transactions", icon: { ios: "arrow.left.arrow.right", android: "swap_horiz" } },
-  { name: "payment-plan", title: "Payment plan", icon: { ios: "calendar", android: "calendar_month" } },
-  { name: "settings", title: "Settings", icon: { ios: "gearshape", android: "settings" } },
+/**
+ * Bottom bar (FR-034; docs/ANDROID-HOME.md): Home · + · Accounts. People, Payment plan and Settings
+ * stay tab routes so their back stack keeps the bar, but are reached from the menu, not the bar.
+ */
+const HIDDEN: { name: string; title: string }[] = [
+  { name: "people", title: "People" },
+  { name: "payment-plan", title: "Payment plan" },
+  { name: "settings", title: "Settings" },
 ];
 
 export default function TabsLayout() {
@@ -23,10 +21,11 @@ export default function TabsLayout() {
 
   return (
     <Tabs
+      tabBar={(props) => <BottomBar {...props} />}
       screenOptions={{
         headerShown: true,
-        // The active tab is also bold, so it is not marked by colour alone (Principle XIII).
-        tabBarActiveTintColor: "#1f6feb",
+        headerStyle: { backgroundColor: colours.page },
+        sceneStyle: { backgroundColor: colours.page },
         headerRight: () => (
           <HeaderActions isOwner={isOwner}>
             <HideBalancesToggle />
@@ -34,18 +33,10 @@ export default function TabsLayout() {
         ),
       }}
     >
-      {TABS.map((tab) => (
-        <Tabs.Screen
-          key={tab.name}
-          name={tab.name}
-          options={{
-            title: tab.title,
-            tabBarIcon: ({ color, size }) => <SymbolView name={tab.icon} size={size} tintColor={color} />,
-            tabBarLabel: ({ focused, color }) => (
-              <Text style={{ color, fontSize: 11, fontWeight: focused ? "700" : "400" }}>{tab.title}</Text>
-            ),
-          }}
-        />
+      <Tabs.Screen name="index" options={{ title: "Home", headerShown: false }} />
+      <Tabs.Screen name="accounts" options={{ title: "Accounts" }} />
+      {HIDDEN.map((t) => (
+        <Tabs.Screen key={t.name} name={t.name} options={{ title: t.title, href: null }} />
       ))}
     </Tabs>
   );

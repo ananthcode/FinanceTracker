@@ -60,6 +60,7 @@ function Gate() {
         <Stack.Screen name="settings/categories/new" options={{ headerShown: true, title: "Add category" }} />
         <Stack.Screen name="settings/categories/[id]" options={{ headerShown: true, title: "Edit category" }} />
         <Stack.Screen name="settings/tags" options={{ headerShown: true, title: "Tags" }} />
+        <Stack.Screen name="dashboard" options={{ headerShown: true, title: "Dashboard" }} />
         <Stack.Screen name="settings/app-lock" options={{ headerShown: true, title: "App lock" }} />
       </Stack.Protected>
       <Stack.Protected guard={isOwner}>
