@@ -123,7 +123,7 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order. Paths as R3.
 
 - [ ] T055 [P] Accessibility: extend `apps/web/e2e/a11y.spec.ts` to `/transactions` (list, filters, bulk bar, To confirm), `/transactions/new` (each tab, split editor), the person interest editor (axe at 1280/390 px, keyboard)
 - [ ] T056 [P] Performance `apps/web/e2e/r4-performance.spec.ts` (E2E_PRODUCTION): 20,000 transactions, list < 2 s, search/filter < 1 s (SC-003)
-- [ ] T057 [P] Demo `packages/core/src/demo/transactions.ts` (research R4-10) with `packages/core/test/demo-transactions.test.ts`; `seedTransactions` e2e helper; hide-balances screens list gains transaction screens (SC-006)
+- [X] T057 [P] Demo `packages/core/src/demo/transactions.ts` (research R4-10) with `packages/core/test/demo-transactions.test.ts`; `seedTransactions` e2e helper; hide-balances screens list gains transaction screens (SC-006)
 - [ ] T058 Write `specs/004-transactions/review-notes.md`
 - [ ] T059 Run every suite; write `specs/004-transactions/validation.md`
 - [ ] T060 Converge: contracts, ROADMAP status, Android tasks carried to the Android phase

@@ -1,4 +1,5 @@
 import { expect, type Locator, type Page } from "@playwright/test";
+import { categoryPath, demoAccounts, demoLists, demoTransactions, indexCategories } from "@ft/core";
 import { admin } from "./db";
 import { pickCategory } from "./lists";
 
@@ -119,6 +120,66 @@ export async function seedTransactions(email: string, list: SeedTx[]): Promise<v
   }
   const { error } = await db.from("transactions").insert(rows);
   if (error) throw new Error(`seedTransactions: ${error.message}`);
+}
+
+/**
+ * Seeds the demo transactions and interest rates (packages/core demoTransactions, R4 T057) for a user
+ * who already has the demo accounts and lists (seedAccounts / seedLists with demo). Demo ids are
+ * mapped to the user's own rows by account and payee name, category path and tag name.
+ */
+export async function seedDemoTransactions(email: string, todayIso = isoDay(0)): Promise<void> {
+  const db = admin();
+  const { data: profile } = await db.from("profiles").select("user_id").eq("email", email).single();
+  const userId = profile!.user_id as string;
+  const rows = async (table: string, columns: string) => {
+    const { data, error } = await db.from(table).select(columns).eq("user_id", userId).neq("state", "deleted");
+    if (error) throw new Error(error.message);
+    return data as unknown as Record<string, string | null>[];
+  };
+  const [accounts, categories, payees, tags] = await Promise.all([
+    rows("accounts", "id, name"),
+    rows("categories", "id, name, parent_id"),
+    rows("payees", "id, name"),
+    rows("tags", "id, name"),
+  ]);
+  const byName = (list: Record<string, string | null>[]) => new Map(list.map((r) => [r.name!, r.id!]));
+  const userCategoryPath = new Map(categories.map((c) => [c.id!, c]));
+  const pathOf = (id: string) => {
+    const names: string[] = [];
+    for (let c = userCategoryPath.get(id); c; c = c.parent_id ? userCategoryPath.get(c.parent_id) : undefined) names.unshift(c.name!);
+    return names.join(" › ");
+  };
+  const userByPath = new Map(categories.map((c) => [pathOf(c.id!), c.id!]));
+
+  const demo = demoLists();
+  const demoIndex = indexCategories(demo.categories);
+  const map = new Map<string, string>();
+  for (const a of demoAccounts().accounts) map.set(a.id, byName(accounts).get(a.name)!);
+  for (const c of demo.categories) map.set(c.id, userByPath.get(categoryPath(c.id, demoIndex))!);
+  for (const p of demo.payees) map.set(p.id, byName(payees).get(p.name)!);
+  for (const t of demo.tags) map.set(t.id, byName(tags).get(t.name)!);
+  const to = (id: string | null) => (id ? (map.get(id) ?? null) : null);
+
+  const { transactions, rates } = demoTransactions(todayIso);
+  const insert = transactions.map((t) => ({
+    id: crypto.randomUUID(), user_id: userId, date: t.date, time_of_day: null, kind: t.kind, flow: t.flow,
+    account_id: to(t.accountId), to_account_id: to(t.toAccountId), amount_minor: t.amountMinor.toString(),
+    payee_id: to(t.payeeId), person_action: t.personAction, category_id: to(t.categoryId),
+    lines: t.lines.map((l) => ({
+      id: crypto.randomUUID(), amountMinor: l.amountMinor.toString(), categoryId: to(l.categoryId), personId: to(l.personId),
+      personAction: l.personAction, notes: l.notes, tagIds: l.tagIds.map((x) => to(x)),
+    })),
+    tag_ids: t.tagIds.map((x) => to(x)), notes: t.notes, reference: t.reference, status: t.status, confirmed: t.confirmed,
+    generated: false, interest_month: null, user_edited: false, state: t.state, server_seq: 0,
+  }));
+  for (let i = 0; i < insert.length; i += 500) {
+    const { error } = await db.from("transactions").insert(insert.slice(i, i + 500));
+    if (error) throw new Error(`seedDemoTransactions: ${error.message}`);
+  }
+  const { error } = await db.from("person_rates").insert(
+    rates.map((r) => ({ id: crypto.randomUUID(), user_id: userId, payee_id: to(r.payeeId), effective_month: r.effectiveMonth, rate_e4: r.rateE4, server_seq: 0 })),
+  );
+  if (error) throw new Error(`seedDemoTransactions rates: ${error.message}`);
 }
 
 /** Adds a business payee straight into the LOCAL database. */

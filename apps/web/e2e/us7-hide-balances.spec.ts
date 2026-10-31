@@ -1,8 +1,9 @@
 import { expect, test } from "@playwright/test";
 import { addAccount, newSignedInMember } from "./helpers/accounts";
-import { uniqueEmail } from "./helpers/db";
+import { seedAccounts, seedLists, uniqueEmail } from "./helpers/db";
 import { addPerson } from "./helpers/lists";
 import { ensureOwner, signInUI } from "./helpers/owner";
+import { seedDemoTransactions } from "./helpers/transactions";
 import { createMember } from "./helpers/users";
 
 /** T115 — User Story 7 on web: hide-balances (quickstart S7-a; FR-031–FR-033, SC-006). */
@@ -63,6 +64,30 @@ test("every screen in the review list is masked (SC-006)", async ({ page, reques
     await page.goto(path);
     await expect(page.locator("main")).toContainText("₹••••");
     expect(await page.locator("main").innerText(), path).not.toMatch(/₹\s?[\d,]+\.\d{2}/);
+  }
+});
+
+test("the transaction screens are masked too (R4 SC-006, FR-024)", async ({ page, request }) => {
+  test.slow();
+  await page.setViewportSize({ width: 1280, height: 800 });
+  const email = await newSignedInMember(page, request, "hidetx");
+  await seedAccounts(email, { demo: true });
+  await seedLists(email, { demo: true });
+  await seedDemoTransactions(email);
+  await page.goto("/settings");
+  await page.getByRole("switch", { name: "Hide balances" }).click();
+
+  // The list (with To confirm), an account's and a person's transactions. (Forms show the amount
+  // being edited in its field: you see what you change.)
+  await page.goto("/accounts");
+  const account = await page.locator("[data-account-row]").getByRole("link", { name: "Everyday Savings" }).getAttribute("href");
+  await page.goto("/people");
+  const person = await page.locator("[data-person-name='Ravi Kumar']").getByRole("link").getAttribute("href");
+  for (const path of ["/transactions", account!, person!]) {
+    await page.goto(path);
+    await expect(page.locator("main")).toContainText("₹••••");
+    // "₹0.00" in a rule ("the balance must be ₹0.00") is not one of the user's amounts.
+    expect((await page.locator("main").innerText()).replaceAll("₹0.00", ""), path).not.toMatch(/₹\s?[\d,]+\.\d{2}/);
   }
 });
 

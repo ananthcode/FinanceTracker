@@ -21,6 +21,12 @@ Kept during implementation; completed at T058. Items marked **Owner** need a dec
   by clients; `app.balance_movements()` gives screens every balance total in one read.
 - **T047 (search) was built with US1**, which needs the list.
 
+- **Hide balances and forms.** Lists, totals and balances are masked on every transaction screen
+  (SC-006 test). The amount field of a form you are editing shows its value (as R2's account form
+  already did): you need to see what you change. The split editor's "left to allocate" is masked.
+- **Demo data** (`demoTransactions(today)`) runs from the demo opening date (01-Apr-2025) to today's
+  month, about 14 a month; Meera Iyer is now the demo's manual-interest person.
+
 ## Fixes found while testing
 
 - **Payee creates were refused since R4 core** sent `interestMode` by default and the R3 SQL write
