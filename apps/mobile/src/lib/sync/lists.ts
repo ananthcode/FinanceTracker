@@ -29,6 +29,7 @@ export function payeeFromRow(row: SyncRow): PayeeView {
     openingBalanceMinor: BigInt(String(row.openingBalanceMinor ?? "0")),
     openingBalanceDate: (row.openingBalanceDate as string | null | undefined) ?? null,
     includeInNetWorth: row.includeInNetWorth === true,
+    // R4: the person's interest setting (none until the server says otherwise).
     interestMode: (row.interestMode as PayeeView["interestMode"] | undefined) ?? "none",
   };
 }
