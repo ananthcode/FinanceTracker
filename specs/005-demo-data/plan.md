@@ -33,8 +33,8 @@ other-device reset), pgTAP (own data only, all-or-nothing, history), Playwright 
 
 **Performance Goals**: load visible < 10 s (SC-001); reset < 10 s with 20,000 transactions (SC-003).
 
-**Constraints**: free tiers; demo environment only for loading (`NEXT_PUBLIC_APP_ENV=demo`, and local
-development); no financial data in logs; own data only.
+**Constraints**: free tiers; demo environment only for loading (`NEXT_PUBLIC_APP_ENV=demo`); no
+financial data in logs; own data only.
 
 **Scale/Scope**: ~600 demo changes per load (19 months at 31-Oct-2026); 1 API route; 3 database
 functions; 1 Settings section; 4 stories (3 on web now).

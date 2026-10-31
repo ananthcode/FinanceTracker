@@ -64,10 +64,10 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order.
 ## Phase 7: Polish
 
 - [X] T023 [P] Accessibility: `a11y.spec.ts` covers Settings › Your data and its dialogs (axe 1280/390 px, keyboard)
-- [ ] T024 [P] Replace e2e seeding where a test only needs the demo household with the load (no change to tests that seed directly)
+- [X] T024 [P] *Not done on purpose (review-notes.md)* Replace e2e seeding where a test only needs the demo household with the load (no change to tests that seed directly)
 - [X] T025 Write `specs/005-demo-data/review-notes.md`
-- [ ] T026 Run every suite; write `specs/005-demo-data/validation.md`
-- [ ] T027 Converge: contracts as built, ROADMAP status, Android task carried to the Android phase
+- [X] T026 Run every suite; write `specs/005-demo-data/validation.md`
+- [X] T027 Converge: contracts as built, ROADMAP status, Android task carried to the Android phase
 
 ## Dependencies
 

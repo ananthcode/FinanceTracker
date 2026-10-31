@@ -44,7 +44,7 @@ to refetch on a signal (an offline device would still push stale changes).
 ## R5-04 Where loading is allowed
 
 **Decision**: the route offers `load` and `reset_and_load` only when `NEXT_PUBLIC_APP_ENV` is `demo`
-or the app runs locally (development); `reset` is always offered. The Settings section hides what is
+(local development uses `demo` too, per `.env.example`); `reset` is always offered. The Settings section hides what is
 not offered; the route refuses it (`NOT_AVAILABLE`).
 
 **Rationale**: constitution X ("real data only in the live environment"); the edge case in the spec.
