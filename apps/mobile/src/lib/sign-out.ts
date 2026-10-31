@@ -19,10 +19,11 @@ export async function signOutOfThisPhone(askAboutUnsent: (count: number) => Prom
     const choice = await askAboutUnsent(pending);
     if (choice === "cancel") return false;
     if (choice === "send") {
-      // R2's sync engine flushes the queue here; until then there is never anything pending.
-      return false;
+      // Send now; sign out only if everything went (otherwise the user is asked again).
+      if ((await localData.flush(userId)) > 0) return false;
+    } else {
+      await localData.wipeAll(userId); // explicit "discard" confirmation given
     }
-    await localData.wipeAll(userId); // explicit "discard" confirmation given
   }
 
   // Record the sign-out and end this session server-side; still sign out locally when offline.
