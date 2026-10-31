@@ -14,6 +14,7 @@ import {
   type AccountType,
   type AccountView,
   type AmountInputError,
+  type GroupView,
 } from "@ft/core";
 import { Button } from "@/components/Button";
 import { useDisplay } from "@/components/providers/DisplayProvider";
@@ -33,7 +34,7 @@ const input = { borderWidth: 1, borderColor: "#d0d7de", borderRadius: 8, padding
  * once and sent automatically (FR-030). Names that clash with another device's are kept and renamed
  * " (2)" when synced (FR-032); here the user is warned about names this phone already knows.
  */
-export function AccountForm({ account, accounts }: { account: AccountView | null; accounts: AccountView[] }) {
+export function AccountForm({ account, accounts, groups }: { account: AccountView | null; accounts: AccountView[]; groups: GroupView[] }) {
   const { record } = useSync();
   const { preferences } = useDisplay();
   const [name, setName] = useState(account?.name ?? "");
@@ -43,6 +44,7 @@ export function AccountForm({ account, accounts }: { account: AccountView | null
   const [include, setInclude] = useState(account?.includeInNetWorth ?? true);
   const [notes, setNotes] = useState(account?.notes ?? "");
   const [limit, setLimit] = useState(account?.creditLimitMinor ? formatAmountInput(account.creditLimitMinor) : "");
+  const [groupId, setGroupId] = useState<string | null>(account?.groupId ?? null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
 
@@ -73,6 +75,7 @@ export function AccountForm({ account, accounts }: { account: AccountView | null
       includeInNetWorth: include,
       notes: notes.trim() === "" ? null : notes,
       creditLimitMinor: owed ? credit : null,
+      groupId,
     };
   }
 
@@ -94,7 +97,7 @@ export function AccountForm({ account, accounts }: { account: AccountView | null
           entity: "account",
           entityId: globalThis.crypto.randomUUID(),
           kind: "create",
-          fields: { ...fields, ...appearance, sortKey: keyBetween(last, null), groupId: null },
+          fields: { ...fields, ...appearance, sortKey: keyBetween(last, null) },
           options: { onNameConflict: "suffix" },
         });
       } else {
@@ -106,6 +109,7 @@ export function AccountForm({ account, accounts }: { account: AccountView | null
           includeInNetWorth: account.includeInNetWorth,
           notes: account.notes,
           creditLimitMinor: account.creditLimitMinor?.toString() ?? null,
+          groupId: account.groupId,
         };
         const changed = Object.fromEntries(Object.entries(fields).filter(([k, v]) => before[k] !== v));
         if (Object.keys(changed).length > 0) {
@@ -176,6 +180,23 @@ export function AccountForm({ account, accounts }: { account: AccountView | null
       {owed && (
         <Field label="Credit limit (optional)">
           <TextInput accessibilityLabel="Credit limit" value={limit} onChangeText={setLimit} keyboardType="decimal-pad" style={input} />
+        </Field>
+      )}
+      {groups.length > 0 && (
+        <Field label="Group">
+          <View accessibilityRole="radiogroup" style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+            {[{ id: null, name: "No group" }, ...[...groups].sort((a, b) => (a.sortKey < b.sortKey ? -1 : 1))].map((g) => (
+              <Pressable
+                key={g.id ?? "none"}
+                accessibilityRole="radio"
+                accessibilityState={{ checked: groupId === g.id }}
+                onPress={() => setGroupId(g.id)}
+                style={{ paddingVertical: 8, paddingHorizontal: 12, borderRadius: 16, borderWidth: groupId === g.id ? 2 : 1, borderColor: groupId === g.id ? "#1f6feb" : "#d0d7de" }}
+              >
+                <Text style={{ fontWeight: groupId === g.id ? "700" : "400" }}>{g.name}</Text>
+              </Pressable>
+            ))}
+          </View>
         </Field>
       )}
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>

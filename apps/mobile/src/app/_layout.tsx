@@ -48,6 +48,8 @@ function Gate() {
         <Stack.Screen name="(tabs)" />
         <Stack.Screen name="accounts/new" options={{ headerShown: true, title: "Add account" }} />
         <Stack.Screen name="accounts/[id]" options={{ headerShown: true, title: "Edit account" }} />
+        <Stack.Screen name="accounts/groups" options={{ headerShown: true, title: "Groups" }} />
+        <Stack.Screen name="accounts/arrange" options={{ headerShown: true, title: "Arrange accounts" }} />
       </Stack.Protected>
       <Stack.Protected guard={isOwner}>
         <Stack.Screen name="admin/index" options={{ headerShown: true, title: "User management" }} />

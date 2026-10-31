@@ -1,20 +1,24 @@
 import { router } from "expo-router";
-import { Pressable, Text, View } from "react-native";
+import { useState } from "react";
+import { Alert, Pressable, Text, View } from "react-native";
 import {
   ACCOUNT_TYPE_GROUP_TITLE,
   ACCOUNT_TYPE_LABEL,
   BALANCE_LABEL_TEXT,
   summarise,
   type AccountView,
+  type AccountsView,
   type SummaryRow,
 } from "@ft/core";
 import { Button } from "@/components/Button";
 import { Money } from "@/components/Money";
 import { useDisplay } from "@/components/providers/DisplayProvider";
+import { useSession } from "@/components/providers/SessionProvider";
 import { useSync, useSyncedData } from "@/components/providers/SyncProvider";
 import { Screen } from "@/components/Screen";
 import { SyncStatusBar } from "@/components/SyncStatusBar";
-import { accountFromRow } from "@/lib/sync/accounts";
+import { api } from "@/lib/api";
+import { accountFromRow, groupFromRow } from "@/lib/sync/accounts";
 
 /**
  * Accounts on Android (R2 US5, T062): the same summary, groups by type and labels as the web,
@@ -27,7 +31,10 @@ export default function AccountsScreen() {
     async () => (await rows("account")).map((r) => accountFromRow(r, preferences.baseCurrency)),
     [],
   );
-  const summary = summarise(accounts, { view: "by_type" });
+  const groups = useSyncedData(async () => (await rows("account_group")).map(groupFromRow), [] as ReturnType<typeof groupFromRow>[]);
+  const { me, refreshMe } = useSession();
+  const [view, setView] = useState<AccountsView>(me?.preferences.accountsView ?? "by_type");
+  const summary = summarise(accounts, { view, groups });
   const active = accounts.filter((a) => a.state === "active");
 
   return (
@@ -48,14 +55,34 @@ export default function AccountsScreen() {
         </View>
       )}
       <Button label="Add account" onPress={() => router.push("/accounts/new")} />
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 16, alignItems: "center" }}>
+        <ViewSwitch
+          value={view}
+          onChange={async (next) => {
+            setView(next);
+            // The chosen view follows the user to every device (FR-009); it needs a connection to save.
+            try {
+              await api("/api/me/preferences", { method: "PATCH", body: { accountsView: next } });
+              await refreshMe();
+            } catch {
+              Alert.alert("Not saved", "The view changed on this phone only; it will be remembered once you are online and switch again.");
+            }
+          }}
+        />
+        <TextLink label="Manage groups" onPress={() => router.push("/accounts/groups")} />
+        <TextLink label="Arrange" onPress={() => router.push("/accounts/arrange")} />
+      </View>
 
       {summary.sections.map((section) => (
         <View key={section.key} style={{ gap: 4 }}>
           <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
             <Text accessibilityRole="header" style={{ fontSize: 18, fontWeight: "600" }}>
-              {section.type ? ACCOUNT_TYPE_GROUP_TITLE[section.type] : "Accounts"}
+              {section.type ? ACCOUNT_TYPE_GROUP_TITLE[section.type] : section.group ? section.group.name : "Ungrouped"}
             </Text>
-            <Money value={section.subtotal} style={{ fontWeight: "600" }} />
+            <Text>
+              <Money value={section.subtotal} style={{ fontWeight: "600" }} />
+              {section.subtotalKind === "net" ? " net" : ""}
+            </Text>
           </View>
           {section.rows.map((r) => (
             <AccountRow key={r.account.id} row={r} />
@@ -109,6 +136,32 @@ function AccountRow({ row }: { row: SummaryRow<AccountView> }) {
         <Money value={balance} />
         {notes.length > 0 && <Text style={{ color: "#57606a", fontSize: 12 }}>{notes.join(" · ")}</Text>}
       </View>
+    </Pressable>
+  );
+}
+
+function ViewSwitch({ value, onChange }: { value: AccountsView; onChange: (v: AccountsView) => void }) {
+  return (
+    <View accessibilityRole="radiogroup" accessibilityLabel="Group accounts" style={{ flexDirection: "row", gap: 8 }}>
+      {([["by_type", "By type"], ["my_groups", "My groups"]] as const).map(([v, label]) => (
+        <Pressable
+          key={v}
+          accessibilityRole="radio"
+          accessibilityState={{ checked: value === v }}
+          onPress={() => value !== v && onChange(v)}
+          style={{ paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16, borderWidth: value === v ? 2 : 1, borderColor: value === v ? "#1f6feb" : "#d0d7de" }}
+        >
+          <Text style={{ fontWeight: value === v ? "700" : "400" }}>{label}</Text>
+        </Pressable>
+      ))}
+    </View>
+  );
+}
+
+function TextLink({ label, onPress }: { label: string; onPress: () => void }) {
+  return (
+    <Pressable accessibilityRole="button" onPress={onPress} hitSlop={8}>
+      <Text style={{ color: "#1f6feb", fontWeight: "600" }}>{label}</Text>
     </Pressable>
   );
 }
