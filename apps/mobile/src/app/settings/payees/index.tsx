@@ -1,10 +1,10 @@
 import { router } from "expo-router";
 import { useMemo, useState } from "react";
 import { Pressable, Switch, Text, View } from "react-native";
-import { categoryPath, compareNames, indexCategories, personBalance } from "@ft/core";
+import { categoryPath, compareNames, indexCategories, personBalanceOf } from "@ft/core";
 import { Button } from "@/components/Button";
 import { BalanceWords } from "@/components/PayeeForm";
-import { useLists } from "@/components/providers/useLists";
+import { useLists, useMoney } from "@/components/providers/useLists";
 import { Screen } from "@/components/Screen";
 import { SyncStatusBar } from "@/components/SyncStatusBar";
 import { Choice, LabeledInput, Muted } from "@/components/ui";
@@ -15,6 +15,7 @@ const PAGE = 200;
 /** Payees on Android (R3 US2 on the phone; FR-013): search, kind filter, hidden toggle. */
 export default function PayeesScreen() {
   const { payees, categories } = useLists();
+  const { personTotals } = useMoney();
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState<KindFilter>("all");
   const [showHidden, setShowHidden] = useState(false);
@@ -59,7 +60,7 @@ export default function PayeesScreen() {
               {p.name}
               {p.hidden ? " · Hidden" : ""}
             </Text>
-            {p.kind === "person" ? <BalanceWords balance={personBalance(p)} /> : <Text style={{ color: "#57606a" }}>Business</Text>}
+            {p.kind === "person" ? <BalanceWords balance={personBalanceOf(p, personTotals)} /> : <Text style={{ color: "#57606a" }}>Business</Text>}
           </View>
           {p.defaultCategoryId && <Muted>Default: {categoryPath(p.defaultCategoryId, index) || "—"}</Muted>}
         </Pressable>

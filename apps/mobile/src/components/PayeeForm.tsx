@@ -7,7 +7,7 @@ import {
   formatAmountInput,
   mergedOpeningBalance,
   parseAmountInput,
-  personBalance,
+  personBalanceOf,
   personLabel,
   PERSON_LABEL_TEXT,
   todayInZone,
@@ -23,6 +23,7 @@ import { useSync } from "./providers/SyncProvider";
 import { SearchPicker } from "./SearchPicker";
 import { Choice, ErrorText, LabeledInput, Muted } from "./ui";
 import { newId } from "@/lib/ids";
+import { useMoney } from "./providers/useLists";
 
 /**
  * Add or edit a payee or person on Android (R3 US2, US3, US5 on the phone; T071, T072). Saved on
@@ -42,6 +43,7 @@ export function PayeeForm({
   fixedKind?: PayeeKind;
 }) {
   const { record } = useSync();
+  const { personTotals } = useMoney();
   const { preferences } = useDisplay();
   const today = todayInZone(preferences.timezone);
   const opening = payee?.openingBalanceMinor ?? 0n;
@@ -85,7 +87,7 @@ export function PayeeForm({
     if (!payee) {
       await record({ entity: "payee", entityId: newId(), kind: "create", fields, options: { onNameConflict: "suffix" } });
     } else {
-      if (payee.kind === "person" && kind === "business" && personBalance(payee) !== 0n) {
+      if (payee.kind === "person" && kind === "business" && personBalanceOf(payee, personTotals) !== 0n) {
         return fail("Settle this person's balance to ₹0.00 before making them a business.");
       }
       const before: Record<string, unknown> = {
@@ -108,7 +110,7 @@ export function PayeeForm({
       {error && <ErrorText>{error}</ErrorText>}
       {payee?.kind === "person" && (
         <Text>
-          Balance: <BalanceWords balance={personBalance(payee)} />
+          Balance: <BalanceWords balance={personBalanceOf(payee, personTotals)} />
         </Text>
       )}
       <LabeledInput label="Name" value={name} onChangeText={setName} maxLength={60} />
