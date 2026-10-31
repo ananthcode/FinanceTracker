@@ -7,7 +7,7 @@ import { Screen } from "@/components/Screen";
 import { groupFromRow } from "@/lib/sync/accounts";
 import { newId } from "@/lib/ids";
 
-const input = { flex: 1, borderWidth: 1, borderColor: "#d0d7de", borderRadius: 8, padding: 10, fontSize: 16 } as const;
+const input = { flex: 1, borderWidth: 1, borderColor: "#E5E4DD", borderRadius: 8, padding: 10, fontSize: 16 } as const;
 const byKey = (a: GroupView, b: GroupView) => (a.sortKey < b.sortKey ? -1 : a.sortKey > b.sortKey ? 1 : a.id < b.id ? -1 : 1);
 
 /** Your own account groups on Android (R2 FR-009a/b on the phone, T062): add, rename, reorder, delete. */
@@ -40,7 +40,7 @@ export default function GroupsScreen() {
 
   return (
     <Screen title="Groups">
-      <Text style={{ color: "#57606a" }}>
+      <Text style={{ color: "#5F5E5A" }}>
         Groups are your own way to arrange accounts, for example &quot;My accounts&quot; and &quot;Held for family&quot;. They never change a
         balance.
       </Text>
@@ -85,7 +85,7 @@ function GroupRow({
   const [editing, setEditing] = useState(false);
   const [name, setName] = useState(group.name);
   return (
-    <View style={{ gap: 6, paddingVertical: 8, borderTopWidth: 1, borderColor: "#eaeef2" }}>
+    <View style={{ gap: 6, paddingVertical: 8, borderTopWidth: 1, borderColor: "#E5E4DD" }}>
       {editing ? (
         <View style={{ flexDirection: "row", gap: 8 }}>
           <TextInput accessibilityLabel={`New name for ${group.name}`} value={name} onChangeText={setName} maxLength={30} style={input} autoFocus />
@@ -114,7 +114,7 @@ function GroupRow({
 function Link({ label, a11y, onPress }: { label: string; a11y: string; onPress: () => void }) {
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={a11y} onPress={onPress} hitSlop={8}>
-      <Text style={{ color: "#1f6feb", fontWeight: "600" }}>{label}</Text>
+      <Text style={{ color: "#534AB7", fontWeight: "600" }}>{label}</Text>
     </Pressable>
   );
 }

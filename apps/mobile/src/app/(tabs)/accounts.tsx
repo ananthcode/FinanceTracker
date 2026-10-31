@@ -49,7 +49,7 @@ export default function AccountsScreen() {
       ) : (
         <View
           accessibilityLabel="Net worth summary"
-          style={{ flexDirection: "row", flexWrap: "wrap", gap: 16, padding: 12, borderWidth: 1, borderColor: "#d0d7de", borderRadius: 8 }}
+          style={{ flexDirection: "row", flexWrap: "wrap", gap: 16, padding: 12, borderWidth: 1, borderColor: "#E5E4DD", borderRadius: 8 }}
         >
           <Figure label="Owned" value={summary.owned} />
           <Figure label="Owed" value={summary.owed} />
@@ -109,9 +109,9 @@ export default function AccountsScreen() {
 function Figure({ label, value, note }: { label: string; value: bigint; note?: string }) {
   return (
     <View style={{ minWidth: 100 }}>
-      <Text style={{ color: "#57606a" }}>{label}</Text>
+      <Text style={{ color: "#5F5E5A" }}>{label}</Text>
       <Money value={value} style={{ fontSize: 18, fontWeight: "600" }} />
-      {note && <Text style={{ color: "#57606a", fontSize: 12 }}>{note}</Text>}
+      {note && <Text style={{ color: "#5F5E5A", fontSize: 12 }}>{note}</Text>}
     </View>
   );
 }
@@ -128,15 +128,15 @@ function AccountRow({ row }: { row: SummaryRow<AccountView> }) {
       accessibilityRole="button"
       accessibilityHint="Opens the account"
       onPress={() => router.push(`/accounts/${account.id}`)}
-      style={{ flexDirection: "row", justifyContent: "space-between", gap: 8, paddingVertical: 10, borderTopWidth: 1, borderColor: "#eaeef2" }}
+      style={{ flexDirection: "row", justifyContent: "space-between", gap: 8, paddingVertical: 10, borderTopWidth: 1, borderColor: "#E5E4DD" }}
     >
       <View style={{ flex: 1 }}>
         <Text style={{ fontWeight: "600" }}>{account.name}</Text>
-        <Text style={{ color: "#57606a" }}>{ACCOUNT_TYPE_LABEL[account.type]}</Text>
+        <Text style={{ color: "#5F5E5A" }}>{ACCOUNT_TYPE_LABEL[account.type]}</Text>
       </View>
       <View style={{ alignItems: "flex-end" }}>
         <Money value={balance} />
-        {notes.length > 0 && <Text style={{ color: "#57606a", fontSize: 12 }}>{notes.join(" · ")}</Text>}
+        {notes.length > 0 && <Text style={{ color: "#5F5E5A", fontSize: 12 }}>{notes.join(" · ")}</Text>}
       </View>
     </Pressable>
   );
@@ -151,7 +151,7 @@ function ViewSwitch({ value, onChange }: { value: AccountsView; onChange: (v: Ac
           accessibilityRole="radio"
           accessibilityState={{ checked: value === v }}
           onPress={() => value !== v && onChange(v)}
-          style={{ paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16, borderWidth: value === v ? 2 : 1, borderColor: value === v ? "#1f6feb" : "#d0d7de" }}
+          style={{ paddingVertical: 6, paddingHorizontal: 12, borderRadius: 16, borderWidth: value === v ? 2 : 1, borderColor: value === v ? "#534AB7" : "#E5E4DD" }}
         >
           <Text style={{ fontWeight: value === v ? "700" : "400" }}>{label}</Text>
         </Pressable>
@@ -163,7 +163,7 @@ function ViewSwitch({ value, onChange }: { value: AccountsView; onChange: (v: Ac
 function TextLink({ label, onPress }: { label: string; onPress: () => void }) {
   return (
     <Pressable accessibilityRole="button" onPress={onPress} hitSlop={8}>
-      <Text style={{ color: "#1f6feb", fontWeight: "600" }}>{label}</Text>
+      <Text style={{ color: "#534AB7", fontWeight: "600" }}>{label}</Text>
     </Pressable>
   );
 }

@@ -77,7 +77,7 @@ export default function SettingsScreen() {
       {offline && <Text>Activity is unavailable offline.</Text>}
       {items?.length === 0 && <Text>No activity yet.</Text>}
       {items?.map((item, i) => (
-        <View key={`${item.occurredAt}-${i}`} style={{ borderTopWidth: 1, borderColor: "#d0d7de", paddingTop: 6 }}>
+        <View key={`${item.occurredAt}-${i}`} style={{ borderTopWidth: 1, borderColor: "#E5E4DD", paddingTop: 6 }}>
           <Text>{LABELS[item.action]}</Text>
           <Text style={{ color: "#6e7781" }}>
             <DateText instant={item.occurredAt} /> · {item.method ?? "—"} · {item.deviceType ?? "—"}

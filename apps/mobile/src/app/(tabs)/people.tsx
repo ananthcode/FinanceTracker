@@ -23,13 +23,13 @@ export default function PeopleScreen() {
   return (
     <Screen title="People">
       <SyncStatusBar />
-      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 16, padding: 12, borderWidth: 1, borderColor: "#d0d7de", borderRadius: 8 }}>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 16, padding: 12, borderWidth: 1, borderColor: "#E5E4DD", borderRadius: 8 }}>
         <View style={{ minWidth: 130 }}>
-          <Text style={{ color: "#57606a" }}>People owe you</Text>
+          <Text style={{ color: "#5F5E5A" }}>People owe you</Text>
           <Money value={totals.owedToYou} style={{ fontSize: 18, fontWeight: "600" }} />
         </View>
         <View style={{ minWidth: 130 }}>
-          <Text style={{ color: "#57606a" }}>You owe people</Text>
+          <Text style={{ color: "#5F5E5A" }}>You owe people</Text>
           <Money value={totals.youOwe} style={{ fontSize: 18, fontWeight: "600" }} />
         </View>
       </View>
@@ -60,11 +60,11 @@ function PersonRow({ person, totals }: { person: PayeeView; totals: MovementTota
       accessibilityRole="button"
       accessibilityHint="Opens the person"
       onPress={() => router.push(`/people/${person.id}`)}
-      style={{ flexDirection: "row", justifyContent: "space-between", gap: 8, paddingVertical: 10, borderTopWidth: 1, borderColor: "#eaeef2" }}
+      style={{ flexDirection: "row", justifyContent: "space-between", gap: 8, paddingVertical: 10, borderTopWidth: 1, borderColor: "#E5E4DD" }}
     >
       <View style={{ flex: 1 }}>
         <Text style={{ fontWeight: "600" }}>{person.name}</Text>
-        {person.includeInNetWorth && <Text style={{ color: "#57606a", fontSize: 12 }}>In net worth</Text>}
+        {person.includeInNetWorth && <Text style={{ color: "#5F5E5A", fontSize: 12 }}>In net worth</Text>}
       </View>
       <BalanceWords balance={personBalanceOf(person, totals)} />
     </Pressable>

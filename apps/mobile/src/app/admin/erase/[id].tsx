@@ -56,7 +56,7 @@ export default function EraseUserScreen() {
               keyboardType="email-address"
               value={typed}
               onChangeText={setTyped}
-              style={{ borderWidth: 1, borderColor: "#d0d7de", borderRadius: 8, padding: 10 }}
+              style={{ borderWidth: 1, borderColor: "#E5E4DD", borderRadius: 8, padding: 10 }}
             />
           </View>
           {error && <Text accessibilityLiveRegion="polite">{error}</Text>}

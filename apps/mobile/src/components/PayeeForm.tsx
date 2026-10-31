@@ -189,7 +189,7 @@ function ManagePayee({ payee, payees }: { payee: PayeeView; payees: PayeeView[] 
   }
 
   return (
-    <View style={{ gap: 10, marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderColor: "#eaeef2" }}>
+    <View style={{ gap: 10, marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderColor: "#E5E4DD" }}>
       <Text accessibilityRole="header" style={{ fontSize: 18, fontWeight: "600" }}>
         Manage {noun}
       </Text>
