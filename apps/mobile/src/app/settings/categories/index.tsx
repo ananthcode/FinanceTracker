@@ -112,7 +112,7 @@ export default function CategoriesScreen() {
               <Pressable accessibilityRole="button" onPress={() => router.push(`/settings/categories/${n.id}`)} style={{ flex: 1, paddingVertical: 10 }}>
                 <Text style={{ color: n.effectiveHidden ? "#57606a" : undefined }}>
                   {n.name}
-                  {n.hidden ? " · Hidden" : ""}
+                  {n.hidden ? " · Hidden" : n.effectiveHidden ? " · Hidden with its parent" : ""}
                 </Text>
               </Pressable>
             </View>

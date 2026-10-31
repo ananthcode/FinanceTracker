@@ -162,7 +162,7 @@ export function PreferencesForm({
           onChangeText={setTimezoneText}
           style={{ borderWidth: 1, borderColor: timezoneOk ? "#d0d7de" : "#cf222e", borderRadius: 8, padding: 10 }}
         />
-        {!timezoneOk && <Text style={{ color: "#cf222e" }}>Unknown timezone — use a name like Asia/Kolkata.</Text>}
+        {!timezoneOk && <Text accessibilityRole="alert" style={{ color: "#cf222e" }}>Unknown timezone — use a name like Asia/Kolkata.</Text>}
       </View>
 
       <View accessibilityLabel="Preview" style={{ borderWidth: 1, borderColor: "#d0d7de", borderRadius: 8, padding: 12, gap: 4 }}>
