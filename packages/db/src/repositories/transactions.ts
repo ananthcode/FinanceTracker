@@ -1,5 +1,5 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import type { PersonRateView, TransactionLine, TransactionView } from "@ft/core";
+import type { MovementTotals, PersonRateView, TransactionLine, TransactionView } from "@ft/core";
 
 /**
  * Transactions read repository (R4 T017). Use the caller's client: RLS applies. Money arrives as
@@ -112,6 +112,20 @@ export async function toConfirmCount(db: SupabaseClient): Promise<number> {
   const { data, error } = await db.schema("app").rpc("to_confirm_count");
   if (error) throw new Error(`TO_CONFIRM_READ_FAILED: ${error.code ?? ""}`);
   return Number(data ?? 0);
+}
+
+export interface BalanceMovements {
+  accounts: MovementTotals;
+  people: MovementTotals;
+}
+
+/** Every account's and person's counted movement total, for the balances on a screen (FR-007, FR-008). */
+export async function balanceMovements(db: SupabaseClient): Promise<BalanceMovements> {
+  const { data, error } = await db.schema("app").rpc("balance_movements");
+  if (error) throw new Error(`BALANCES_READ_FAILED: ${error.code ?? ""}`);
+  const raw = data as { accounts: Record<string, string>; people: Record<string, string> };
+  const toTotals = (r: Record<string, string>) => Object.fromEntries(Object.entries(r).map(([id, v]) => [id, BigInt(v)]));
+  return { accounts: toTotals(raw.accounts), people: toTotals(raw.people) };
 }
 
 /** A person's rate history, oldest first (FR-013). */

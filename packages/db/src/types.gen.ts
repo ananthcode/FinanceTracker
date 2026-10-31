@@ -99,6 +99,9 @@ export type Database = {
 "apply_changes":
 { Args: { "p_changes": Json,"p_device": string }; Returns: Json
                            },
+"balance_movements":
+{ Args: Record<PropertyKey, never>; Returns: Json
+                           },
 "category_has_activity":
 { Args: { "p_category": string }; Returns: boolean
                            },
@@ -144,6 +147,9 @@ export type Database = {
 "scrub_user_from_audit":
 { Args: { "p_email": string,"p_user": string }; Returns: string
                            },
+"search_transactions":
+{ Args: { "p_after"?: Json,"p_filters"?: Json,"p_limit"?: number }; Returns: Json
+                           },
 "set_environment":
 { Args: { "p_name": string }; Returns: string
                            },
@@ -158,6 +164,9 @@ export type Database = {
                            },
 "tag_usage_count":
 { Args: { "p_tag": string }; Returns: number
+                           },
+"to_confirm_count":
+{ Args: Record<PropertyKey, never>; Returns: number
                            },
 "transfer_owner":
 { Args: { "p_new_owner": string }; Returns: undefined

@@ -1,7 +1,7 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
-import { DEFAULT_PREFERENCES, personBalance, todayInZone } from "@ft/core";
-import { getPayee, getPreferences, listCategories, listPayees } from "@ft/db";
+import { DEFAULT_PREFERENCES, personBalanceOf, todayInZone } from "@ft/core";
+import { balanceMovements, getPayee, getPreferences, listCategories, listPayees } from "@ft/db";
 import { PayeeForm } from "@/components/lists/PayeeForm";
 import { PayeeManage } from "@/components/lists/PayeeManage";
 import { PersonBalance } from "@/components/lists/PersonBalance";
@@ -12,11 +12,12 @@ export default async function EditPersonPage({ params }: { params: Promise<{ id:
   const { id } = await params;
   const supabase = await createServerSupabase();
   const { data } = await supabase.auth.getUser();
-  const [person, categories, payees, preferences] = await Promise.all([
+  const [person, categories, payees, preferences, totals] = await Promise.all([
     getPayee(supabase, id),
     listCategories(supabase),
     listPayees(supabase),
     getPreferences(supabase, data.user?.id ?? ""),
+    balanceMovements(supabase),
   ]);
   if (!person || person.kind !== "person") notFound();
   const prefs = preferences ?? DEFAULT_PREFERENCES;
@@ -30,7 +31,7 @@ export default async function EditPersonPage({ params }: { params: Promise<{ id:
         {person.name}
       </h1>
       <p>
-        Balance: <PersonBalance balance={personBalance(person)} className="font-medium" />
+        Balance: <PersonBalance balance={personBalanceOf(person, totals.people)} className="font-medium" />
       </p>
       <PayeeForm
         key={person.id}

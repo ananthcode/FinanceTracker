@@ -1,6 +1,6 @@
 -- R4 T005 Transaction access rules — contracts/database.md rules 1–6 (SC-004).
 begin;
-select plan(16);
+select plan(19);
 
 select tests.as_superuser();
 update public.profiles set role = 'member' where role = 'owner';
@@ -26,6 +26,9 @@ select is((select count(*)::int from public.transactions), 1, 'rule 1: a user se
 select is((select count(*)::int from public.person_rates), 0, 'rule 1: another user''s rates are invisible');
 select ok(not (app.pull_changes(0)::text like '%' || :'ravi_tx' || '%'), 'rule 1: pull never contains another user''s transactions');
 select throws_ok($$ select count(*) from private.transaction_postings $$, '42501', null, 'rule 3: postings are not readable');
+select is(app.balance_movements() -> 'accounts', jsonb_build_object(:'wa'::jsonb ->> 'bank', '-1000'),
+          'rule 1: balance movements hold only the caller''s own accounts');
+select is(app.balance_movements() -> 'people', '{}'::jsonb, 'rule 1: and none of another user''s people');
 
 -- ---------------------------------------------------------------- 2: owner-admin
 select tests.authenticate_as(:'owner_id');
@@ -65,6 +68,7 @@ select tests.as_superuser();
 update public.profiles set status = 'disabled' where user_id = :'asha_id';
 select tests.authenticate_as(:'asha_id');
 select is((select count(*)::int from public.transactions), 0, 'rule 6: a disabled user reads no transactions');
+select throws_ok($$ select app.balance_movements() $$, 'P0001', 'USER_INACTIVE', 'rule 6: a disabled user reads no balances');
 
 select tests.as_superuser();
 select app.scrub_user_from_audit(:'ravi_id', 'tx.ravi@example.com');

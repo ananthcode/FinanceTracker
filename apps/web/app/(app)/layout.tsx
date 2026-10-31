@@ -5,7 +5,7 @@ import { DisplayProvider } from "@/components/providers/DisplayProvider";
 import { AppShell } from "@/components/shell/AppShell";
 import { DemoBadge } from "@/components/shell/DemoBadge";
 import { HideBalancesToggle } from "@/components/shell/HideBalancesToggle";
-import { getPreferences, getProfile } from "@ft/db";
+import { getPreferences, getProfile, toConfirmCount } from "@ft/db";
 import { checkEnvironment } from "@/lib/environment-guard";
 import { publicEnv } from "@/lib/env";
 import { KEEP_SIGNED_IN_COOKIE } from "@/lib/session-cookies";
@@ -31,13 +31,15 @@ export default async function SignedInLayout({ children }: { children: React.Rea
   const [profile, preferences] = data.user
     ? await Promise.all([getProfile(supabase, data.user.id), getPreferences(supabase, data.user.id)])
     : [null, null];
+  // R4 FR-002a: "N to confirm" on the Transactions entry. A failed count only hides the badge.
+  const toConfirm = profile?.setupComplete ? await toConfirmCount(supabase).catch(() => 0) : 0;
 
   return (
     <DisplayProvider preferences={preferences ?? undefined}>
       <div className="flex min-h-full flex-1 flex-col">
         {publicEnv.appEnv === "demo" && <DemoBadge />}
         {profile?.setupComplete ? (
-          <AppShell isOwner={profile.role === "owner"} actions={<HideBalancesToggle />}>
+          <AppShell isOwner={profile.role === "owner"} actions={<HideBalancesToggle />} badges={{ "/transactions": toConfirm }}>
             {children}
           </AppShell>
         ) : (

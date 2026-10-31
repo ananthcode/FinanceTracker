@@ -41,6 +41,11 @@ type Field = "name" | "balance" | "date" | "credit" | "notes";
 const REJECTION_MESSAGES: Partial<Record<NonNullable<ChangeResult["code"]>, { field?: Field; message: string }>> = {
   NAME_TAKEN: { field: "name", message: "You already have an account with this name. Choose another name." },
   DATE_IN_FUTURE: { field: "date", message: "The date must be today or earlier." },
+  // R4: the opening date may not move after transactions already recorded.
+  DATE_BEFORE_OPENING: {
+    field: "date",
+    message: "This account has transactions before that date. Choose a date on or before its earliest transaction.",
+  },
   LIMIT_REACHED: { message: "You have reached the limit of 200 accounts. Archive or delete accounts you no longer use." },
   NOT_FOUND: { message: "This account no longer exists." },
 };

@@ -13,10 +13,13 @@ import { NavLinks } from "./NavLinks";
 export function AppShell({
   isOwner,
   actions,
+  badges,
   children,
 }: {
   isOwner: boolean;
   actions?: ReactNode;
+  /** Counts shown on navigation entries, by href (R4: "N to confirm"). */
+  badges?: Record<string, number>;
   children: ReactNode;
 }) {
   const drawer = useRef<HTMLDialogElement>(null);
@@ -39,7 +42,7 @@ export function AppShell({
           {actions}
         </div>
         <nav aria-label="Main">
-          <NavLinks isOwner={isOwner} />
+          <NavLinks isOwner={isOwner} badges={badges} />
         </nav>
       </aside>
 
@@ -77,7 +80,7 @@ export function AppShell({
           </button>
         </div>
         <nav aria-label="Main">
-          <NavLinks isOwner={isOwner} onNavigate={() => drawer.current?.close()} />
+          <NavLinks isOwner={isOwner} badges={badges} onNavigate={() => drawer.current?.close()} />
         </nav>
       </dialog>
 

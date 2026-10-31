@@ -138,13 +138,15 @@ export function PayeeForm({
     const problem = refusal(outcome, "The payee could not be saved. Check the details and try again.", {
       LIMIT_REACHED: "You can have up to 2,000 payees. Merge or delete ones you no longer use.",
       BALANCE_NOT_ZERO: "Settle this person's balance to ₹0.00 before making them a business.",
+      DATE_BEFORE_OPENING: "This person has transactions before that date. Choose a date on or before their earliest one.",
+      INVALID_PERSON: "This person has transactions, so they can't become a business.",
     });
     if (problem) {
       const rejected = outcome.ok ? outcome.results[0]?.code : undefined;
       if (rejected === "NAME_TAKEN") {
         setErrors({ name: "You already have a payee with this name." });
         setClash(payees.find((p) => p.name.toLowerCase() === String(fields.name).toLowerCase()) ?? null);
-      } else if (rejected === "DATE_IN_FUTURE") {
+      } else if (rejected === "DATE_IN_FUTURE" || rejected === "DATE_BEFORE_OPENING") {
         setErrors({ date: problem });
       } else {
         setFormError(problem);

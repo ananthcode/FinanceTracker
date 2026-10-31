@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { listCategories, listPayees } from "@ft/db";
+import { balanceMovements, listCategories, listPayees } from "@ft/db";
 import { PayeeList } from "@/components/lists/PayeeList";
 import { buttonVariants } from "@/components/ui/button";
 import { createServerSupabase } from "@/lib/supabase/server";
@@ -7,7 +7,7 @@ import { createServerSupabase } from "@/lib/supabase/server";
 /** Settings › Payees (R3 US2; FR-012 – FR-015). */
 export default async function PayeesPage() {
   const supabase = await createServerSupabase();
-  const [payees, categories] = await Promise.all([listPayees(supabase), listCategories(supabase)]);
+  const [payees, categories, totals] = await Promise.all([listPayees(supabase), listCategories(supabase), balanceMovements(supabase)]);
 
   return (
     <section aria-labelledby="page-title" className="flex max-w-2xl flex-col gap-4">
@@ -26,7 +26,7 @@ export default async function PayeesPage() {
         The businesses and people you pay or are paid by. A default category is filled in when you choose the payee for
         a transaction.
       </p>
-      <PayeeList payees={payees} categories={categories} />
+      <PayeeList payees={payees} categories={categories} movements={totals.people} />
     </section>
   );
 }

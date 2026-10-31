@@ -6,7 +6,7 @@
  * "archived with a balance"), in both cases only when included in net worth. Group subtotals cover
  * the accounts listed in that group.
  */
-import { peopleTotals, type PeopleTotals } from "../people";
+import { peopleTotals, personBalanceOf, type MovementTotals, type PeopleTotals } from "../people";
 import { availableCredit, currentBalance, type AvailableCredit, type Movement } from "./balance";
 import { balanceLabel, type BalanceLabel } from "./labels";
 import { isOwedType, TYPE_ORDER, type AccountState, type AccountType, type AccountsView, type GroupState } from "./types";
@@ -65,6 +65,7 @@ export interface AccountsSummary<A extends AccountForSummary = AccountForSummary
 
 /** A payee as the summary needs it; only people with the switch on count (R3 FR-020). */
 export interface PayeeForSummary {
+  id: string;
   kind: "business" | "person";
   openingBalanceMinor: bigint;
   includeInNetWorth: boolean;
@@ -75,6 +76,13 @@ export interface SummaryOptions {
   groups?: readonly GroupForSummary[];
   movements?: readonly Movement[];
   people?: readonly PayeeForSummary[];
+  /** Each person's counted movement total (R4). */
+  personMovements?: MovementTotals;
+}
+
+/** One movement per account dated its opening date, so currentBalance adds the account's total (R4). */
+export function movementsFromTotals(accounts: readonly { id: string; openingBalanceDate: string }[], totals: MovementTotals): Movement[] {
+  return accounts.filter((a) => totals[a.id] !== undefined).map((a) => ({ accountId: a.id, date: a.openingBalanceDate, amountMinor: totals[a.id]! }));
 }
 
 const byKey = <T extends { sortKey: string; id: string }>(a: T, b: T): number =>
@@ -141,7 +149,10 @@ export function summarise<A extends AccountForSummary>(accounts: readonly A[], o
   }
 
   // People switched into net worth add to Owned (they owe) or Owed (the user owes) — R3 FR-020.
-  const people = peopleTotals((options.people ?? []).filter((p) => p.includeInNetWorth));
+  const people = peopleTotals(
+    (options.people ?? []).filter((p) => p.includeInNetWorth),
+    (p) => personBalanceOf(p, options.personMovements),
+  );
   owned += people.owedToYou;
   owed += people.youOwe;
 

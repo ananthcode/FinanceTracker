@@ -8,7 +8,16 @@ import { ADMIN_ITEM, isActive, NAV_ITEMS } from "./nav-items";
  * The navigation list. The current section is marked with `aria-current="page"` and shown with a
  * bar, bold text and colour — never colour alone (Principle XIII).
  */
-export function NavLinks({ isOwner, onNavigate }: { isOwner: boolean; onNavigate?: () => void }) {
+export function NavLinks({
+  isOwner,
+  badges = {},
+  onNavigate,
+}: {
+  isOwner: boolean;
+  /** "N to confirm" on Transactions (R4 FR-002a): words, not a bare number. */
+  badges?: Record<string, number>;
+  onNavigate?: () => void;
+}) {
   const pathname = usePathname();
   const items = isOwner ? [...NAV_ITEMS, ADMIN_ITEM] : NAV_ITEMS;
 
@@ -30,6 +39,11 @@ export function NavLinks({ isOwner, onNavigate }: { isOwner: boolean; onNavigate
             >
               <Icon aria-hidden="true" className="size-4 shrink-0" />
               {label}
+              {(badges[href] ?? 0) > 0 && (
+                <span className="ml-auto rounded-full bg-brand/15 px-2 py-0.5 text-xs font-semibold text-brand-strong dark:text-brand">
+                  {badges[href]} to confirm
+                </span>
+              )}
             </Link>
           </li>
         );

@@ -14,6 +14,14 @@ export function personBalance(person: { openingBalanceMinor: bigint }, movements
   return movements.reduce((sum, m) => sum + m.amountMinor, person.openingBalanceMinor);
 }
 
+/** Counted movement totals per account or person id (R4, from app.balance_movements). */
+export type MovementTotals = Readonly<Record<string, bigint>>;
+
+/** A person's balance from their opening balance and their movement total (R4 FR-008). */
+export function personBalanceOf(person: { id: string; openingBalanceMinor: bigint }, totals: MovementTotals = {}): bigint {
+  return personBalance(person, [{ amountMinor: totals[person.id] ?? 0n }]);
+}
+
 export type PersonLabel = "owes_you" | "you_owe" | "settled";
 
 export function personLabel(balance: bigint): PersonLabel {
@@ -35,9 +43,9 @@ export interface PeopleTotals {
 }
 
 /** "People owe you" and "You owe people" over every person, hidden ones included (FR-019). */
-export function peopleTotals(
-  payees: readonly { kind: "business" | "person"; openingBalanceMinor: bigint }[],
-  balanceOf: (p: { openingBalanceMinor: bigint }) => bigint = personBalance,
+export function peopleTotals<P extends { kind: "business" | "person"; openingBalanceMinor: bigint }>(
+  payees: readonly P[],
+  balanceOf: (p: P) => bigint = personBalance,
 ): PeopleTotals {
   let owedToYou = 0n;
   let youOwe = 0n;
