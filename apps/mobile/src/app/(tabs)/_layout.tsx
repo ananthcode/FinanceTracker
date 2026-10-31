@@ -2,6 +2,7 @@ import { SymbolView, type SymbolViewProps } from "expo-symbols";
 import { Tabs } from "expo-router/js-tabs";
 import { Text } from "react-native";
 import { HeaderActions } from "@/components/HeaderActions";
+import { HideBalancesToggle } from "@/components/HideBalancesToggle";
 import { useSession } from "@/components/providers/SessionProvider";
 
 type SymbolName = SymbolViewProps["name"];
@@ -26,7 +27,11 @@ export default function TabsLayout() {
         headerShown: true,
         // The active tab is also bold, so it is not marked by colour alone (Principle XIII).
         tabBarActiveTintColor: "#1f6feb",
-        headerRight: () => <HeaderActions isOwner={isOwner} />,
+        headerRight: () => (
+          <HeaderActions isOwner={isOwner}>
+            <HideBalancesToggle />
+          </HeaderActions>
+        ),
       }}
     >
       {TABS.map((tab) => (
