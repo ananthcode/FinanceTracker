@@ -45,7 +45,8 @@ function toWire(row: Record<string, unknown>): Record<string, unknown> {
 export async function pullChanges(db: SupabaseClient, cursor: string, limit = 500): Promise<PullResponse> {
   const { data, error } = await db.schema("app").rpc("pull_changes", { p_cursor: cursor, p_limit: limit });
   if (error) raise("SYNC_PULL_FAILED", error.message);
-  const raw = data as { cursor: string; hasMore: boolean; rows: Record<SyncEntity, Record<string, unknown>[]> };
+  const raw = data as { cursor: string; hasMore: boolean; reset?: boolean; rows: Record<SyncEntity, Record<string, unknown>[]> };
   const rows = Object.fromEntries(SYNC_ENTITIES.map((entity) => [entity, (raw.rows[entity] ?? []).map(toWire)]));
-  return { cursor: raw.cursor, hasMore: raw.hasMore, rows: rows as PullResponse["rows"] };
+  // R5: the user's data was reset since this cursor — the device starts over from 0.
+  return { cursor: raw.cursor, hasMore: raw.hasMore, ...(raw.reset ? { reset: true } : {}), rows: rows as PullResponse["rows"] };
 }

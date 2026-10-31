@@ -110,6 +110,8 @@ export const REJECTION_CODES = [
   "ACCOUNT_INACTIVE",
   "INVALID_PERSON",
   "INVALID_CATEGORY",
+  // R5: the change was made before the user's data was reset; drop it.
+  "DATA_RESET",
 ] as const;
 export type RejectionCode = (typeof REJECTION_CODES)[number];
 
@@ -133,6 +135,8 @@ const PulledRow = z.object({ id: z.uuid(), serverSeq: z.string().regex(/^\d+$/) 
 export const PullResponse = z.object({
   cursor: z.string().regex(/^\d+$/),
   hasMore: z.boolean(),
+  /** R5: the user's data was reset since this cursor — wipe the local copy and pull from 0. */
+  reset: z.boolean().optional(),
   rows: z.object({
     account: z.array(PulledRow),
     account_group: z.array(PulledRow),

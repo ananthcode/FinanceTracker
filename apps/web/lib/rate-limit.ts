@@ -7,7 +7,7 @@ export function sha256Hex(value: string): string {
   return createHash("sha256").update(value).digest("hex");
 }
 
-export type LimitKind = "reset" | "invite-lookup" | "sync-push" | "sync-pull" | "categories-start" | "interest-propose";
+export type LimitKind = "reset" | "invite-lookup" | "sync-push" | "sync-pull" | "categories-start" | "interest-propose" | "data-action";
 
 /** Returns true when allowed; false when the caller exceeded `max` hits within `windowSeconds`. */
 export async function hitRateLimit(kind: LimitKind, key: string, windowSeconds: number, max: number): Promise<boolean> {

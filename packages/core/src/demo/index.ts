@@ -2,3 +2,4 @@
 export * from "./accounts";
 export * from "./lists";
 export * from "./transactions";
+export * from "./changes";

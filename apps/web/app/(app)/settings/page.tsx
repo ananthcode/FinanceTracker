@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { DEFAULT_PREFERENCES } from "@ft/core";
-import { getPreferences, getProfile } from "@ft/db";
+import { getPreferences, getProfile, hasNoData } from "@ft/db";
 import { DateText } from "@/components/DateText";
 import { PreferencesForm } from "@/components/PreferencesForm";
+import { YourData } from "@/components/settings/YourData";
+import { publicEnv } from "@/lib/env";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { SignOutButton } from "./SignOutButton";
 
@@ -15,13 +17,13 @@ const LABELS: Record<string, string> = {
 
 /**
  * Settings: preferences with live preview (US3, FR-022–FR-024), your own sign-in activity (FR-039)
- * and sign-out (FR-011). App lock (Android) arrives with US6.
+ * your data — demo data and reset (R5) — and sign-out (FR-011). App lock (Android) arrives with US6.
  */
 export default async function SettingsPage() {
   const supabase = await createServerSupabase();
   const { data: auth } = await supabase.auth.getUser();
   const userId = auth.user?.id ?? "";
-  const [profile, preferences] = await Promise.all([getProfile(supabase, userId), getPreferences(supabase, userId)]);
+  const [profile, preferences, empty] = await Promise.all([getProfile(supabase, userId), getPreferences(supabase, userId), hasNoData(supabase)]);
   const { data } = await supabase
     .from("audit_events")
     .select("id, occurred_at, action, device_type, details")
@@ -69,6 +71,8 @@ export default async function SettingsPage() {
           </li>
         </ul>
       </section>
+
+      <YourData empty={empty} demoAvailable={publicEnv.appEnv === "demo"} />
 
       <section aria-labelledby="activity-title" className="flex flex-col gap-2">
         <h2 id="activity-title" className="text-lg font-medium">
