@@ -1,11 +1,16 @@
 import { SymbolView } from "expo-symbols";
+import { useRef, useState } from "react";
 import { Pressable, ScrollView, Text, View } from "react-native";
 import { categoryPath, indexCategories, type AccountView, type CategoryView } from "@ft/core";
 import { Money } from "@/components/Money";
+import { SearchPicker } from "@/components/SearchPicker";
 import { OPERATORS, pressKey } from "@/lib/calc";
 import { colours } from "@/lib/theme";
 
 /** Building blocks of the add-transaction flow (docs/ANDROID-HOME.md). */
+
+/** Above this many accounts the chip row ends with "All accounts…", a searchable list. */
+const MANY_ACCOUNTS = 6;
 
 export function AccountChips({
   label,
@@ -23,10 +28,13 @@ export function AccountChips({
   tone?: string;
 }) {
   const chosen = accounts.find((a) => a.id === value);
+  const [picking, setPicking] = useState(false);
+  const scroller = useRef<ScrollView>(null);
+  const many = accounts.length > MANY_ACCOUNTS;
   return (
     <View style={{ gap: 6 }}>
       <Text style={{ color: colours.muted, fontSize: 13 }}>{label}</Text>
-      <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }} accessibilityRole="radiogroup" accessibilityLabel={label}>
+      <ScrollView ref={scroller} horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }} accessibilityRole="radiogroup" accessibilityLabel={label}>
         {accounts.map((a) => {
           const on = a.id === value;
           return (
@@ -42,7 +50,23 @@ export function AccountChips({
             </Pressable>
           );
         })}
+        {many && (
+          <Pressable accessibilityRole="button" onPress={() => setPicking(true)} style={{ paddingVertical: 9, paddingHorizontal: 14, borderRadius: 20, backgroundColor: colours.actionTint }}>
+            <Text style={{ color: colours.actionInk, fontWeight: "600" }}>All accounts…</Text>
+          </Pressable>
+        )}
       </ScrollView>
+      <SearchPicker
+        visible={picking}
+        title={label}
+        options={accounts.map((a) => ({ id: a.id, label: a.name }))}
+        onPick={(id) => {
+          setPicking(false);
+          onChange(id);
+          scroller.current?.scrollTo({ x: 0, animated: true });
+        }}
+        onClose={() => setPicking(false)}
+      />
       {chosen && balances?.has(chosen.id) && (
         <Text style={{ color: colours.muted, fontSize: 12 }}>
           Balance <Money value={balances.get(chosen.id)!} currency={chosen.currency} style={{ fontSize: 12, color: colours.muted }} />

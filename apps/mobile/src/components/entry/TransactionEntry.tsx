@@ -37,7 +37,12 @@ export function TransactionEntry({ kind, existing, prefill }: { kind: EntryKind;
   const { accounts, transactions, movements } = useMoney();
   const today = todayInZone(preferences.timezone);
   const seed = existing ?? prefill;
-  const active = accounts.filter((a) => a.state === "active");
+  // Most-used accounts first, so the usual one is visible without swiping; the chosen one leads.
+  const usage = new Map<string, number>();
+  for (const t of transactions.slice(-300)) for (const id of [t.accountId, t.toAccountId]) if (id) usage.set(id, (usage.get(id) ?? 0) + 1);
+  const byUse = accounts.filter((a) => a.state === "active").sort((a, b) => (usage.get(b.id) ?? 0) - (usage.get(a.id) ?? 0));
+  const active = byUse;
+  const lead = (id: string | null) => (id ? [...byUse.filter((a) => a.id === id), ...byUse.filter((a) => a.id !== id)] : byUse);
 
   const lastOfKind = useMemo(() => [...transactions].filter((t) => t.kind === kind).sort((a, b) => b.date.localeCompare(a.date))[0], [transactions, kind]);
   const [step, setStep] = useState<Step>(existing || prefill ? "review" : "amount");
@@ -158,7 +163,7 @@ export function TransactionEntry({ kind, existing, prefill }: { kind: EntryKind;
       <SafeAreaView style={{ flex: 1, backgroundColor: colours.page }}>
         {header}
         <View style={{ flex: 1, padding: 16, gap: 10 }}>
-          <AccountChips label={kind === "income" ? "Into" : kind === "transfer" ? "From" : "Pay from"} accounts={active} value={accountId} onChange={setAccountId} balances={balances} />
+          <AccountChips label={kind === "income" ? "Into" : kind === "transfer" ? "From" : "Pay from"} accounts={lead(accountId)} value={accountId} onChange={setAccountId} balances={balances} />
           <View style={{ alignItems: "center", marginTop: 8 }}>
             {/[+−×÷]/.test(expr) && <Text style={{ color: colours.faint, fontSize: 15 }}>{expr} =</Text>}
             {amount !== null ? <Money value={amount} style={{ fontSize: 42, fontWeight: "700", color: colours.text }} /> : <Text style={{ fontSize: 42, fontWeight: "700", color: colours.faint }}>0</Text>}
@@ -242,7 +247,7 @@ export function TransactionEntry({ kind, existing, prefill }: { kind: EntryKind;
         )}
         {kind === "transfer" && (
           <View style={{ gap: 12 }}>
-            <AccountChips label="From" accounts={active} value={accountId} onChange={setAccountId} balances={balances} tone={colours.expense} />
+            <AccountChips label="From" accounts={lead(accountId)} value={accountId} onChange={setAccountId} balances={balances} tone={colours.expense} />
             <Pressable
               accessibilityRole="button"
               accessibilityLabel="Swap accounts"
@@ -254,7 +259,7 @@ export function TransactionEntry({ kind, existing, prefill }: { kind: EntryKind;
             >
               <SymbolView name={{ ios: "arrow.up.arrow.down", android: "swap_vert" }} size={22} tintColor="#FFFFFF" />
             </Pressable>
-            <AccountChips label="To" accounts={active.filter((a) => a.id !== accountId)} value={toAccountId} onChange={setToAccountId} balances={balances} tone={colours.income} />
+            <AccountChips label="To" accounts={lead(toAccountId).filter((a) => a.id !== accountId)} value={toAccountId} onChange={setToAccountId} balances={balances} tone={colours.income} />
           </View>
         )}
         {tags.length > 0 && (
@@ -291,7 +296,7 @@ export function TransactionEntry({ kind, existing, prefill }: { kind: EntryKind;
         )}
       </ScrollView>
       <View style={{ backgroundColor: colours.card, borderTopLeftRadius: 24, borderTopRightRadius: 24, padding: 16, gap: 10, elevation: 8 }}>
-        {kind !== "transfer" && <AccountChips label={kind === "income" ? "Into" : "Pay with"} accounts={active} value={accountId} onChange={setAccountId} />}
+        {kind !== "transfer" && <AccountChips label={kind === "income" ? "Into" : "Pay with"} accounts={lead(accountId)} value={accountId} onChange={setAccountId} />}
         <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
           <Pressable accessibilityRole="button" accessibilityLabel="Change amount" onPress={() => setStep("amount")}>
             {amount !== null ? <Money value={amount} style={{ fontSize: 30, fontWeight: "700", color: colours.text }} /> : <Text style={{ fontSize: 30 }}>—</Text>}
