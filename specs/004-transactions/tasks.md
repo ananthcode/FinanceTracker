@@ -67,9 +67,9 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order. Paths as R3.
 - [ ] T022 [P] [US1] Unit `packages/core/test/transaction-labels.test.ts`: `transactionLabel` words per kind/action/direction
 - [ ] T023 [P] [US1] Playwright `apps/web/e2e/r4-us1-record.spec.ts`: spec US1 scenarios 1–9, quickstart S1-a … S1-e, SC-001 (< 20 s)
 - [ ] T024 [US1] `packages/core/src/transactions/labels.ts` (`transactionLabel`) and `totals.ts` (`categoryTotals` with roll-up, Uncategorised) — passes T022
-- [ ] T025 [US1] Components `apps/web/components/transactions/PayeeCombobox.tsx` (search, create new business/person inline), `TagPicker.tsx` (multi-select, create inline), `TransactionForm.tsx` (type tabs; Expense/Income/Refund fields; default category from payee; date with Upcoming note; optional time; notes; reference; status)
+- [ ] T025 [US1] Components (new entries offer only active accounts, unhidden payees and categories — FR-006; an existing transaction keeps showing what it uses) `apps/web/components/transactions/PayeeCombobox.tsx` (search, create new business/person inline), `TagPicker.tsx` (multi-select, create inline), `TransactionForm.tsx` (type tabs; Expense/Income/Refund fields; default category from payee; date with Upcoming note; optional time; notes; reference; status)
 - [ ] T026 [US1] Pages `apps/web/app/(app)/transactions/page.tsx` (list newest first, Load more, To confirm section), `new/page.tsx`, `[id]/page.tsx`; `TransactionRow.tsx`, `ToConfirm.tsx` (confirm one / all); nav badge "N to confirm" in `apps/web/components/shell/` using `toConfirmCount`; replace the R1 placeholder and update `us5-shell.spec.ts`
-- [ ] T027 [US1] Account page `apps/web/app/(app)/accounts/[id]/page.tsx` lists the account's latest transactions; accounts summary counts transactions (balances via `app.account_balance_minor` parity) — passes T023
+- [ ] T027 [US1] Account page `apps/web/app/(app)/accounts/[id]/page.tsx` lists the account's latest transactions; accounts summary counts transactions (balances via `app.account_balance_minor` parity); `AccountForm` explains `DATE_BEFORE_OPENING` when the opening date is moved after existing transactions — passes T023
 
 ## Phase 4: User Story 2 — Transfers (P1)
 
@@ -81,7 +81,7 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order. Paths as R3.
 
 - [ ] T031 [P] [US3] pgTAP (US3 part): every person action's effect and flow check; business refused (`INVALID_PERSON`); adjustment without account requires notes (reason); person date rule; balance flips; none in totals; person → business refused once movements exist
 - [ ] T032 [P] [US3] Playwright `apps/web/e2e/r4-us3-people.spec.ts`: spec US3 1–4 and 6, S3-a (scenario 5 in US5's test)
-- [ ] T033 [US3] Person tab in `TransactionForm` (action select with plain words, person combobox limited to people, account except for adjustment, reason for adjustment); person page `apps/web/app/(app)/people/[id]/page.tsx` lists the person's movements with running balance
+- [ ] T033 [US3] Person tab in `TransactionForm` (action select with plain words, person combobox limited to people, account except for adjustment, reason for adjustment); person page `apps/web/app/(app)/people/[id]/page.tsx` lists the person's movements with running balance; `PayeeForm` explains `DATE_BEFORE_OPENING` for a person's opening date
 
 ## Phase 6: User Story 4 — Interest (P2)
 
@@ -106,7 +106,7 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order. Paths as R3.
 - [ ] T046 [P] [US6] Playwright `apps/web/e2e/r4-us6-find.spec.ts`: spec US6 1–5, S6-a, S-del
 - [ ] T047 [US6] Migration `<ts>_tx_search.sql`: `app.search_transactions`, `app.to_confirm_count` — passes T044
 - [ ] T048 [US6] Migration `<ts>_tx_relocate.sql`: `relocate` for categories and payees; extend R3 merges and tag delete — passes T045
-- [ ] T049 [US6] `FilterPanel.tsx`, search box, count/total, selection and `BulkBar.tsx` (category, payee, status, add/remove tags, delete; chunked pushes); Relocate actions in Settings › Categories and Payees — passes T046
+- [ ] T049 [US6] `FilterPanel.tsx`, search box, count/total, selection and `BulkBar.tsx` (category, payee, status, add/remove tags, delete; chunked pushes); Relocate actions in Settings › Categories and Payees; `TagList` delete confirmation shows the real number of transactions using the tag (FR-021) — passes T046
 
 ## Phase 9: User Story 7 — Statuses and corrections (P3)
 
