@@ -37,7 +37,7 @@ export function SearchPicker({
           data={shown}
           keyExtractor={(o) => o.id}
           renderItem={({ item }) => (
-            <Pressable accessibilityRole="button" onPress={() => onPick(item.id)} style={{ paddingVertical: 12, borderBottomWidth: 1, borderColor: "#eaeef2" }}>
+            <Pressable accessibilityRole="button" onPress={() => onPick(item.id)} style={{ paddingVertical: 12, borderBottomWidth: 1, borderColor: "#E5E4DD" }}>
               <Text>{item.label}</Text>
             </Pressable>
           )}

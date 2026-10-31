@@ -20,7 +20,7 @@ export function SyncStatusBar() {
   const { pending, syncing, lastError, notices, dismissNotices, syncNow } = useSync();
   if (pending === 0 && notices.length === 0 && !syncing) return null;
   return (
-    <View accessibilityLiveRegion="polite" style={{ gap: 8, padding: 12, borderRadius: 8, borderWidth: 1, borderColor: "#d0d7de" }}>
+    <View accessibilityLiveRegion="polite" style={{ gap: 8, padding: 12, borderRadius: 8, borderWidth: 1, borderColor: "#E5E4DD" }}>
       {pending > 0 && (
         <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
           <Text style={{ flex: 1 }}>
@@ -29,7 +29,7 @@ export function SyncStatusBar() {
           </Text>
           {!syncing && (
             <Pressable accessibilityRole="button" onPress={() => void syncNow()} hitSlop={8}>
-              <Text style={{ color: "#1f6feb", fontWeight: "600" }}>Send now</Text>
+              <Text style={{ color: "#534AB7", fontWeight: "600" }}>Send now</Text>
             </Pressable>
           )}
         </View>
@@ -39,7 +39,7 @@ export function SyncStatusBar() {
       ))}
       {notices.length > 0 && (
         <Pressable accessibilityRole="button" onPress={() => void dismissNotices()} hitSlop={8}>
-          <Text style={{ color: "#1f6feb", fontWeight: "600" }}>Dismiss</Text>
+          <Text style={{ color: "#534AB7", fontWeight: "600" }}>Dismiss</Text>
         </Pressable>
       )}
     </View>

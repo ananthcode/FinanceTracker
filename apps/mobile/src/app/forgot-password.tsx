@@ -37,7 +37,7 @@ export default function ForgotPasswordScreen() {
           keyboardType="email-address"
           value={email}
           onChangeText={setEmail}
-          style={{ borderWidth: 1, borderColor: "#d0d7de", borderRadius: 8, padding: 10 }}
+          style={{ borderWidth: 1, borderColor: "#E5E4DD", borderRadius: 8, padding: 10 }}
         />
       </View>
       <Button label={busy ? "Sending…" : "Send reset link"} onPress={submit} disabled={busy || !email} />

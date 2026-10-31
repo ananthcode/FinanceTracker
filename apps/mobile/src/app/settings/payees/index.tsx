@@ -53,14 +53,14 @@ export default function PayeesScreen() {
           key={p.id}
           accessibilityRole="button"
           onPress={() => router.push(p.kind === "person" ? `/people/${p.id}` : `/settings/payees/${p.id}`)}
-          style={{ gap: 2, paddingVertical: 10, borderTopWidth: 1, borderColor: "#eaeef2" }}
+          style={{ gap: 2, paddingVertical: 10, borderTopWidth: 1, borderColor: "#E5E4DD" }}
         >
           <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
             <Text style={{ fontWeight: "600", flex: 1 }}>
               {p.name}
               {p.hidden ? " · Hidden" : ""}
             </Text>
-            {p.kind === "person" ? <BalanceWords balance={personBalanceOf(p, personTotals)} /> : <Text style={{ color: "#57606a" }}>Business</Text>}
+            {p.kind === "person" ? <BalanceWords balance={personBalanceOf(p, personTotals)} /> : <Text style={{ color: "#5F5E5A" }}>Business</Text>}
           </View>
           {p.defaultCategoryId && <Muted>Default: {categoryPath(p.defaultCategoryId, index) || "—"}</Muted>}
         </Pressable>

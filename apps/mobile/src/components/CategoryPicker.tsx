@@ -75,7 +75,7 @@ export function CategoryPicker({
                   onChange(item.id);
                   setOpen(false);
                 }}
-                style={{ paddingVertical: 12, borderBottomWidth: 1, borderColor: "#eaeef2" }}
+                style={{ paddingVertical: 12, borderBottomWidth: 1, borderColor: "#E5E4DD" }}
               >
                 <Text style={{ fontWeight: item.id === value ? "700" : "400" }}>{item.label}</Text>
               </Pressable>

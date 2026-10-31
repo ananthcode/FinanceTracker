@@ -10,7 +10,7 @@ import { clearPin, isValidPin, setPin, verifyPin } from "@/lib/app-lock/pin";
 import { LOCK_TIMEOUTS, MAX_PIN_ATTEMPTS, saveSettings, type LockTimeout } from "@/lib/app-lock/settings-store";
 
 const TIMEOUT_LABEL: Record<LockTimeout, string> = { 0: "Immediately", 60: "After 1 minute", 300: "After 5 minutes", 900: "After 15 minutes" };
-const input = { borderWidth: 1, borderColor: "#d0d7de", borderRadius: 8, padding: 10, fontSize: 20, letterSpacing: 6 } as const;
+const input = { borderWidth: 1, borderColor: "#E5E4DD", borderRadius: 8, padding: 10, fontSize: 20, letterSpacing: 6 } as const;
 
 /** Records app lock turned on/off in the user's history (FR-037); best effort when offline. */
 function audit(action: "app_lock_enabled" | "app_lock_disabled") {
@@ -72,7 +72,7 @@ export default function AppLockSettingsScreen() {
 
   return (
     <Screen title="App lock">
-      <Text style={{ color: "#57606a" }}>
+      <Text style={{ color: "#5F5E5A" }}>
         App lock hides the app behind a PIN (and optionally your fingerprint) when you open it or come back to it. After{" "}
         {MAX_PIN_ATTEMPTS} wrong PINs in a row you are signed out on this phone and the data stored on it is removed — except
         changes not yet sent, which stay sealed and are sent after you sign in again.
@@ -97,7 +97,7 @@ export default function AppLockSettingsScreen() {
                 accessibilityRole="radio"
                 accessibilityState={{ checked: settings.timeoutSec === t }}
                 onPress={() => void setTimeoutSec(t)}
-                style={{ padding: 10, borderRadius: 8, borderWidth: settings.timeoutSec === t ? 2 : 1, borderColor: settings.timeoutSec === t ? "#1f6feb" : "#d0d7de" }}
+                style={{ padding: 10, borderRadius: 8, borderWidth: settings.timeoutSec === t ? 2 : 1, borderColor: settings.timeoutSec === t ? "#534AB7" : "#E5E4DD" }}
               >
                 <Text style={{ fontWeight: settings.timeoutSec === t ? "700" : "400" }}>{TIMEOUT_LABEL[t]}</Text>
               </Pressable>

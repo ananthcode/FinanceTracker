@@ -28,7 +28,7 @@ const AMOUNT_MESSAGES: Record<AmountInputError, string> = {
   NEGATIVE_NOT_ALLOWED: "Enter an amount greater than zero.",
 };
 
-const input = { borderWidth: 1, borderColor: "#d0d7de", borderRadius: 8, padding: 10, fontSize: 16 } as const;
+const input = { borderWidth: 1, borderColor: "#E5E4DD", borderRadius: 8, padding: 10, fontSize: 16 } as const;
 
 /**
  * Add or edit an account on Android (R2 US1, US3, US4 on the phone; T062). Saved to the phone at
@@ -158,7 +158,7 @@ export function AccountForm({ account, accounts, groups }: { account: AccountVie
               accessibilityRole="radio"
               accessibilityState={{ checked: type === t }}
               onPress={() => setType(t)}
-              style={{ paddingVertical: 8, paddingHorizontal: 12, borderRadius: 16, borderWidth: type === t ? 2 : 1, borderColor: type === t ? "#1f6feb" : "#d0d7de" }}
+              style={{ paddingVertical: 8, paddingHorizontal: 12, borderRadius: 16, borderWidth: type === t ? 2 : 1, borderColor: type === t ? "#534AB7" : "#E5E4DD" }}
             >
               <Text style={{ fontWeight: type === t ? "700" : "400" }}>{ACCOUNT_TYPE_LABEL[t]}</Text>
             </Pressable>
@@ -192,7 +192,7 @@ export function AccountForm({ account, accounts, groups }: { account: AccountVie
                 accessibilityRole="radio"
                 accessibilityState={{ checked: groupId === g.id }}
                 onPress={() => setGroupId(g.id)}
-                style={{ paddingVertical: 8, paddingHorizontal: 12, borderRadius: 16, borderWidth: groupId === g.id ? 2 : 1, borderColor: groupId === g.id ? "#1f6feb" : "#d0d7de" }}
+                style={{ paddingVertical: 8, paddingHorizontal: 12, borderRadius: 16, borderWidth: groupId === g.id ? 2 : 1, borderColor: groupId === g.id ? "#534AB7" : "#E5E4DD" }}
               >
                 <Text style={{ fontWeight: groupId === g.id ? "700" : "400" }}>{g.name}</Text>
               </Pressable>
@@ -233,7 +233,7 @@ function ManageAccount({ account }: { account: AccountView }) {
   }
 
   return (
-    <View style={{ gap: 10, marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderColor: "#eaeef2" }}>
+    <View style={{ gap: 10, marginTop: 16, paddingTop: 16, borderTopWidth: 1, borderColor: "#E5E4DD" }}>
       <Text accessibilityRole="header" style={{ fontSize: 18, fontWeight: "600" }}>
         Manage account
       </Text>
@@ -242,7 +242,7 @@ function ManageAccount({ account }: { account: AccountView }) {
       ) : balance === 0n ? (
         <Button label="Archive" variant="outline" onPress={() => void act("archive")} />
       ) : (
-        <Text style={{ color: "#57606a" }}>
+        <Text style={{ color: "#5F5E5A" }}>
           This account can be archived when its balance is ₹0.00 — settle it or correct the opening balance first.
         </Text>
       )}

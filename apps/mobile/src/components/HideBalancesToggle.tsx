@@ -21,7 +21,7 @@ export function HideBalancesToggle() {
       <SymbolView
         name={hideBalances ? { ios: "eye.slash", android: "visibility_off" } : { ios: "eye", android: "visibility" }}
         size={24}
-        tintColor="#1f6feb"
+        tintColor="#534AB7"
       />
     </Pressable>
   );

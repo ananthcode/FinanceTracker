@@ -20,15 +20,16 @@ export function Button({
       disabled={disabled}
       onPress={onPress}
       style={{
-        backgroundColor: primary ? "#1f6feb" : "transparent",
+        backgroundColor: primary ? "#534AB7" : "#FFFFFF",
         borderWidth: primary ? 0 : 1,
-        borderColor: "#d0d7de",
-        padding: 12,
-        borderRadius: 8,
+        borderColor: "#E5E4DD",
+        paddingVertical: 13,
+        paddingHorizontal: 16,
+        borderRadius: 16,
         opacity: disabled ? 0.6 : 1,
       }}
     >
-      <Text style={{ color: primary ? "white" : undefined, textAlign: "center", fontWeight: "600" }}>{label}</Text>
+      <Text style={{ color: primary ? "white" : "#3C3489", textAlign: "center", fontWeight: "600" }}>{label}</Text>
     </Pressable>
   );
 }
