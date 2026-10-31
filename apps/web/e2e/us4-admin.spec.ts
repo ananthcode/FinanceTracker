@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { admin, uniqueEmail, userExists } from "./helpers/db";
 import { extractLink, latestEmailTo } from "./helpers/mailpit";
 import { ensureOwner, signInUI } from "./helpers/owner";
@@ -78,8 +78,13 @@ test("disable signs the member out everywhere; re-enable restores access with da
   const refused = await androidSignIn(request, member);
   expect(refused.body.error?.code).toBe("USER_INACTIVE");
 
-  await page.locator("#users-table tr", { hasText: member }).getByRole("button", { name: "Enable" }).click();
-  await expect(page.locator("#users-table tr", { hasText: member })).toContainText("active");
+  // A click while the table re-renders after the refresh can be lost: click again while still disabled.
+  const memberRow = page.locator("#users-table tr", { hasText: member });
+  await expect(async () => {
+    const enable = memberRow.getByRole("button", { name: "Enable" });
+    if (await enable.isVisible()) await enable.click();
+    await expect(memberRow).toContainText("active", { timeout: 3_000 });
+  }).toPass({ timeout: 20_000 });
   expect((await androidSignIn(request, member)).status).toBe(200);
   const { data: prefs } = await admin().from("user_preferences").select("number_format").eq("user_id", memberId).single();
   expect(prefs?.number_format).toBe("international"); // data intact

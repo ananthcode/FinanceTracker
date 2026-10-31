@@ -1,7 +1,9 @@
 import AxeBuilder from "@axe-core/playwright";
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { seedAccounts, seedLists, uniqueEmail } from "./helpers/db";
 import { ensureOwner, signInUI } from "./helpers/owner";
+import { seedDemoTransactions } from "./helpers/transactions";
 import { createMember } from "./helpers/users";
 
 /** T120 — automated WCAG 2.1 AA scan of the web shell, settings, admin and public pages (Principle XIII). */
@@ -163,4 +165,54 @@ test("R3 lists: people, categories (start dialog, tree, manage, picker), payees 
   await expectNoViolations(page, "merge picker open");
   await page.keyboard.press("Escape");
   await expect(box).toHaveAttribute("aria-expanded", "false");
+});
+
+test("R4 transactions: list, To confirm, filters, bulk bar, every form type, split editor, interest (T055)", async ({ page, request }) => {
+  test.slow(); // many page scans over the demo data
+  await ensureOwner(request);
+  const member = uniqueEmail("a11ytx");
+  await createMember(request, member);
+  await signInUI(page, member);
+  await seedAccounts(member, { demo: true });
+  await seedLists(member, { demo: true });
+  await seedDemoTransactions(member);
+
+  await page.goto("/people");
+  const ravi = (await page.locator("[data-person-name='Ravi Kumar']").getByRole("link").getAttribute("href"))!;
+  await page.goto("/accounts");
+  const savings = (await page.locator("[data-account-row]").getByRole("link", { name: "Everyday Savings" }).getAttribute("href"))!;
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    for (const path of ["/transactions", "/transactions/new", ravi, savings]) {
+      await page.goto(path);
+      await expectNoViolations(page, `${path} @${width}px`);
+    }
+  }
+
+  await page.setViewportSize({ width: 1280, height: 844 });
+  await page.goto("/transactions");
+  await expect(page.getByRole("region", { name: /To confirm/ })).toBeVisible();
+  await page.getByRole("search", { name: "Find transactions" }).getByText("Filters", { exact: true }).click();
+  await page.getByRole("list", { name: "Transactions", exact: true }).getByRole("checkbox").first().check();
+  await expect(page.getByRole("region", { name: "Change selected transactions" })).toBeVisible();
+  await expectNoViolations(page, "filters open and bulk bar");
+
+  await page.goto("/transactions/new");
+  for (const type of ["Income", "Refund", "Transfer", "Person"]) {
+    await page.getByRole("group", { name: "Type" }).getByText(type, { exact: true }).click();
+    await expectNoViolations(page, `form: ${type}`);
+  }
+  await page.getByRole("group", { name: "Type" }).getByText("Expense", { exact: true }).click();
+  // Keyboard: the payee combobox opens, offers to add a new one, and Enter chooses.
+  const payee = page.getByRole("combobox", { name: "Payee (optional)" });
+  await payee.focus();
+  await page.keyboard.type("Brand new shop");
+  await expect(page.getByRole("option", { name: "Add “Brand new shop” as a new business" })).toBeVisible();
+  await expectNoViolations(page, "payee combobox open");
+  await page.keyboard.press("Enter");
+  await expect(payee).toHaveValue("Brand new shop (new business)");
+  await page.getByLabel("Amount", { exact: true }).fill("4,500.00");
+  await page.getByRole("button", { name: "Split into lines" }).click();
+  await page.getByRole("button", { name: "Add line" }).click();
+  await expectNoViolations(page, "split editor");
 });

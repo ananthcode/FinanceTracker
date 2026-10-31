@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { newSignedInMember } from "./helpers/accounts";
 
 /** R3 T056 — User Story 4: free-form tags (spec US4 scenarios 1–3; quickstart S4-a). */

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { availableCredit, balanceLabel, currentBalance, summarise, type AccountForSummary, type Movement } from "../src/accounts";
+import { availableCredit, balanceLabel, currentBalance, movementsFromTotals, summarise, type AccountForSummary, type Movement } from "../src/accounts";
+import { personBalanceOf } from "../src/people";
 import vectors from "./vectors/balances.json";
 
 /** T008 — balances and net worth over the shared vectors (FR-006, FR-012–FR-019, FR-022; SC-002). */
@@ -114,7 +115,9 @@ describe("availableCredit", () => {
 /** R3 T043 — people switched into net worth (FR-020; SC-004). */
 describe("summarise with people (R3 FR-020)", () => {
   const accounts = vectors.cases[0]!.accounts.map(toAccount); // Owned 5434050, Owed 1825000
+  let n = 0;
   const person = (openingBalanceMinor: bigint, includeInNetWorth: boolean, hidden = false) => ({
+    id: `p${++n}`,
     kind: "person" as const,
     openingBalanceMinor,
     includeInNetWorth,
@@ -144,8 +147,26 @@ describe("summarise with people (R3 FR-020)", () => {
   it("ignores businesses", () => {
     const s = summarise(accounts, {
       view: "by_type",
-      people: [{ kind: "business", openingBalanceMinor: 0n, includeInNetWorth: false }],
+      people: [{ id: "b", kind: "business", openingBalanceMinor: 0n, includeInNetWorth: false }],
     });
     expect(s.people).toEqual({ owedToYou: 0n, youOwe: 0n });
+  });
+});
+
+describe("summarise with movement totals (R4 FR-007, FR-008)", () => {
+  it("adds each account's and each included person's counted movements", () => {
+    const accounts = vectors.cases[0]!.accounts.map(toAccount);
+    const first = accounts.find((a) => a.state === "active" && a.type !== "credit_card")!;
+    const plain = summarise(accounts, { view: "by_type" });
+    const ravi = { id: "ravi", kind: "person" as const, openingBalanceMinor: 1500000n, includeInNetWorth: true };
+    const s = summarise(accounts, {
+      view: "by_type",
+      movements: movementsFromTotals(accounts, { [first.id]: -123450n }),
+      people: [ravi],
+      personMovements: { ravi: -1500000n },
+    });
+    expect(s.owned).toBe(plain.owned - 123450n);
+    expect(s.people).toEqual({ owedToYou: 0n, youOwe: 0n });
+    expect(personBalanceOf(ravi, { ravi: -1600000n })).toBe(-100000n);
   });
 });

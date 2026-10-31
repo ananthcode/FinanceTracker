@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { addAccount, newSignedInMember, submitAccount } from "./helpers/accounts";
 import { admin } from "./helpers/db";
 

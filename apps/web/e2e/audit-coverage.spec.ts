@@ -1,4 +1,5 @@
-import { expect, test, type APIRequestContext } from "@playwright/test";
+import type { APIRequestContext } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { admin, seedInvitation, uniqueEmail } from "./helpers/db";
 import { extractLink, latestEmailTo } from "./helpers/mailpit";
 import { ensureOwner } from "./helpers/owner";

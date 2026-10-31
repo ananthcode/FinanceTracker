@@ -101,6 +101,17 @@ export const changes = {
   updatePayee: (id: string, changed: Record<string, unknown>) => newChange("payee", id, "update", changed),
   deletePayee: (id: string) => newChange("payee", id, "delete"),
   mergePayee: (id: string, targetId: string) => newChange("payee", id, "merge", { targetId }),
+  // R4: transactions and person rates; relocate keeps the source (FR-019).
+  createTransaction: (id: string, fields: Record<string, unknown>) => newChange("transaction", id, "create", fields),
+  updateTransaction: (id: string, changed: Record<string, unknown>) => newChange("transaction", id, "update", changed),
+  deleteTransaction: (id: string) => newChange("transaction", id, "delete"),
+  confirmTransactions: (ids: string[]) => ids.map((id) => newChange("transaction", id, "update", { confirmed: true })),
+  createPersonRate: (id: string, fields: { payeeId: string; effectiveMonth: string; rateE4: number }) =>
+    newChange("person_rate", id, "create", fields),
+  updatePersonRate: (id: string, changed: Record<string, unknown>) => newChange("person_rate", id, "update", changed),
+  deletePersonRate: (id: string) => newChange("person_rate", id, "delete"),
+  relocateCategory: (id: string, targetId: string) => newChange("category", id, "relocate", { targetId }),
+  relocatePayee: (id: string, targetId: string) => newChange("payee", id, "relocate", { targetId }),
 };
 
 export type PushOutcome =

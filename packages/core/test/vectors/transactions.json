@@ -1,0 +1,82 @@
+{
+  "description": "Postings, balances and totals (R4 FR-007 – FR-012, FR-002a, FR-020; SC-002). Hand-computed. Shared by packages/core/test/postings.test.ts and the SQL parity test (postings trigger, app.account_balance_minor, app.person_balance_minor).",
+  "cases": [
+    {
+      "name": "every kind on held and owed accounts, a split with a person share, a flip, void and unconfirmed",
+      "accounts": [
+        { "id": "a1", "type": "bank", "openingBalanceMinor": "10000000", "openingBalanceDate": "2026-04-01" },
+        { "id": "a2", "type": "credit_card", "openingBalanceMinor": "1825000", "openingBalanceDate": "2026-04-01" },
+        { "id": "a3", "type": "cash", "openingBalanceMinor": "200000", "openingBalanceDate": "2026-04-01" }
+      ],
+      "people": [
+        { "id": "ravi", "openingBalanceMinor": "1500000" },
+        { "id": "meera", "openingBalanceMinor": "-450000" }
+      ],
+      "transactions": [
+        { "id": "t1", "date": "2026-10-05", "kind": "expense", "flow": "out", "accountId": "a1", "amountMinor": "123450", "categoryId": "groceries" },
+        { "id": "t2", "date": "2026-10-01", "kind": "income", "flow": "in", "accountId": "a1", "amountMinor": "8500000", "categoryId": "salary" },
+        { "id": "t3", "date": "2026-10-06", "kind": "refund", "flow": "in", "accountId": "a1", "amountMinor": "50000", "categoryId": "groceries" },
+        { "id": "t4", "date": "2026-10-07", "kind": "transfer", "flow": "out", "accountId": "a1", "toAccountId": "a2", "amountMinor": "1825000" },
+        { "id": "t5", "date": "2026-10-08", "kind": "expense", "flow": "out", "accountId": "a2", "amountMinor": "300000", "lines": [
+          { "id": "l1", "amountMinor": "100000", "categoryId": "eating_out" },
+          { "id": "l2", "amountMinor": "200000", "personId": "meera", "personAction": "paid_on_behalf" }
+        ] },
+        { "id": "t6", "date": "2026-10-09", "kind": "person", "flow": "out", "personAction": "lent", "accountId": "a3", "amountMinor": "500000", "payeeId": "ravi" },
+        { "id": "t7", "date": "2026-10-10", "kind": "person", "flow": "in", "personAction": "received_back", "accountId": "a1", "amountMinor": "800000", "payeeId": "ravi" },
+        { "id": "t8", "date": "2026-10-11", "kind": "person", "flow": "out", "personAction": "repaid_to", "accountId": "a1", "amountMinor": "450000", "payeeId": "meera" },
+        { "id": "t9", "date": "2026-10-12", "kind": "person", "flow": "in", "personAction": "adjustment", "amountMinor": "100000", "payeeId": "ravi" },
+        { "id": "t10", "date": "2026-10-31", "kind": "interest", "flow": "out", "amountMinor": "12000", "payeeId": "ravi" },
+        { "id": "t11", "date": "2026-10-13", "kind": "expense", "flow": "out", "accountId": "a1", "amountMinor": "999999", "status": "void" },
+        { "id": "t12", "date": "2026-10-14", "kind": "expense", "flow": "out", "accountId": "a1", "amountMinor": "25000", "categoryId": "eating_out", "confirmed": false },
+        { "id": "t13", "date": "2026-10-15", "kind": "expense", "flow": "out", "accountId": "a1", "amountMinor": "50000" },
+        { "id": "t14", "date": "2026-10-16", "kind": "expense", "flow": "out", "accountId": "a1", "amountMinor": "70000", "categoryId": "groceries", "state": "deleted" }
+      ],
+      "expect": {
+        "notes": "a1: 10000000 −123450 +8500000 +50000 −1825000 +800000 −450000 −50000 = 16901550. a2 owed: 1825000 −1825000 +300000 = 300000. a3: 200000 −500000 = −300000. Ravi: 1500000 +500000 −800000 −100000 +12000 = 1112000. Meera: −450000 +200000 +450000 = 200000 (flipped).",
+        "accountBalances": { "a1": "16901550", "a2": "300000", "a3": "-300000" },
+        "personBalances": { "ravi": "1112000", "meera": "200000" },
+        "spending": { "groceries": "73450", "eating_out": "100000", "uncategorised": "50000" },
+        "income": { "salary": "8500000" },
+        "postings": {
+          "t4": [
+            { "lineNo": 0, "type": "account", "accountId": "a1", "effect": "-1825000" },
+            { "lineNo": 0, "type": "account", "accountId": "a2", "effect": "-1825000" }
+          ],
+          "t5": [
+            { "lineNo": 0, "type": "account", "accountId": "a2", "effect": "300000" },
+            { "lineNo": 1, "type": "category", "categoryId": "eating_out", "kind": "expense", "effect": "100000" },
+            { "lineNo": 2, "type": "person", "personId": "meera", "effect": "200000" }
+          ],
+          "t3": [
+            { "lineNo": 0, "type": "account", "accountId": "a1", "effect": "50000" },
+            { "lineNo": 0, "type": "category", "categoryId": "groceries", "kind": "expense", "effect": "-50000" }
+          ]
+        }
+      }
+    },
+    {
+      "name": "maximum amount and collected on behalf in an income split",
+      "accounts": [
+        { "id": "big", "type": "bank", "openingBalanceMinor": "0", "openingBalanceDate": "2026-04-01" },
+        { "id": "card", "type": "credit_card", "openingBalanceMinor": "0", "openingBalanceDate": "2026-04-01" }
+      ],
+      "people": [{ "id": "landlord", "openingBalanceMinor": "0" }],
+      "transactions": [
+        { "id": "m1", "date": "2026-10-01", "kind": "expense", "flow": "out", "accountId": "big", "amountMinor": "999999999999", "categoryId": "groceries" },
+        { "id": "m2", "date": "2026-10-02", "kind": "refund", "flow": "in", "accountId": "card", "amountMinor": "10000", "categoryId": "groceries" },
+        { "id": "m3", "date": "2026-10-03", "kind": "income", "flow": "in", "accountId": "big", "amountMinor": "3000000", "lines": [
+          { "id": "x1", "amountMinor": "1000000", "categoryId": "rent_received" },
+          { "id": "x2", "amountMinor": "2000000", "personId": "landlord", "personAction": "collected_on_behalf" }
+        ] }
+      ],
+      "expect": {
+        "notes": "big: −999999999999 +3000000 = −999996999999. card owed: refund in → −10000 (in credit). landlord: collected on behalf → −2000000 (the user owes them).",
+        "accountBalances": { "big": "-999996999999", "card": "-10000" },
+        "personBalances": { "landlord": "-2000000" },
+        "spending": { "groceries": "999999989999" },
+        "income": { "rent_received": "1000000" },
+        "postings": {}
+      }
+    }
+  ]
+}

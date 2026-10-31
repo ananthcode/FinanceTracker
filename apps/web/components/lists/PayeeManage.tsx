@@ -20,7 +20,7 @@ export function PayeeManage({ payee, payees, returnTo }: { payee: PayeeView; pay
   const router = useRouter();
   const push = useSyncPush();
   const targets = payees.filter((p) => canMergePayee(payee, p)).sort((a, b) => compareNames(a.name, b.name));
-  const [panel, setPanel] = useState<"merge" | "delete" | null>(null);
+  const [panel, setPanel] = useState<"merge" | "relocate" | "delete" | null>(null);
   const [target, setTarget] = useState(targets[0]?.id ?? "");
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -57,6 +57,11 @@ export function PayeeManage({ payee, payees, returnTo }: { payee: PayeeView; pay
             Merge into another {noun}
           </Button>
         )}
+        {targets.length > 0 && (
+          <Button type="button" variant="outline" onClick={() => setPanel("relocate")}>
+            Relocate transactions to another {noun}
+          </Button>
+        )}
         <Button type="button" variant="outline" onClick={() => setPanel("delete")}>
           Delete
         </Button>
@@ -83,6 +88,48 @@ export function PayeeManage({ payee, payees, returnTo }: { payee: PayeeView; pay
           </p>
           {error && <p className="text-red-700 dark:text-red-300">{error}</p>}
         </ConfirmDialog>
+      )}
+      {panel === "relocate" && (
+        // R4 FR-019: everything moves to the target; this payee stays.
+        <Dialog title={`Move ${payee.name}'s transactions`} onClose={() => setPanel(null)}>
+          <form
+            className="flex flex-col gap-4"
+            onSubmit={(e) => {
+              e.preventDefault();
+              if (target) void run(changes.relocatePayee(payee.id, target), "The transactions could not be moved.", false);
+            }}
+          >
+            <div className="flex flex-col gap-1.5">
+              <Label htmlFor={`${ids}-relocate`}>Move them to</Label>
+              <select
+                id={`${ids}-relocate`}
+                value={target}
+                onChange={(e) => setTarget(e.target.value)}
+                className="h-9 rounded-md border border-input bg-transparent px-2 text-sm"
+              >
+                {targets.map((t) => (
+                  <option key={t.id} value={t.id}>
+                    {t.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {chosen && (
+              <p className="text-sm" aria-live="polite">
+                Every transaction with {payee.name} will be with {chosen.name} instead. {payee.name} stays.
+              </p>
+            )}
+            {error && <p className="text-sm text-red-700 dark:text-red-300">{error}</p>}
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setPanel(null)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={busy || !chosen}>
+                Move transactions
+              </Button>
+            </div>
+          </form>
+        </Dialog>
       )}
       {panel === "merge" && (
         <Dialog title={`Merge ${payee.name} into another ${noun}`} onClose={() => setPanel(null)}>

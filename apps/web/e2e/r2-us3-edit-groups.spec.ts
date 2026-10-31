@@ -1,4 +1,5 @@
-import { expect, test, type Page } from "@playwright/test";
+import type { Page } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { addAccount, newSignedInMember } from "./helpers/accounts";
 import { admin } from "./helpers/db";
 
@@ -47,13 +48,20 @@ test("reordering by button and by keyboard drag is kept across reloads and devic
   await expect.poll(() => namesIn(page, "Cash")).toEqual(["Alpha cash", "Gamma cash", "Beta cash"]);
   await page.waitForLoadState("networkidle"); // let the refresh after the move land before dragging
 
-  // Keyboard drag: focus the handle, Space to lift, ArrowDown, Space to drop.
-  await page.getByRole("button", { name: "Reorder Alpha cash" }).focus();
-  await page.keyboard.press("Space");
-  await page.keyboard.press("ArrowDown");
-  await page.keyboard.press("Space");
-  await expect.poll(() => namesIn(page, "Cash")).toEqual(["Gamma cash", "Alpha cash", "Beta cash"]);
+  // Keyboard drag: focus the handle, Space to lift, ArrowDown, Space to drop. Keys pressed while the
+  // list re-renders after the refresh are lost, so drag again only while the order is unchanged.
+  const moved = ["Gamma cash", "Alpha cash", "Beta cash"];
+  await expect(async () => {
+    if (JSON.stringify(await namesIn(page, "Cash")) !== JSON.stringify(moved)) {
+      await page.getByRole("button", { name: "Reorder Alpha cash" }).focus();
+      await page.keyboard.press("Space");
+      await page.keyboard.press("ArrowDown");
+      await page.keyboard.press("Space");
+    }
+    await expect.poll(() => namesIn(page, "Cash"), { timeout: 3_000 }).toEqual(moved);
+  }).toPass({ timeout: 20_000 });
 
+  await page.waitForLoadState("networkidle"); // the order shows at once; let its save finish before reloading
   await page.reload();
   expect(await namesIn(page, "Cash")).toEqual(["Gamma cash", "Alpha cash", "Beta cash"]);
   const other = await (await browser.newContext()).newPage();

@@ -6,6 +6,7 @@
 import { z } from "zod";
 import { IsoDate, MinorString } from "../accounts/schemas";
 import { Notes, trimmedName } from "../schemas/text";
+import { INTEREST_MODES } from "../transactions/types";
 import { PAYEE_KINDS } from "./types";
 
 export const PayeeName = trimmedName(60);
@@ -20,15 +21,20 @@ const fields = {
   openingBalanceMinor: MinorString,
   openingBalanceDate: IsoDate.nullable(),
   includeInNetWorth: z.boolean(),
+  /** People only (R4 FR-013): none, automatic or manual interest. */
+  interestMode: z.enum(INTEREST_MODES),
 };
 
 /** A business may only send the neutral opening values. */
-function businessIsNeutral(f: Partial<{ kind: string; openingBalanceMinor: string; openingBalanceDate: string | null; includeInNetWorth: boolean }>) {
+function businessIsNeutral(
+  f: Partial<{ kind: string; openingBalanceMinor: string; openingBalanceDate: string | null; includeInNetWorth: boolean; interestMode: string }>,
+) {
   if (f.kind !== "business") return true;
   return (
     (f.openingBalanceMinor === undefined || /^-?0+$/.test(f.openingBalanceMinor)) &&
     (f.openingBalanceDate === undefined || f.openingBalanceDate === null) &&
-    (f.includeInNetWorth === undefined || f.includeInNetWorth === false)
+    (f.includeInNetWorth === undefined || f.includeInNetWorth === false) &&
+    (f.interestMode === undefined || f.interestMode === "none")
   );
 }
 
@@ -41,6 +47,7 @@ export const PayeeCreateFields = z
     openingBalanceMinor: fields.openingBalanceMinor.default("0"),
     openingBalanceDate: fields.openingBalanceDate.default(null),
     includeInNetWorth: fields.includeInNetWorth.default(false),
+    interestMode: fields.interestMode.default("none"),
   })
   .strict()
   .refine((f) => f.kind !== "person" || f.openingBalanceDate !== null, {

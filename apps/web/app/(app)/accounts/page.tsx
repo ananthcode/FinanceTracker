@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { DEFAULT_PREFERENCES, summarise } from "@ft/core";
-import { getPreferences, listAccounts, listGroups, listPayees } from "@ft/db";
+import { DEFAULT_PREFERENCES, movementsFromTotals, summarise } from "@ft/core";
+import { balanceMovements, getPreferences, listAccounts, listGroups, listPayees } from "@ft/db";
 import { AccountRow } from "@/components/accounts/AccountRow";
 import { GroupSection } from "@/components/accounts/GroupSection";
 import { NetWorthSummary } from "@/components/accounts/NetWorthSummary";
@@ -20,17 +20,24 @@ export default async function AccountsPage({ searchParams }: { searchParams: Pro
   const { notice } = await searchParams;
   const supabase = await createServerSupabase();
   const { data } = await supabase.auth.getUser();
-  const [accounts, groups, preferences, people] = await Promise.all([
+  const [accounts, groups, preferences, people, totals] = await Promise.all([
     listAccounts(supabase),
     listGroups(supabase),
     getPreferences(supabase, data.user?.id ?? ""),
     listPayees(supabase, "person"),
+    balanceMovements(supabase),
   ]);
   const prefs = preferences ?? DEFAULT_PREFERENCES;
   const currency = prefs.baseCurrency;
   const view = prefs.accountsView;
-  // People switched into net worth count in Owned / Owed (R3 FR-020).
-  const summary = summarise(accounts, { view, groups, people });
+  // People switched into net worth count in Owned / Owed (R3 FR-020); transactions move both (R4 FR-007, FR-008).
+  const summary = summarise(accounts, {
+    view,
+    groups,
+    people,
+    movements: movementsFromTotals(accounts, totals.accounts),
+    personMovements: totals.people,
+  });
   const hasActive = accounts.some((a) => a.state === "active");
   const archived = summary.archived;
 

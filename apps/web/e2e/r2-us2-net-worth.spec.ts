@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { addAccount, newSignedInMember } from "./helpers/accounts";
 
 /** T040 — R2 User Story 2: balances and net worth at a glance (quickstart S2-a…S2-c; SC-002, SC-006). */

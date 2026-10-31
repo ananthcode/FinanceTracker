@@ -1,7 +1,9 @@
 "use client";
 
-import { useEffect, useId, useRef } from "react";
+import { useEffect, useId, useRef, useSyncExternalStore } from "react";
 import { createPortal } from "react-dom";
+
+const noSubscription = () => () => {};
 
 /**
  * A modal panel (native <dialog>: focus is trapped and Escape closes it unless `required`).
@@ -26,11 +28,19 @@ export function Dialog({
   const ref = useRef<HTMLDialogElement>(null);
   const titleId = useId();
   const descriptionId = useId();
+  // <body> exists only in the browser: a dialog open on the first render (e.g. the start choice)
+  // is rendered once the page is in the browser, not on the server.
+  const inBrowser = useSyncExternalStore(
+    noSubscription,
+    () => true,
+    () => false,
+  );
 
   useEffect(() => {
-    ref.current?.showModal();
-  }, []);
+    if (inBrowser) ref.current?.showModal();
+  }, [inBrowser]);
 
+  if (!inBrowser) return null;
   return createPortal(
     <dialog
       ref={ref}

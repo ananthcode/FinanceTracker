@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { useId, useMemo, useState } from "react";
-import { categoryPath, compareNames, indexCategories, personBalance, type CategoryView, type PayeeView } from "@ft/core";
+import { categoryPath, compareNames, indexCategories, personBalanceOf, type CategoryView, type MovementTotals, type PayeeView } from "@ft/core";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -17,7 +17,15 @@ const FILTER_LABEL: Record<KindFilter, string> = { all: "All", business: "Busine
  * Settings › Payees list (R3 FR-013): search as you type, filter by kind, show hidden payees on
  * request. Each row shows the default category's full path; people show their balance in words.
  */
-export function PayeeList({ payees, categories }: { payees: PayeeView[]; categories: CategoryView[] }) {
+export function PayeeList({
+  payees,
+  categories,
+  movements = {},
+}: {
+  payees: PayeeView[];
+  categories: CategoryView[];
+  movements?: MovementTotals;
+}) {
   const ids = useId();
   const [query, setQuery] = useState("");
   const [kind, setKind] = useState<KindFilter>("all");
@@ -82,7 +90,7 @@ export function PayeeList({ payees, categories }: { payees: PayeeView[]; categor
                   Default: {categoryPath(p.defaultCategoryId, index) || "—"}
                 </span>
               )}
-              {p.kind === "person" && <PersonBalance balance={personBalance(p)} className="ml-auto text-sm" />}
+              {p.kind === "person" && <PersonBalance balance={personBalanceOf(p, movements)} className="ml-auto text-sm" />}
             </li>
           ))}
         </ul>

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { compareNames, peopleTotals, personBalance, type PayeeView } from "@ft/core";
+import { compareNames, peopleTotals, personBalanceOf, type MovementTotals, type PayeeView } from "@ft/core";
 import { Money } from "@/components/Money";
 import { PersonBalance } from "./PersonBalance";
 
@@ -10,8 +10,8 @@ import { PersonBalance } from "./PersonBalance";
  * their balance in words; hidden people in a collapsible section. Every amount goes through
  * <Money>, so hide-balances masks them all (FR-021).
  */
-export function PeopleList({ people }: { people: PayeeView[] }) {
-  const totals = peopleTotals(people);
+export function PeopleList({ people, movements = {} }: { people: PayeeView[]; movements?: MovementTotals }) {
+  const totals = peopleTotals(people, (p) => personBalanceOf(p, movements));
   const sorted = [...people].sort((a, b) => compareNames(a.name, b.name));
   const shown = sorted.filter((p) => !p.hidden);
   const hidden = sorted.filter((p) => p.hidden);
@@ -41,7 +41,7 @@ export function PeopleList({ people }: { people: PayeeView[] }) {
       ) : (
         <ul aria-label="People" className="flex flex-col divide-y divide-border">
           {shown.map((p) => (
-            <PersonRow key={p.id} person={p} />
+            <PersonRow key={p.id} person={p} balance={personBalanceOf(p, movements)} />
           ))}
         </ul>
       )}
@@ -51,7 +51,7 @@ export function PeopleList({ people }: { people: PayeeView[] }) {
           <summary className="cursor-pointer text-sm font-medium">Hidden people ({hidden.length})</summary>
           <ul aria-label="Hidden people" className="mt-2 flex flex-col divide-y divide-border">
             {hidden.map((p) => (
-              <PersonRow key={p.id} person={p} />
+              <PersonRow key={p.id} person={p} balance={personBalanceOf(p, movements)} />
             ))}
           </ul>
         </details>
@@ -60,14 +60,14 @@ export function PeopleList({ people }: { people: PayeeView[] }) {
   );
 }
 
-function PersonRow({ person }: { person: PayeeView }) {
+function PersonRow({ person, balance }: { person: PayeeView; balance: bigint }) {
   return (
     <li className="flex flex-wrap items-baseline gap-x-3 gap-y-0.5 py-2" data-person-name={person.name}>
       <Link href={`/people/${person.id}`} className="font-medium text-brand-strong hover:underline dark:text-brand">
         {person.name}
       </Link>
       {person.includeInNetWorth && <span className="text-xs text-muted-foreground">In net worth</span>}
-      <PersonBalance balance={personBalance(person)} className="ml-auto" />
+      <PersonBalance balance={balance} className="ml-auto" />
     </li>
   );
 }

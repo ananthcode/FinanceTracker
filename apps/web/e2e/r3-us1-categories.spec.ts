@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test } from "./fixtures";
 import { newSignedInMember } from "./helpers/accounts";
 import { answerStartChoice, countRows, expandCategory, manageCategory, openCategories, pickCategory } from "./helpers/lists";
 

@@ -42,6 +42,12 @@ export const ERROR_CODES = [
   "HAS_SUBCATEGORIES",
   "INVALID_MOVE",
   "INVALID_MERGE",
+  // R4 — transactions (specs/004-transactions/contracts/sync-protocol.md)
+  "DATE_BEFORE_OPENING",
+  "LINES_MISMATCH",
+  "ACCOUNT_INACTIVE",
+  "INVALID_PERSON",
+  "INVALID_CATEGORY",
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];

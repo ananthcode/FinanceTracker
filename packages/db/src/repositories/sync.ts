@@ -26,7 +26,7 @@ export async function pushChanges(db: SupabaseClient, request: PushRequest): Pro
   return ChangeResult.array().parse(data);
 }
 
-const MONEY_AND_SEQ = new Set(["opening_balance_minor", "credit_limit_minor", "server_seq"]);
+const MONEY_AND_SEQ = new Set(["opening_balance_minor", "credit_limit_minor", "amount_minor", "server_seq"]);
 
 function camel(key: string): string {
   return key.replace(/_([a-z])/g, (_, c: string) => c.toUpperCase());
