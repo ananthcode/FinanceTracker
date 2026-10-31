@@ -44,7 +44,7 @@ export function CategoryActions({
   onClose: () => void;
 }) {
   const push = useSyncPush();
-  const [view, setView] = useState<"menu" | "merge" | "delete">("menu");
+  const [view, setView] = useState<"menu" | "merge" | "relocate" | "delete">("menu");
   const [target, setTarget] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -104,6 +104,45 @@ export function CategoryActions({
           </Button>
           <Button type="submit" disabled={busy || !preview}>
             Merge
+          </Button>
+        </div>
+      </form>
+    );
+  }
+
+  // R4 FR-019: move every transaction and split line to another category; this one stays.
+  if (view === "relocate") {
+    const chosen = target && target !== category.id ? categoryPath(target, index) : null;
+    return (
+      <form
+        className="flex flex-col gap-4"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (chosen && target) void run(changes.relocateCategory(category.id, target), "The transactions could not be moved.");
+        }}
+      >
+        <CategoryPicker
+          label="Move its transactions to"
+          categories={categories}
+          value={target}
+          onChange={setTarget}
+          kind={category.kind}
+          categoriesStart={categoriesStart}
+          exclude={new Set([category.id])}
+        />
+        {chosen && (
+          <p className="text-sm" aria-live="polite">
+            Every transaction and split line in {category.name} will be in {chosen} instead. {category.name} stays, with its
+            sub-categories.
+          </p>
+        )}
+        {error && <p className="text-sm text-red-700 dark:text-red-300">{error}</p>}
+        <div className="flex justify-end gap-2">
+          <Button type="button" variant="outline" onClick={() => setView("menu")}>
+            Back
+          </Button>
+          <Button type="submit" disabled={busy || !chosen}>
+            Relocate
           </Button>
         </div>
       </form>
@@ -175,6 +214,9 @@ export function CategoryActions({
       </Button>
       <Button type="button" variant="outline" onClick={() => setView("merge")}>
         Merge into another category
+      </Button>
+      <Button type="button" variant="outline" onClick={() => setView("relocate")}>
+        Relocate its transactions to another category
       </Button>
       <Button type="button" variant="outline" onClick={() => setView("delete")}>
         Delete

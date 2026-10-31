@@ -7,6 +7,7 @@ import { Dialog } from "@/components/Dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { tagUsage } from "@/app/(app)/settings/tags/actions";
 import { changes, useSyncPush } from "@/lib/sync-client";
 import { refusal } from "./messages";
 
@@ -24,7 +25,7 @@ function nameError(name: string): string | null {
 
 /**
  * Settings › Tags (R3 US4; FR-009 – FR-011): alphabetical list; add, rename in place, merge into
- * another tag, delete with confirmation. Records carrying tags arrive with transactions in R4.
+ * another tag, delete with confirmation saying how many transactions carry it (R4 FR-021).
  */
 export function TagList({ tags }: { tags: TagView[] }) {
   const ids = useId();
@@ -97,6 +98,16 @@ function TagRow({ tag, others }: { tag: TagView; others: TagView[] }) {
   const [panel, setPanel] = useState<"delete" | "merge" | null>(null);
   const [target, setTarget] = useState(others[0]?.id ?? "");
   const [busy, setBusy] = useState(false);
+  // R4 FR-021: the confirmation says how many transactions lose the tag; undefined while asking.
+  const [usage, setUsage] = useState<number | null | undefined>(undefined);
+
+  function askDelete() {
+    setUsage(undefined);
+    setPanel("delete");
+    void tagUsage(tag.id)
+      .then(setUsage)
+      .catch(() => setUsage(null));
+  }
 
   async function rename(e: React.FormEvent) {
     e.preventDefault();
@@ -182,7 +193,7 @@ function TagRow({ tag, others }: { tag: TagView; others: TagView[] }) {
               Merge
             </Button>
           )}
-          <Button type="button" size="sm" variant="ghost" onClick={() => setPanel("delete")} aria-label={`Delete ${tag.name}`}>
+          <Button type="button" size="sm" variant="ghost" onClick={askDelete} aria-label={`Delete ${tag.name}`}>
             Delete
           </Button>
         </>
@@ -197,8 +208,13 @@ function TagRow({ tag, others }: { tag: TagView; others: TagView[] }) {
           onCancel={() => setPanel(null)}
           onConfirm={() => void remove()}
         >
-          {/* R4 replaces this with the number of transactions that carry the tag (FR-010). */}
-          <p>No transactions use this tag yet. It is removed from your list.</p>
+          <p aria-live="polite">
+            {usage === undefined
+              ? "Checking which transactions use it…"
+              : usage === null || usage === 0
+                ? "No transactions use this tag. It is removed from your list."
+                : `It is removed from ${usage === 1 ? "1 transaction" : `${usage.toLocaleString("en-IN")} transactions`} and from your list.`}
+          </p>
         </ConfirmDialog>
       )}
       {panel === "merge" && (

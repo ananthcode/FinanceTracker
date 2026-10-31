@@ -103,10 +103,10 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order. Paths as R3.
 
 - [X] T044 [P] [US6] pgTAP `tx_search.test.sql`: each filter; category roll-up; Uncategorised; text over payee/category names, notes, reference; keyset paging without gaps; count and total; RLS via INVOKER
 - [X] T045 [P] [US6] pgTAP (relocate part) in `tx_apply.test.sql`: relocate category (and lines) and payee keep the source; kinds must match; R3 merges now repoint transactions, lines and tags; tag delete removes from transactions; activity blocks deletes
-- [ ] T046 [P] [US6] Playwright `apps/web/e2e/r4-us6-find.spec.ts`: spec US6 1–5, S6-a, S-del
+- [X] T046 [P] [US6] Playwright `apps/web/e2e/r4-us6-find.spec.ts`: spec US6 1–5, S6-a, S-del
 - [X] T047 [US6] Migration `<ts>_tx_search.sql`: `app.search_transactions`, `app.to_confirm_count` — passes T044
 - [X] T048 [US6] Migration `<ts>_tx_relocate.sql`: `relocate` for categories and payees; extend R3 merges and tag delete — passes T045
-- [ ] T049 [US6] `FilterPanel.tsx`, search box, count/total, selection and `BulkBar.tsx` (category, payee, status, add/remove tags, delete; chunked pushes); Relocate actions in Settings › Categories and Payees; `TagList` delete confirmation shows the real number of transactions using the tag (FR-021) — passes T046
+- [X] T049 [US6] `FilterPanel.tsx`, search box, count/total, selection and `BulkBar.tsx` (category, payee, status, add/remove tags, delete; chunked pushes); Relocate actions in Settings › Categories and Payees; `TagList` delete confirmation shows the real number of transactions using the tag (FR-021) — passes T046
 
 ## Phase 9: User Story 7 — Statuses and corrections (P3)
 

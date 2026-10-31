@@ -1,6 +1,7 @@
 import Link from "next/link";
-import { DEFAULT_PREFERENCES, todayInZone } from "@ft/core";
+import { compareNames, DEFAULT_PREFERENCES, todayInZone } from "@ft/core";
 import { getPreferences, listAccounts, listCategories, listPayees, listTags, runInterestProposals, searchTransactions } from "@ft/db";
+import { FilterPanel } from "@/components/transactions/FilterPanel";
 import { ToConfirm } from "@/components/transactions/ToConfirm";
 import { TransactionList } from "@/components/transactions/TransactionList";
 import { buttonVariants } from "@/components/ui/button";
@@ -32,6 +33,9 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
   const names = namesOf(accounts, payees, categories, tags);
   const filtered = Object.keys(filters).length > 0;
   const returnTo = "/transactions";
+  const byPath = (a: [string, string], b: [string, string]) => compareNames(a[1], b[1]);
+  const categoryPaths = categories.map((c): [string, string] => [c.id, names.categories[c.id]!]).sort(byPath);
+  const visiblePaths = categories.filter((c) => !c.hidden).map((c): [string, string] => [c.id, names.categories[c.id]!]).sort(byPath);
 
   return (
     <section aria-labelledby="page-title" className="flex flex-col gap-6">
@@ -46,13 +50,16 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
 
       {toConfirm.rows.length > 0 && <ToConfirm rows={toConfirm.rows} names={names} todayIso={todayIso} />}
 
-      {filtered && (
-        <p className="text-sm">
-          Showing matching transactions.{" "}
-          <Link href="/transactions" className="text-brand-strong underline dark:text-brand">
-            Show all
-          </Link>
-        </p>
+      {(page.count > 0 || filtered) && (
+        <FilterPanel
+          key={JSON.stringify(filters)}
+          filters={filters}
+          accounts={accounts}
+          categoryPaths={categoryPaths}
+          payees={payees}
+          tags={tags}
+          currency={preferences.baseCurrency}
+        />
       )}
 
       {page.count === 0 && !filtered ? (
@@ -67,7 +74,14 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
           </Link>
         </div>
       ) : (
-        <TransactionList initial={page} filters={filters} names={names} todayIso={todayIso} returnTo={returnTo} />
+        <TransactionList
+          initial={page}
+          filters={filters}
+          names={names}
+          todayIso={todayIso}
+          returnTo={returnTo}
+          bulk={{ categoryPaths: visiblePaths, categories, payees, tags }}
+        />
       )}
     </section>
   );

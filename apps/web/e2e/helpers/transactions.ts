@@ -83,6 +83,52 @@ export async function setPayeeHidden(email: string, name: string): Promise<void>
   if (error) throw new Error(error.message);
 }
 
+export interface SeedTx {
+  date: string;
+  kind: "expense" | "income" | "refund";
+  account: string;
+  /** Paise. */
+  amountMinor: string;
+  /** The category's own name (unique in the demo lists). */
+  category?: string;
+  payee?: string;
+  notes?: string;
+}
+
+/**
+ * Inserts transactions straight into the LOCAL database for a user (names resolved to their ids).
+ * Rows go through the normal triggers (stamp, postings, history).
+ */
+export async function seedTransactions(email: string, list: SeedTx[]): Promise<void> {
+  const db = admin();
+  const { data: profile } = await db.from("profiles").select("user_id").eq("email", email).single();
+  const userId = profile!.user_id as string;
+  const idOf = async (table: "accounts" | "categories" | "payees", name: string) => {
+    const { data } = await db.from(table).select("id").eq("user_id", userId).eq("name", name).neq("state", "deleted").single();
+    if (!data) throw new Error(`seedTransactions: no ${table} row named ${name}`);
+    return data.id as string;
+  };
+  const rows = [];
+  for (const t of list) {
+    rows.push({
+      id: crypto.randomUUID(), user_id: userId, date: t.date, kind: t.kind, flow: t.kind === "expense" ? "out" : "in",
+      account_id: await idOf("accounts", t.account), amount_minor: t.amountMinor,
+      category_id: t.category ? await idOf("categories", t.category) : null,
+      payee_id: t.payee ? await idOf("payees", t.payee) : null, notes: t.notes ?? null, server_seq: 0,
+    });
+  }
+  const { error } = await db.from("transactions").insert(rows);
+  if (error) throw new Error(`seedTransactions: ${error.message}`);
+}
+
+/** Adds a business payee straight into the LOCAL database. */
+export async function seedBusiness(email: string, name: string): Promise<void> {
+  const db = admin();
+  const { data: profile } = await db.from("profiles").select("user_id").eq("email", email).single();
+  const { error } = await db.from("payees").insert({ id: crypto.randomUUID(), user_id: profile!.user_id, name, kind: "business", server_seq: 0 });
+  if (error) throw new Error(error.message);
+}
+
 /** Moves a transaction's date (the local stack only): simulates the day it was planned for arriving. */
 export async function backdateTransaction(email: string, notes: string, date: string): Promise<void> {
   const db = admin();
