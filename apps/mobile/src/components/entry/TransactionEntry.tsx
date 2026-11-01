@@ -128,7 +128,8 @@ export function TransactionEntry({ kind, existing, prefill }: { kind: EntryKind;
         notes: notes.trim() === "" ? null : notes.trim(),
       };
       if (!existing) {
-        await record({ entity: "transaction", entityId: newId(), kind: "create", fields: { kind, ...fields, lines: [] } });
+        // A future date waits in "To confirm" (FR-002a); saying so here keeps it out of totals before the server answers.
+        await record({ entity: "transaction", entityId: newId(), kind: "create", fields: { kind, ...fields, lines: [], confirmed: date <= today } });
       } else {
         const before: Record<string, unknown> = {
           date: existing.date,

@@ -56,6 +56,7 @@ export default ({ config }: ConfigContext): ExpoConfig => ({
       },
     ],
     "expo-secure-store",
+    "expo-notifications",
     [
       "expo-local-authentication",
       { faceIDPermission: "Allow Finance Tracker to use biometrics to unlock the app." },

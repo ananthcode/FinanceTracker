@@ -87,6 +87,7 @@ export default function SettingsScreen() {
       <Button label="Categories" variant="outline" onPress={() => router.push("/settings/categories")} />
       <Button label="Tags" variant="outline" onPress={() => router.push("/settings/tags")} />
       <Button label="Payees" variant="outline" onPress={() => router.push("/settings/payees")} />
+      <Button label="Reminders" variant="outline" onPress={() => router.push("/settings/reminders")} />
       <Button label="App lock" variant="outline" onPress={() => router.push("/settings/app-lock")} />
       {me?.role === "owner" && <Button label="User management" variant="outline" onPress={() => router.push("/admin")} />}
       <Button label={busy ? "Signing out…" : "Sign out of this phone"} variant="outline" onPress={signOut} disabled={busy} />
