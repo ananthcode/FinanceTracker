@@ -1,6 +1,7 @@
 import { isCounted, postingsOf } from "@ft/core";
 import { evaluateAmount, pressKey } from "@/lib/calc";
 import { hourLabel, planReminders, reminderText } from "@/lib/reminders";
+import { formatRate, parseRate } from "@/components/PersonInterest";
 import { byDay, monthSummary, transactionFromRow } from "@/lib/sync/transactions";
 
 /** R4 US8 on the phone: row mapping, Home's month cards and list, and the amount pad's calculator. */
@@ -102,5 +103,18 @@ describe("To confirm reminders", () => {
 describe("reminder settings", () => {
   it("labels hours in 12-hour time", () => {
     expect([0, 8, 12, 18].map(hourLabel)).toEqual(["12 am", "8 am", "12 pm", "6 pm"]);
+  });
+});
+
+describe("interest rates", () => {
+  it("reads per cent a month as rateE4, 0–10 % with up to four decimals", () => {
+    expect(parseRate("1.5")).toBe(15000);
+    expect(parseRate("0")).toBe(0);
+    expect(parseRate("10")).toBe(100000);
+    expect(parseRate("0.0125")).toBe(125);
+    expect(parseRate("10.5")).toBeNull();
+    expect(parseRate("1.23456")).toBeNull();
+    expect(parseRate("abc")).toBeNull();
+    expect(formatRate(15000)).toBe("1.5 %");
   });
 });
