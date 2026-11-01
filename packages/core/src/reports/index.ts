@@ -4,6 +4,7 @@
  * same numbers and every level adds up exactly to the one above (SC-002).
  */
 import { isOwedType, type AccountType } from "../accounts/types";
+import { fiscalYearOf } from "../dates";
 import type { CategoryView } from "../categories/types";
 import { isCounted, postingsOf } from "../transactions/postings";
 import type { TransactionView } from "../transactions/types";
@@ -31,11 +32,9 @@ export function monthEndOf(iso: string): string {
   return d.toISOString().slice(0, 10);
 }
 
-/** The financial year containing `iso` (India: April–March by default). */
-export function financialYearOf(iso: string, fyStartMonth = 4): Period {
-  const year = Number(iso.slice(0, 4));
-  const month = Number(iso.slice(5, 7));
-  const startYear = month >= fyStartMonth ? year : year - 1;
+/** The dates of the financial year containing `iso` (India: April–March by default; see fiscalYearOf). */
+export function financialYearPeriod(iso: string, fyStartMonth = 4): Period {
+  const { startYear } = fiscalYearOf(iso, fyStartMonth);
   const from = `${startYear}-${String(fyStartMonth).padStart(2, "0")}-01`;
   return { from, to: monthEndOf(addMonths(from, 11)) };
 }
@@ -51,7 +50,7 @@ export function periodOf(preset: PeriodPreset, todayIso: string, fyStartMonth = 
       return { from: last, to: monthEndOf(last) };
     }
     case "this_fy":
-      return financialYearOf(todayIso, fyStartMonth);
+      return financialYearPeriod(todayIso, fyStartMonth);
     case "last_12_months":
       return { from: addMonths(thisMonth, -11), to: monthEndOf(thisMonth) };
     case "custom":

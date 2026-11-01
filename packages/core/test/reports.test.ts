@@ -3,7 +3,7 @@ import {
   categoryPayeeTotals,
   categoryTree,
   countedAccounts,
-  financialYearOf,
+  financialYearPeriod,
   monthlyTrend,
   monthTotalsOf,
   periodOf,
@@ -60,8 +60,8 @@ describe("periods", () => {
     expect(periodOf("this_month", "2026-11-01")).toEqual({ from: "2026-11-01", to: "2026-11-30" });
     expect(periodOf("last_month", "2026-03-15")).toEqual({ from: "2026-02-01", to: "2026-02-28" });
     expect(periodOf("last_12_months", "2026-11-01")).toEqual({ from: "2025-12-01", to: "2026-11-30" });
-    expect(financialYearOf("2026-03-31")).toEqual({ from: "2025-04-01", to: "2026-03-31" });
-    expect(financialYearOf("2026-04-01")).toEqual({ from: "2026-04-01", to: "2027-03-31" });
+    expect(financialYearPeriod("2026-03-31")).toEqual({ from: "2025-04-01", to: "2026-03-31" });
+    expect(financialYearPeriod("2026-04-01")).toEqual({ from: "2026-04-01", to: "2027-03-31" });
   });
 
   it("fills months with nothing recorded as zero", () => {

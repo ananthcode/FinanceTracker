@@ -37,8 +37,8 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order.
 
 ## Phase 3: User Story 1 — Dashboard (P1) 🎯 MVP
 
-- [ ] T010 [P] [US1] Playwright `apps/web/e2e/r6-us1-dashboard.spec.ts`: US1 1–5, S1-a, S1-b (figures equal Accounts/People/Transactions; buffer changes safe to spend)
-- [ ] T011 [US1] `apps/web/app/(app)/page.tsx` Dashboard and `components/reports/SafeToSpend.tsx` (parts listed, "Change buffer"); buffer in Settings preferences; empty state — passes T010
+- [X] T010 [P] [US1] Playwright `apps/web/e2e/r6-us1-dashboard.spec.ts`: US1 1–5, S1-a, S1-b (figures equal Accounts/People/Transactions; buffer changes safe to spend)
+- [X] T011 [US1] `apps/web/app/(app)/page.tsx` Dashboard and `components/reports/SafeToSpend.tsx` (parts listed, "Change buffer"); buffer in Settings preferences; empty state — passes T010
 
 ## Phase 4: User Story 2 — Drill-down (P1)
 

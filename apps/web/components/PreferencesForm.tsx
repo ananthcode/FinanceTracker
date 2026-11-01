@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { DATE_FORMATS, fiscalYearOf, type Preferences } from "@ft/core";
+import { DATE_FORMATS, fiscalYearOf, formatAmountInput, parseAmountInput, type Preferences } from "@ft/core";
 import { DateText } from "@/components/DateText";
 import { Money } from "@/components/Money";
 import { PrivacyNotice } from "@/components/PrivacyNotice";
@@ -43,6 +43,8 @@ export function PreferencesForm({
   const router = useRouter();
   const [prefs, setPrefs] = useState<Preferences>(initial);
   const [displayName, setDisplayName] = useState(initialDisplayName);
+  // R6 FR-003: the safe-to-spend buffer, typed as an amount and stored in paise.
+  const [buffer, setBuffer] = useState(formatAmountInput(BigInt(initial.bufferMinor), initial.baseCurrency));
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState<{ ok: boolean; message: string } | null>(null);
   const zones = useMemo(() => timezones(), []);
@@ -61,6 +63,15 @@ export function PreferencesForm({
     // categoriesStart is set only by the start choice (R3 FR-007); the preferences endpoint refuses it.
     const { baseCurrency, categoriesStart, ...editable } = prefs;
     void categoriesStart;
+    if (!isSetup) {
+      const parsed = buffer.trim() === "" ? ({ ok: true, minor: 0n } as const) : parseAmountInput(buffer, { currency: baseCurrency });
+      if (!parsed.ok || parsed.minor < 0n) {
+        setBusy(false);
+        setStatus({ ok: false, message: "Enter the safe-to-spend buffer as an amount like 5,000.00." });
+        return;
+      }
+      editable.bufferMinor = parsed.minor.toString();
+    }
     try {
       const res = await fetch(isSetup ? "/api/me/setup" : "/api/me/preferences", {
         method: isSetup ? "POST" : "PATCH",
@@ -178,6 +189,27 @@ export function PreferencesForm({
           ))}
         </select>
       </div>
+
+      {mode === "settings" && (
+        <div className="flex flex-col gap-1">
+          <Label htmlFor="buffer">Safe-to-spend buffer</Label>
+          <Input
+            id="buffer"
+            inputMode="decimal"
+            autoComplete="off"
+            value={buffer}
+            onChange={(e) => {
+              setBuffer(e.target.value);
+              setStatus(null);
+            }}
+            aria-describedby="buffer-hint"
+            className="w-48"
+          />
+          <p id="buffer-hint" className="text-sm text-muted-foreground">
+            Kept back from what the Dashboard shows as safe to spend.
+          </p>
+        </div>
+      )}
 
       <section id="format-preview" aria-labelledby="preview-title" className="rounded-md border border-border p-3 text-sm">
         <h2 id="preview-title" className="mb-1 font-medium">
