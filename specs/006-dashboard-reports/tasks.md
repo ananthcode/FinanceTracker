@@ -42,13 +42,13 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order.
 
 ## Phase 4: User Story 2 — Drill-down (P1)
 
-- [ ] T012 [P] [US2] Playwright `apps/web/e2e/r6-us2-drilldown.spec.ts`: US2 1–7, S2-a, SC-004 (≤ 4 selections)
-- [ ] T013 [US2] `/reports` with `PeriodPicker`, `Breadcrumb`, `BarList` (+ "Show as table"), payee level → R4 transaction rows; "Reports" in the navigation (`us5-shell` updated) — passes T012
+- [X] T012 [P] [US2] Playwright `apps/web/e2e/r6-us2-drilldown.spec.ts`: US2 1–7, S2-a, SC-004 (≤ 4 selections)
+- [X] T013 [US2] `/reports` with `PeriodPicker`, `Breadcrumb`, `BarList` (+ "Show as table"), payee level → R4 transaction rows; "Reports" in the navigation (`us5-shell` updated) — passes T012
 
 ## Phase 5: User Story 3 — Trend (P2)
 
-- [ ] T014 [P] [US3] Playwright `apps/web/e2e/r6-us3-trend.spec.ts`: US3 1–3, S3-a
-- [ ] T015 [US3] `TrendChart` (grouped bars + table) on `/reports?view=trend` — passes T014
+- [X] T014 [P] [US3] Playwright `apps/web/e2e/r6-us3-trend.spec.ts`: US3 1–3, S3-a
+- [X] T015 [US3] `TrendChart` (grouped bars + table) on `/reports?view=trend` — passes T014
 
 ## Phase 6: User Story 4 — Person statements (P1)
 
