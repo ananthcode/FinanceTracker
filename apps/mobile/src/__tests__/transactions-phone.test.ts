@@ -1,5 +1,6 @@
 import { isCounted, postingsOf } from "@ft/core";
 import { evaluateAmount, pressKey } from "@/lib/calc";
+import { hourLabel, planReminders, reminderText } from "@/lib/reminders";
 import { byDay, monthSummary, transactionFromRow } from "@/lib/sync/transactions";
 
 /** R4 US8 on the phone: row mapping, Home's month cards and list, and the amount pad's calculator. */
@@ -73,5 +74,33 @@ describe("person movements", () => {
     for (const tx of txs) if (isCounted(tx)) for (const p of postingsOf(tx, () => "bank")) if (p.type === "person") totals[p.personId] = (totals[p.personId] ?? 0n) + p.effect;
     expect(totals).toEqual({ p: 30000n, q: -10000n });
     expect(monthSummary(txs, "2026-10")).toEqual({ income: 0n, expenses: 0n, cashflow: 0n });
+  });
+});
+
+describe("To confirm reminders", () => {
+  it("plans one reminder per future date, soonest first, counting only unconfirmed active entries", () => {
+    const txs = [
+      row({ date: "2026-11-05", confirmed: false }),
+      row({ date: "2026-11-05", confirmed: false }),
+      row({ date: "2026-11-03", confirmed: false }),
+      row({ date: "2026-11-04", confirmed: true }),
+      row({ date: "2026-11-06", confirmed: false, state: "deleted" }),
+      row({ date: "2026-11-01", confirmed: false }),
+    ];
+    expect(planReminders(txs, "2026-11-01")).toEqual([
+      { date: "2026-11-03", count: 1 },
+      { date: "2026-11-05", count: 2 },
+    ]);
+  });
+
+  it("never names amounts or payees", () => {
+    expect(reminderText(2)).toEqual({ title: "2 entries to confirm", body: "Upcoming entries are due today. Open Finance Tracker to confirm them." });
+    expect(reminderText(1).title).toBe("1 entry to confirm");
+  });
+});
+
+describe("reminder settings", () => {
+  it("labels hours in 12-hour time", () => {
+    expect([0, 8, 12, 18].map(hourLabel)).toEqual(["12 am", "8 am", "12 pm", "6 pm"]);
   });
 });

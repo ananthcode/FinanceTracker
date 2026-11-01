@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { SymbolView } from "expo-symbols";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { PanResponder, Pressable, ScrollView, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 import { categoryPath, indexCategories, summarise, todayInZone, TRANSACTION_KIND_TEXT, type TransactionView } from "@ft/core";
@@ -12,6 +12,7 @@ import { useLists, useMoney } from "@/components/providers/useLists";
 import { useSync } from "@/components/providers/SyncProvider";
 import { SyncStatusBar } from "@/components/SyncStatusBar";
 import { byDay, monthSummary, type HomeFilter } from "@/lib/sync/transactions";
+import { planReminders, scheduleReminders } from "@/lib/reminders";
 import { colours } from "@/lib/theme";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
@@ -44,6 +45,10 @@ export default function HomeScreen() {
   const waiting = transactions.filter((t) => t.state === "active" && !t.confirmed);
   const due = waiting.filter((t) => t.date <= today).sort((a, b) => a.date.localeCompare(b.date));
   const upcoming = waiting.length - due.length;
+  // T054: a reminder at 8 am on each date with future entries waiting (re-planned whenever data changes).
+  useEffect(() => {
+    scheduleReminders(planReminders(transactions, today)).catch(() => undefined);
+  }, [transactions, today]);
   const monthName = `${MONTHS[Number(month.slice(5)) - 1]}${month.slice(0, 4) === todayInZone(preferences.timezone).slice(0, 4) ? "" : ` ${month.slice(0, 4)}`}`;
 
   const pull = useMemo(

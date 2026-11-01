@@ -55,6 +55,7 @@ export function MenuSheet({ visible, onClose }: { visible: boolean; onClose: () 
             </View>
             <View style={{ borderTopWidth: 1, borderColor: colours.line, paddingTop: 4 }}>
               {row("Settings", "/settings")}
+              {row("Reminders", "/settings/reminders")}
               {row("App lock", "/settings/app-lock")}
               {me?.role === "owner" && row("User management", "/admin")}
             </View>
