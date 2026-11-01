@@ -283,6 +283,20 @@ export function categoryPayeeTotals(transactions: readonly Reported[], period: P
   return [...sums.values()].filter((r) => r.totalMinor !== 0n);
 }
 
+/**
+ * How much of one counted transaction falls on a category itself (not its sub-categories) for a kind:
+ * the report's payee level lists each transaction with this amount, so a split one shows only its
+ * line(s) in the category and the list adds up to the payee's total. `categoryId` null = Uncategorised.
+ */
+export function categoryShareOf(t: Reported, kind: "expense" | "income", categoryId: string | null): bigint {
+  if (!isCounted(t)) return 0n;
+  let share = 0n;
+  for (const p of postingsOf(t, () => "bank")) {
+    if (p.type === "category" && p.kind === kind && p.categoryId === categoryId) share += p.effect;
+  }
+  return share;
+}
+
 /** The totals `app.month_totals` returns, from transactions. */
 export function monthTotalsOf(transactions: readonly Reported[], period: Period): MonthTotalRow[] {
   const months = new Map<string, MonthTotalRow>();

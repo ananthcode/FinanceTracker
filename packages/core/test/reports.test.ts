@@ -1,7 +1,10 @@
 import { describe, expect, it } from "vitest";
 import {
   categoryPayeeTotals,
+  categoryShareOf,
   categoryTree,
+  NO_PAYEE_ID,
+  UNCATEGORISED_ID,
   countedAccounts,
   financialYearPeriod,
   monthlyTrend,
@@ -52,6 +55,21 @@ describe("reports vectors", () => {
     const trend = monthlyTrend(rows, expected.monthsPeriod);
     expect(trend.map((m) => ({ month: m.month, incomeMinor: m.incomeMinor.toString(), spendingMinor: m.spendingMinor.toString() }))).toEqual(expected.months);
     expect(trend[1]!.netMinor).toBe(95000n - 2950n);
+  });
+  it("each payee's transactions, by their share in the category, add up to the payee's total (US2 4)", () => {
+    for (const kind of ["expense", "income"] as const) {
+      const tree = categoryTree(categoryPayeeTotals(transactions, vectors.period), kind, vectors.categories);
+      for (const n of tree.byId.values()) {
+        const categoryId = n.id === UNCATEGORISED_ID ? null : n.id;
+        for (const p of n.payees) {
+          const listed = transactions.filter(
+            (t) => t.date >= vectors.period.from && t.date <= vectors.period.to && (t.payeeId ?? NO_PAYEE_ID) === p.id,
+          );
+          const sum = listed.reduce((s, t) => s + categoryShareOf(t, kind, categoryId), 0n);
+          expect(sum, `${n.id}/${p.id}`).toBe(p.totalMinor);
+        }
+      }
+    }
   });
 });
 
