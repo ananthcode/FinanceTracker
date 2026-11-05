@@ -5,7 +5,7 @@ export function PrivacyNotice() {
   return (
     <View
       accessibilityRole="summary"
-      style={{ borderWidth: 1, borderColor: "#d0d7de", borderRadius: 8, padding: 12, gap: 6 }}
+      style={{ borderWidth: 1, borderColor: "#E5E4DD", borderRadius: 8, padding: 12, gap: 6 }}
     >
       <Text accessibilityRole="header" style={{ fontWeight: "600" }}>
         Before you join

@@ -7,12 +7,14 @@ import { Money } from "@/components/Money";
 import { useLists, useMoney } from "@/components/providers/useLists";
 import { colours } from "@/lib/theme";
 
-type Kind = { key: "expense" | "income" | "transfer" | "planned"; label: string; hint: string; icon: SymbolViewProps["name"]; bg: string };
+type Kind = { key: "expense" | "income" | "transfer" | "refund" | "person" | "planned"; label: string; hint: string; icon: SymbolViewProps["name"]; bg: string };
 
 const KINDS: Kind[] = [
   { key: "expense", label: "Expense", hint: "Money out", icon: { ios: "arrow.up.right", android: "north_east" }, bg: colours.expense },
   { key: "income", label: "Income", hint: "Money in", icon: { ios: "arrow.down.left", android: "south_west" }, bg: colours.income },
   { key: "transfer", label: "Transfer", hint: "Between accounts", icon: { ios: "arrow.left.arrow.right", android: "swap_horiz" }, bg: colours.action },
+  { key: "refund", label: "Refund", hint: "Money back on a purchase", icon: { ios: "arrow.uturn.left", android: "undo" }, bg: colours.incomeInk },
+  { key: "person", label: "Person", hint: "Lent, borrowed, repaid", icon: { ios: "person.2", android: "handshake" }, bg: "#993556" },
   { key: "planned", label: "Planned", hint: "Bill or EMI later", icon: { ios: "calendar.badge.clock", android: "event_repeat" }, bg: colours.plan },
 ];
 

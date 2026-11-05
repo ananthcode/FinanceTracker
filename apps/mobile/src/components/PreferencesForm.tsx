@@ -21,7 +21,7 @@ function Choice({ label, selected, onPress }: { label: string; selected: boolean
       onPress={onPress}
       style={{
         borderWidth: 1,
-        borderColor: selected ? "#1f6feb" : "#d0d7de",
+        borderColor: selected ? "#534AB7" : "#E5E4DD",
         backgroundColor: selected ? "#ddf4ff" : "transparent",
         borderRadius: 16,
         paddingVertical: 6,
@@ -112,7 +112,7 @@ export function PreferencesForm({
           maxLength={50}
           value={displayName}
           onChangeText={setDisplayName}
-          style={{ borderWidth: 1, borderColor: "#d0d7de", borderRadius: 8, padding: 10 }}
+          style={{ borderWidth: 1, borderColor: "#E5E4DD", borderRadius: 8, padding: 10 }}
         />
       </View>
 
@@ -160,12 +160,12 @@ export function PreferencesForm({
           autoCapitalize="none"
           value={timezoneText}
           onChangeText={setTimezoneText}
-          style={{ borderWidth: 1, borderColor: timezoneOk ? "#d0d7de" : "#cf222e", borderRadius: 8, padding: 10 }}
+          style={{ borderWidth: 1, borderColor: timezoneOk ? "#E5E4DD" : "#cf222e", borderRadius: 8, padding: 10 }}
         />
         {!timezoneOk && <Text accessibilityRole="alert" style={{ color: "#cf222e" }}>Unknown timezone — use a name like Asia/Kolkata.</Text>}
       </View>
 
-      <View accessibilityLabel="Preview" style={{ borderWidth: 1, borderColor: "#d0d7de", borderRadius: 8, padding: 12, gap: 4 }}>
+      <View accessibilityLabel="Preview" style={{ borderWidth: 1, borderColor: "#E5E4DD", borderRadius: 8, padding: 12, gap: 4 }}>
         <Text style={{ fontWeight: "600" }}>Preview</Text>
         <DisplayProvider preferences={preview}>
           <Text>

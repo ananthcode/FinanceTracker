@@ -76,7 +76,7 @@ export function LockScreen({
           maxLength={6}
           autoFocus={!fingerprint}
           onSubmitEditing={() => void submit()}
-          style={{ borderWidth: 1, borderColor: "#d0d7de", borderRadius: 8, padding: 12, fontSize: 24, textAlign: "center", letterSpacing: 8 }}
+          style={{ borderWidth: 1, borderColor: "#E5E4DD", borderRadius: 8, padding: 12, fontSize: 24, textAlign: "center", letterSpacing: 8 }}
         />
         {message && (
           <Text accessibilityRole="alert" accessibilityLiveRegion="assertive" style={{ textAlign: "center" }}>
@@ -86,7 +86,7 @@ export function LockScreen({
         <Button label="Unlock" onPress={() => void submit()} disabled={busy || pin.length < 4} />
         {fingerprint && <Button label="Use fingerprint" variant="outline" onPress={() => void tryFingerprint()} />}
         <Pressable accessibilityRole="button" onPress={forgot} hitSlop={8}>
-          <Text style={{ color: "#1f6feb", fontWeight: "600", textAlign: "center" }}>Forgot PIN</Text>
+          <Text style={{ color: "#534AB7", fontWeight: "600", textAlign: "center" }}>Forgot PIN</Text>
         </Pressable>
       </SafeAreaView>
     </View>

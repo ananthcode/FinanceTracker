@@ -13,7 +13,7 @@ import { api, ApiCallError } from "@/lib/api";
 import { GOOGLE_MESSAGES, signInWithGoogle } from "@/lib/oauth";
 import { supabase } from "@/lib/supabase";
 
-const inputStyle = { borderWidth: 1, borderColor: "#d0d7de", borderRadius: 8, padding: 10 } as const;
+const inputStyle = { borderWidth: 1, borderColor: "#E5E4DD", borderRadius: 8, padding: 10 } as const;
 
 /** Accept an invitation in the Android app (US1, FR-004a). Opened from App Links or in-app. */
 export default function InviteScreen() {
@@ -135,7 +135,7 @@ export default function InviteScreen() {
         accessibilityRole="button"
         disabled={busy || !email || (check !== null && !check.ok)}
         onPress={join}
-        style={{ backgroundColor: "#1f6feb", padding: 12, borderRadius: 8, opacity: busy ? 0.6 : 1 }}
+        style={{ backgroundColor: "#534AB7", padding: 12, borderRadius: 8, opacity: busy ? 0.6 : 1 }}
       >
         <Text style={{ color: "white", textAlign: "center", fontWeight: "600" }}>
           {busy ? "Joining…" : "Join with email"}
@@ -144,7 +144,7 @@ export default function InviteScreen() {
       <Pressable
         accessibilityRole="button"
         onPress={google}
-        style={{ borderWidth: 1, borderColor: "#d0d7de", padding: 12, borderRadius: 8 }}
+        style={{ borderWidth: 1, borderColor: "#E5E4DD", padding: 12, borderRadius: 8 }}
       >
         <Text style={{ textAlign: "center" }}>Continue with Google</Text>
       </Pressable>

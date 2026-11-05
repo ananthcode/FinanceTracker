@@ -25,9 +25,9 @@ export default function ArrangeScreen() {
 
   return (
     <Screen title="Arrange accounts">
-      <Text style={{ color: "#57606a" }}>The order is the same in every view and on every device.</Text>
+      <Text style={{ color: "#5F5E5A" }}>The order is the same in every view and on every device.</Text>
       {accounts.map((a, i) => (
-        <View key={a.id} style={{ flexDirection: "row", alignItems: "center", gap: 16, paddingVertical: 10, borderTopWidth: 1, borderColor: "#eaeef2" }}>
+        <View key={a.id} style={{ flexDirection: "row", alignItems: "center", gap: 16, paddingVertical: 10, borderTopWidth: 1, borderColor: "#E5E4DD" }}>
           <Text style={{ flex: 1, fontWeight: "600" }}>{a.name}</Text>
           {i > 0 && <MoveButton label="Up" a11y={`Move ${a.name} up`} onPress={() => void move(i, i - 1)} />}
           {i < accounts.length - 1 && <MoveButton label="Down" a11y={`Move ${a.name} down`} onPress={() => void move(i, i + 1)} />}
@@ -40,7 +40,7 @@ export default function ArrangeScreen() {
 function MoveButton({ label, a11y, onPress }: { label: string; a11y: string; onPress: () => void }) {
   return (
     <Pressable accessibilityRole="button" accessibilityLabel={a11y} onPress={onPress} hitSlop={8}>
-      <Text style={{ color: "#1f6feb", fontWeight: "600" }}>{label}</Text>
+      <Text style={{ color: "#534AB7", fontWeight: "600" }}>{label}</Text>
     </Pressable>
   );
 }

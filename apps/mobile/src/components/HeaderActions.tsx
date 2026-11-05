@@ -20,7 +20,7 @@ export function HeaderActions({ isOwner, children }: { isOwner: boolean; childre
           onPress={() => router.push("/admin")}
           style={{ padding: 4 }}
         >
-          <SymbolView name={{ ios: "person.2", android: "manage_accounts" }} size={24} tintColor="#1f6feb" />
+          <SymbolView name={{ ios: "person.2", android: "manage_accounts" }} size={24} tintColor="#534AB7" />
         </Pressable>
       )}
     </View>

@@ -31,7 +31,7 @@ const AUDIT_LABELS: Record<string, string> = {
   user_erased: "User erased",
 };
 
-const rowStyle = { borderTopWidth: 1, borderColor: "#d0d7de", paddingTop: 6, gap: 6 } as const;
+const rowStyle = { borderTopWidth: 1, borderColor: "#E5E4DD", paddingTop: 6, gap: 6 } as const;
 const headerStyle = { fontSize: 18, fontWeight: "600" } as const;
 
 /**
@@ -113,7 +113,7 @@ export default function AdminScreen() {
           keyboardType="email-address"
           value={email}
           onChangeText={setEmail}
-          style={{ borderWidth: 1, borderColor: "#d0d7de", borderRadius: 8, padding: 10 }}
+          style={{ borderWidth: 1, borderColor: "#E5E4DD", borderRadius: 8, padding: 10 }}
         />
         <Button label={busy ? "Working…" : "Send invitation"} onPress={invite} disabled={busy || !email} />
       </View>

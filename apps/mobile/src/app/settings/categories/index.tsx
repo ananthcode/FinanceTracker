@@ -61,7 +61,7 @@ export default function CategoriesScreen() {
     <Screen title="Categories">
       <SyncStatusBar />
       {!started && (
-        <View style={{ gap: 8, padding: 12, borderWidth: 1, borderColor: "#d0d7de", borderRadius: 8 }}>
+        <View style={{ gap: 8, padding: 12, borderWidth: 1, borderColor: "#E5E4DD", borderRadius: 8 }}>
           <Text style={{ fontWeight: "600" }}>How would you like to start?</Text>
           <Muted>Start with a suggested list you can change later, or with no categories. This needs a connection.</Muted>
           <Button label="Use the suggested list" onPress={() => void start("suggested")} disabled={busy} />
@@ -85,7 +85,7 @@ export default function CategoriesScreen() {
               key={m.category.id}
               accessibilityRole="button"
               onPress={() => router.push(`/settings/categories/${m.category.id}`)}
-              style={{ paddingVertical: 10, borderTopWidth: 1, borderColor: "#eaeef2" }}
+              style={{ paddingVertical: 10, borderTopWidth: 1, borderColor: "#E5E4DD" }}
             >
               <Text>
                 {m.path}
@@ -94,7 +94,7 @@ export default function CategoriesScreen() {
             </Pressable>
           ))
         : rows.map((n) => (
-            <View key={n.id} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingLeft: n.depth * 20, borderTopWidth: 1, borderColor: "#eaeef2" }}>
+            <View key={n.id} style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingLeft: n.depth * 20, borderTopWidth: 1, borderColor: "#E5E4DD" }}>
               {n.children.length > 0 ? (
                 <Pressable
                   accessibilityRole="button"
@@ -110,7 +110,7 @@ export default function CategoriesScreen() {
                 <View style={{ width: 24 }} />
               )}
               <Pressable accessibilityRole="button" onPress={() => router.push(`/settings/categories/${n.id}`)} style={{ flex: 1, paddingVertical: 10 }}>
-                <Text style={{ color: n.effectiveHidden ? "#57606a" : undefined }}>
+                <Text style={{ color: n.effectiveHidden ? "#5F5E5A" : undefined }}>
                   {n.name}
                   {n.hidden ? " · Hidden" : n.effectiveHidden ? " · Hidden with its parent" : ""}
                 </Text>

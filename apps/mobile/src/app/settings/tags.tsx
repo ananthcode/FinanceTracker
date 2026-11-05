@@ -72,7 +72,7 @@ export default function TagsScreen() {
       {sorted.length === 0 && <Text>No tags yet. Tags let you group records across categories, such as a trip or a project.</Text>}
       {sorted.map((t) =>
         editing?.id === t.id ? (
-          <View key={t.id} style={{ gap: 8, paddingVertical: 10, borderTopWidth: 1, borderColor: "#eaeef2" }}>
+          <View key={t.id} style={{ gap: 8, paddingVertical: 10, borderTopWidth: 1, borderColor: "#E5E4DD" }}>
             <LabeledInput label={`Rename ${t.name}`} value={rename} onChangeText={setRename} maxLength={30} autoFocus />
             <View style={{ flexDirection: "row", gap: 16 }}>
               <TextLink label="Save" onPress={() => void saveRename()} />
@@ -80,7 +80,7 @@ export default function TagsScreen() {
             </View>
           </View>
         ) : (
-          <View key={t.id} style={{ flexDirection: "row", alignItems: "center", gap: 16, paddingVertical: 10, borderTopWidth: 1, borderColor: "#eaeef2" }}>
+          <View key={t.id} style={{ flexDirection: "row", alignItems: "center", gap: 16, paddingVertical: 10, borderTopWidth: 1, borderColor: "#E5E4DD" }}>
             <Pressable
               accessibilityRole="button"
               accessibilityHint="Renames the tag"

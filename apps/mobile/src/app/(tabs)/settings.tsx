@@ -77,7 +77,7 @@ export default function SettingsScreen() {
       {offline && <Text>Activity is unavailable offline.</Text>}
       {items?.length === 0 && <Text>No activity yet.</Text>}
       {items?.map((item, i) => (
-        <View key={`${item.occurredAt}-${i}`} style={{ borderTopWidth: 1, borderColor: "#d0d7de", paddingTop: 6 }}>
+        <View key={`${item.occurredAt}-${i}`} style={{ borderTopWidth: 1, borderColor: "#E5E4DD", paddingTop: 6 }}>
           <Text>{LABELS[item.action]}</Text>
           <Text style={{ color: "#6e7781" }}>
             <DateText instant={item.occurredAt} /> · {item.method ?? "—"} · {item.deviceType ?? "—"}
@@ -87,6 +87,7 @@ export default function SettingsScreen() {
       <Button label="Categories" variant="outline" onPress={() => router.push("/settings/categories")} />
       <Button label="Tags" variant="outline" onPress={() => router.push("/settings/tags")} />
       <Button label="Payees" variant="outline" onPress={() => router.push("/settings/payees")} />
+      <Button label="Reminders" variant="outline" onPress={() => router.push("/settings/reminders")} />
       <Button label="App lock" variant="outline" onPress={() => router.push("/settings/app-lock")} />
       {me?.role === "owner" && <Button label="User management" variant="outline" onPress={() => router.push("/admin")} />}
       <Button label={busy ? "Signing out…" : "Sign out of this phone"} variant="outline" onPress={signOut} disabled={busy} />
