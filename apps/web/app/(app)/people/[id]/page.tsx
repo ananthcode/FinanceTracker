@@ -76,6 +76,9 @@ export default async function EditPersonPage({ params }: { params: Promise<{ id:
           >
             Record a movement
           </Link>
+          <Link href={`/people/${person.id}/statement`} className={buttonVariants({ size: "sm", variant: "outline" })}>
+            Statement
+          </Link>
           {page.count > rows.length && (
             <Link href={`/transactions?payee=${person.id}`} className={buttonVariants({ size: "sm", variant: "outline" })}>
               See all {page.count} in Transactions

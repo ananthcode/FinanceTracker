@@ -1,0 +1,34 @@
+{
+  "_comment": "R6 T016 — person statements, hand-computed. Ravi opens at +100.00 on 2026-01-01. Before April: +500.00 lent, -200.00 back = +400.00. April: +100.00 split share (400 -> 500), -800.00 back (500 -> -300, flips), +5.00 interest (-300 -> -295). Void, unconfirmed, unrelated and later entries are not in April.",
+  "person": { "id": "p1", "name": "Ravi Kumar", "openingBalanceMinor": "10000" },
+  "businesses": { "b1": "Fresh Mart" },
+  "transactions": [
+    { "id": "t1", "date": "2026-02-10", "kind": "person", "flow": "out", "accountId": "a1", "amountMinor": "50000", "payeeId": "p1", "personAction": "lent", "status": "cleared", "confirmed": true, "state": "active", "notes": "School fees" },
+    { "id": "t2", "date": "2026-03-05", "kind": "person", "flow": "in", "accountId": "a1", "amountMinor": "20000", "payeeId": "p1", "personAction": "received_back", "status": "cleared", "confirmed": true, "state": "active" },
+    { "id": "t3", "date": "2026-04-02", "kind": "expense", "flow": "out", "accountId": "a1", "amountMinor": "30000", "payeeId": "b1", "status": "cleared", "confirmed": true, "state": "active", "notes": "Dinner", "lines": [
+      { "id": "l1", "amountMinor": "10000", "personId": "p1", "personAction": "paid_on_behalf" },
+      { "id": "l2", "amountMinor": "20000", "categoryId": "c1" }
+    ] },
+    { "id": "t4", "date": "2026-04-10", "kind": "person", "flow": "in", "accountId": "a1", "amountMinor": "80000", "payeeId": "p1", "personAction": "received_back", "status": "cleared", "confirmed": true, "state": "active" },
+    { "id": "t9", "date": "2026-04-12", "kind": "expense", "flow": "out", "accountId": "a1", "amountMinor": "4000", "payeeId": "b1", "categoryId": "c1", "status": "cleared", "confirmed": true, "state": "active" },
+    { "id": "t5", "date": "2026-04-15", "kind": "interest", "flow": "out", "amountMinor": "500", "payeeId": "p1", "status": "uncleared", "confirmed": true, "state": "active" },
+    { "id": "t6", "date": "2026-04-20", "kind": "person", "flow": "out", "accountId": "a1", "amountMinor": "99999", "payeeId": "p1", "personAction": "lent", "status": "void", "confirmed": true, "state": "active" },
+    { "id": "t7", "date": "2026-04-25", "kind": "person", "flow": "out", "accountId": "a1", "amountMinor": "77777", "payeeId": "p1", "personAction": "lent", "status": "uncleared", "confirmed": false, "state": "active" },
+    { "id": "t8", "date": "2026-05-02", "kind": "person", "flow": "out", "accountId": "a1", "amountMinor": "1000", "payeeId": "p1", "personAction": "lent", "status": "cleared", "confirmed": true, "state": "active" }
+  ],
+  "april": {
+    "range": { "from": "2026-04-01", "to": "2026-04-30" },
+    "openingMinor": "40000",
+    "rows": [
+      { "transactionId": "t3", "date": "2026-04-02", "label": "Share of spending at Fresh Mart", "notes": "Dinner", "amountMinor": "10000", "balanceMinor": "50000" },
+      { "transactionId": "t4", "date": "2026-04-10", "label": "Received back from Ravi Kumar", "notes": null, "amountMinor": "-80000", "balanceMinor": "-30000" },
+      { "transactionId": "t5", "date": "2026-04-15", "label": "Interest charged to Ravi Kumar", "notes": null, "amountMinor": "500", "balanceMinor": "-29500" }
+    ],
+    "closingMinor": "-29500",
+    "closingWords": "You owe Ravi Kumar",
+    "closingAmountMinor": "29500"
+  },
+  "emptyRange": { "range": { "from": "2026-06-01", "to": "2026-06-30" }, "openingMinor": "-28500", "closingMinor": "-28500" },
+  "beforeOpening": { "range": { "from": "2025-01-01", "to": "2025-12-31" }, "openingMinor": "10000", "closingMinor": "10000" },
+  "straddlesOpening": { "range": { "from": "2025-12-01", "to": "2026-02-28" }, "openingMinor": "10000", "closingMinor": "60000", "rows": 1 }
+}

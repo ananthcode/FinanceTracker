@@ -52,10 +52,10 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order.
 
 ## Phase 6: User Story 4 — Person statements (P1)
 
-- [ ] T016 [P] [US4] Vectors `packages/core/test/vectors/statements.json` (opening before range, flips, interest, split shares, empty range, sign setting) and `packages/core/test/statements.test.ts`; `packages/core/test/pdf.test.ts` (writer output parses: header, objects, xref offsets, page count)
-- [ ] T017 [US4] `packages/core/src/statements/statement.ts`, `pdf.ts` — passes T016
-- [ ] T018 [P] [US4] Playwright `apps/web/e2e/r6-us4-statement.spec.ts`: US4 1–5, S4-a, SC-005 (PNG and PDF downloads; notes only when switched on)
-- [ ] T019 [US4] `/people/[id]/statement` (`StatementView`, sign setting, "Include notes", `StatementDownload` drawing pages on canvas → PNG / PDF); "Statement" link on the person page — passes T018
+- [X] T016 [P] [US4] Vectors `packages/core/test/vectors/statements.json` (opening before range, flips, interest, split shares, empty range, sign setting) and `packages/core/test/statements.test.ts`; `packages/core/test/pdf.test.ts` (writer output parses: header, objects, xref offsets, page count)
+- [X] T017 [US4] `packages/core/src/statements/statement.ts`, `pdf.ts` — passes T016
+- [X] T018 [P] [US4] Playwright `apps/web/e2e/r6-us4-statement.spec.ts`: US4 1–5, S4-a, SC-005 (PNG and PDF downloads; notes only when switched on)
+- [X] T019 [US4] `/people/[id]/statement` (`StatementView`, sign setting, "Include notes", `StatementDownload` drawing pages on canvas → PNG / PDF); "Statement" link on the person page — passes T018
 
 ## Phase 7: User Story 5 — Android (P3)
 
@@ -63,9 +63,9 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order.
 
 ## Phase 8: Polish
 
-- [ ] T021 [P] Accessibility: `a11y.spec.ts` covers `/`, `/reports` (each view, table toggle, keyboard), the statement (1280/390 px)
-- [ ] T022 [P] Performance `apps/web/e2e/r6-performance.spec.ts` (E2E_PRODUCTION): 20,000 transactions — Dashboard < 2 s, drill step / period < 1 s (SC-003)
-- [ ] T023 [P] Hide-balances list gains `/`, `/reports`, the statement (SC-006 of R1)
+- [X] T021 [P] Accessibility: `a11y.spec.ts` covers `/`, `/reports` (each view, table toggle, keyboard), the statement (1280/390 px)
+- [X] T022 [P] Performance `apps/web/e2e/r6-performance.spec.ts` (E2E_PRODUCTION): 20,000 transactions — Dashboard < 2 s, drill step / period < 1 s (SC-003)
+- [X] T023 [P] Hide-balances list gains `/`, `/reports`, the statement (SC-006 of R1)
 - [ ] T024 Write `specs/006-dashboard-reports/review-notes.md`
 - [ ] T025 Run every suite; write `specs/006-dashboard-reports/validation.md`
 - [ ] T026 Converge: contracts as built, ROADMAP status, Android task carried to the Android phase
