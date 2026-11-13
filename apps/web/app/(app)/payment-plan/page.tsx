@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { categoryPath, DEFAULT_PREFERENCES, indexCategories, monthOf, parseMonthParam, todayInZone } from "@ft/core";
-import { getPreferences, listCategories, listPayees } from "@ft/db";
+import { categoryPath, DEFAULT_PREFERENCES, indexCategories, monthOf, parseMonthParam, todayInZone, withLikely, type PlanMonthView, type TransactionView } from "@ft/core";
+import { getPreferences, listCategories, listPayees, planCandidates } from "@ft/db";
 import type { PlanNames } from "@/components/plan/labels";
+import { PayActions } from "@/components/plan/PayActions";
 import { MonthNav, PlanMonth } from "@/components/plan/PlanMonth";
 import { RowActions } from "@/components/plan/RowActions";
 import { buttonVariants } from "@/components/ui/button";
@@ -22,8 +23,31 @@ export default async function PaymentPlanPage({ searchParams }: { searchParams: 
   const requested = parseMonthParam(param) ?? monthOf(todayInZone(prefs.timezone));
   const [plan, payees, categories] = await Promise.all([loadPlan(supabase, prefs, [requested]), listPayees(supabase), listCategories(supabase)]);
   const month = plan.months[0]!;
-  const view = plan.views.get(month)!;
   const currency = prefs.baseCurrency;
+  const items = new Map(plan.items.map((i) => [i.id, i]));
+
+  // "Looks paid — link?" (FR-013): unlinked payments near an unpaid item-month. Suggestions only.
+  let view: PlanMonthView = plan.views.get(month)!;
+  const likelyTx = new Map<string, TransactionView>();
+  const unpaid = [...view.rows, ...view.carried].filter((r) => r.leftMinor > 0n && r.status !== "skipped" && !r.removed);
+  if (unpaid.length > 0) {
+    const shift = (iso: string, days: number) => new Date(Date.parse(`${iso}T00:00:00Z`) + days * 86_400_000).toISOString().slice(0, 10);
+    const dues = unpaid.map((r) => r.dueDate).sort();
+    const monthEnd = new Date(Date.UTC(Number(month.slice(0, 4)), Number(month.slice(5, 7)), 0)).toISOString().slice(0, 10);
+    const last = dues.at(-1)! > monthEnd ? dues.at(-1)! : monthEnd;
+    const targets = unpaid.map((r) => items.get(r.itemId)!);
+    const candidates = await planCandidates(
+      supabase,
+      shift(dues[0]!, -10),
+      shift(last, 10),
+      [...new Set(targets.flatMap((i) => (i.payeeId ? [i.payeeId] : [])))],
+      [...new Set(targets.flatMap((i) => (i.cardAccountId ? [i.cardAccountId] : [])))],
+    );
+    for (const t of candidates) likelyTx.set(t.id, t);
+    // This month's own rows choose first; a transaction is offered to one row only.
+    const marked = withLikely([...view.rows, ...view.carried], items, candidates);
+    view = { ...view, rows: marked.slice(0, view.rows.length), carried: marked.slice(view.rows.length) };
+  }
 
   if (plan.items.length === 0) {
     return (
@@ -58,7 +82,7 @@ export default async function PaymentPlanPage({ searchParams }: { searchParams: 
     payee: (id) => (id ? (payeeNames.get(id) ?? "Removed payee") : ""),
     category: (id) => (id && index.has(id) ? categoryPath(id, index) : null),
   };
-  const items = new Map(plan.items.map((i) => [i.id, i]));
+  const returnTo = `/payment-plan?month=${month.slice(0, 7)}`;
 
   return (
     <section aria-labelledby="page-title" className="flex flex-col gap-6">
@@ -89,7 +113,18 @@ export default async function PaymentPlanPage({ searchParams }: { searchParams: 
               oneOff={item.frequency === "one_off"}
               endMonth={item.endMonth}
               currency={currency}
-            />
+            >
+              {row.status !== "paid" && row.status !== "skipped" && (
+                <PayActions
+                  itemId={row.itemId}
+                  name={row.name}
+                  month={row.month}
+                  returnTo={returnTo}
+                  currency={currency}
+                  likely={row.likely && likelyTx.has(row.likely) ? { id: row.likely, amountMinor: likelyTx.get(row.likely)!.amountMinor, date: likelyTx.get(row.likely)!.date } : null}
+                />
+              )}
+            </RowActions>
           );
         }}
       />

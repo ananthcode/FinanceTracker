@@ -121,7 +121,7 @@ export function demoTransactions(todayIso: string): DemoTransactions {
         tagIds: m === "2025-10-01" || m === "2025-11-01" ? [tag("Diwali 2025")] : [],
       });
     });
-    if (upTo(at(10))) add({ date: at(10), kind: "expense", flow: "out", accountId: savings, amountMinor: vary(180_000n, i, 53, 1200), payeeId: payee("City Power Board"), categoryId: category("Utilities & bills › Electricity"), reference: `CPB-${m.slice(0, 7)}` });
+    if (upTo(at(10))) add({ date: at(10), kind: "expense", flow: "out", accountId: savings, amountMinor: vary(180_000n, i, 53, 300), payeeId: payee("City Power Board"), categoryId: category("Utilities & bills › Electricity"), reference: `CPB-${m.slice(0, 7)}` });
     if (upTo(at(15))) add({ date: at(15), kind: "expense", flow: "out", accountId: card, amountMinor: 250_000n, payeeId: payee("Quick Fuel Station"), categoryId: category("Transport › Fuel") });
     if (upTo(at(20))) add({ date: at(20), kind: "expense", flow: "out", accountId: wallet, amountMinor: vary(45_000n, i, 29, 300), payeeId: payee("Corner Cafe"), categoryId: category("Food & groceries › Eating out") });
     if (upTo(at(25))) add({ date: at(25), kind: "transfer", flow: "out", accountId: savings, toAccountId: card, amountMinor: 250_000n, notes: "Card bill" });

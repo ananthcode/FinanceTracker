@@ -165,9 +165,9 @@ Migration names are `20261113000NNN_*` (`<ts>`), in the listed order.
   - drafts for payee, card and person items;
   - an archived account or a deleted payee leaves that field empty.
 - [X] T024 [US3] Core `packages/core/src/plan/match.ts` — passes T023
-- [ ] T025 [P] [US3] Playwright `apps/web/e2e/r7-us3-pay.spec.ts`: US3 1–8, S3-a–S3-e, SC-002 (one transaction, balance once), SC-004 (Pay → Save ≤ 3 selections); refusal when linking an already-linked transaction; unlink; void warning (FR-020)
-- [ ] T026 [US3] Pay: `/transactions/new?plan=&month=` builds `payDraft` and sends the link with the create; `components/plan/LinkDialog.tsx` (likely first, then search via `search_transactions`); "Looks paid — link?" in `PlanRow.tsx`; `actions.ts` `planSuggestions`, `linkCandidates`. Already-linked search results are shown disabled with "Already pays <item> (<month>) — unlink it first", and `changes.linkTransaction` refuses a transaction whose stored link is set (US3 3, R7-03)
-- [ ] T027 [US3] `components/transactions/TransactionForm.tsx` "Pays:" choice (debounced `planSuggestions`, first ticked, others and None) and transaction detail `apps/web/app/(app)/transactions/[id]` "Pays <item> (<month>)" with Unlink; delete/void warnings — passes T025
+- [X] T025 [P] [US3] Playwright `apps/web/e2e/r7-us3-pay.spec.ts`: US3 1–8, S3-a–S3-e, SC-002 (one transaction, balance once), SC-004 (Pay → Save ≤ 3 selections); refusal when linking an already-linked transaction; unlink; void warning (FR-020)
+- [X] T026 [US3] Pay: `/transactions/new?plan=&month=` builds `payDraft` and sends the link with the create; `components/plan/LinkDialog.tsx` (likely first, then search via `search_transactions`); "Looks paid — link?" in `PlanRow.tsx`; `actions.ts` `planSuggestions`, `linkCandidates`. Already-linked search results are shown disabled with "Already pays <item> (<month>) — unlink it first", and `changes.linkTransaction` refuses a transaction whose stored link is set (US3 3, R7-03)
+- [X] T027 [US3] `components/transactions/TransactionForm.tsx` "Pays:" choice (debounced `planSuggestions`, first ticked, others and None) and transaction detail `apps/web/app/(app)/transactions/[id]` "Pays <item> (<month>)" with Unlink; delete/void warnings — passes T025
 
 ## Phase 6: User Story 4 — Overdue carry-forward and cash by account (P2)
 

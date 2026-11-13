@@ -2,9 +2,11 @@
 
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useId, useMemo, useState } from "react";
+import { useEffect, useId, useMemo, useState } from "react";
 import {
+  canPayPlan,
   formatAmountInput,
+  monthName,
   parseAmountInput,
   PERSON_ACTION_TEXT,
   PERSON_ACTIONS_IN,
@@ -19,6 +21,7 @@ import {
   type CategoryView,
   type ChangeInput,
   type MoneyFlow,
+  type PayDraft,
   type PayeeView,
   type PersonAction,
   type TagView,
@@ -26,8 +29,10 @@ import {
   type TransactionStatus,
   type TransactionView,
 } from "@ft/core";
+import { planSuggestions, type PlanSuggestion } from "@/app/(app)/payment-plan/actions";
 import { ConfirmDialog } from "@/components/ConfirmDialog";
 import { DateText } from "@/components/DateText";
+import { Money } from "@/components/Money";
 import { CategoryPicker } from "@/components/lists/CategoryPicker";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -60,6 +65,7 @@ const REFUSALS: Record<string, string> = {
   NOT_FOUND: "This transaction no longer exists. It may have been deleted on another device.",
   NAME_TAKEN: "A payee or tag with that name already exists. Choose it from the list.",
   VALIDATION_FAILED: "Some details are not valid. Check them and try again.",
+  INVALID_PLAN_LINK: "This transaction can't pay that planned payment. Choose None, or check the planned payment still exists.",
 };
 
 type Field = "account" | "toAccount" | "amount" | "date" | "payee" | "notes" | "reference" | "split";
@@ -74,8 +80,19 @@ interface OpeningProblem {
 }
 
 export type TransactionFormMode =
-  | { type: "create"; kind?: Tab | "interest"; accountId?: string | null; payeeId?: string | null }
+  | { type: "create"; kind?: Tab | "interest"; accountId?: string | null; payeeId?: string | null; draft?: PayDraft }
   | { type: "edit"; transaction: TransactionView };
+
+/**
+ * The planned payment this transaction pays (R7 US3): opened from Pay (`fixed`: it always links), or
+ * the link an existing transaction already has (untick to unlink).
+ */
+export interface PlanLinkProp {
+  itemId: string;
+  month: string;
+  name: string;
+  fixed: boolean;
+}
 
 /** "Everyday Savings’", "Ravi Kumar’s" (contracts/client-transactions.md wording). */
 const possessive = (name: string) => (/s$/i.test(name) ? `${name}’` : `${name}’s`);
@@ -111,7 +128,9 @@ export function TransactionForm({
   todayIso,
   currency,
   returnTo,
+  planLink = null,
 }: {
+  planLink?: PlanLinkProp | null;
   mode: TransactionFormMode;
   accounts: AccountView[];
   payees: PayeeView[];
@@ -134,24 +153,34 @@ export function TransactionForm({
   const defaultAccount =
     (mode.type === "create" && activeAccounts.find((a) => a.id === mode.accountId)?.id) || activeAccounts[0]?.id || "";
 
-  const [kind, setKind] = useState<TransactionKind>(saved?.kind ?? (mode.type === "create" ? (mode.kind ?? "expense") : "expense"));
-  const [accountId, setAccountId] = useState(saved?.accountId ?? defaultAccount);
-  const [toAccountId, setToAccountId] = useState(saved?.toAccountId ?? "");
-  const [amount, setAmount] = useState(saved ? formatAmountInput(saved.amountMinor, currency) : "");
+  // Opened from Pay (R7 FR-010): the form starts filled in from the planned payment.
+  const draft = mode.type === "create" ? (mode.draft ?? null) : null;
+  const [kind, setKind] = useState<TransactionKind>(saved?.kind ?? draft?.kind ?? (mode.type === "create" ? (mode.kind ?? "expense") : "expense"));
+  const [accountId, setAccountId] = useState(saved?.accountId ?? (draft ? (draft.accountId ?? "") : defaultAccount));
+  const [toAccountId, setToAccountId] = useState(saved?.toAccountId ?? draft?.toAccountId ?? "");
+  const [amount, setAmount] = useState(
+    saved ? formatAmountInput(saved.amountMinor, currency) : draft && draft.amountMinor > 0n ? formatAmountInput(draft.amountMinor, currency) : "",
+  );
   const [date, setDate] = useState(saved?.date ?? todayIso);
   const [time, setTime] = useState(saved?.timeOfDay ?? "");
   const [payee, setPayee] = useState<PayeeChoice>(() => {
     if (saved?.payeeId) return { type: "existing", id: saved.payeeId };
+    if (draft?.payeeId) return { type: "existing", id: draft.payeeId };
     if (mode.type === "create" && mode.payeeId) return { type: "existing", id: mode.payeeId };
     return null;
   });
-  const [personAction, setPersonAction] = useState<PersonAction>(saved?.personAction ?? "lent");
+  const [personAction, setPersonAction] = useState<PersonAction>(saved?.personAction ?? draft?.personAction ?? "lent");
   const [flow, setFlow] = useState<MoneyFlow>(saved?.flow ?? "out");
-  const [categoryId, setCategoryId] = useState<string | null>(saved?.categoryId ?? null);
+  const [categoryId, setCategoryId] = useState<string | null>(saved?.categoryId ?? draft?.categoryId ?? null);
   const [lines, setLines] = useState<SplitLineDraft[] | null>(saved && saved.lines.length > 0 ? saved.lines.map((l) => lineDraft(l, currency)) : null);
   const [tagIds, setTagIds] = useState<string[]>(saved?.tagIds ?? []);
   const [createdTags, setCreatedTags] = useState<TagView[]>([]);
-  const [notes, setNotes] = useState(saved?.notes ?? "");
+  const [notes, setNotes] = useState(saved?.notes ?? draft?.notes ?? "");
+  // R7 "Pays:" — the link is kept unless unticked; otherwise the first suggestion is ticked by default.
+  const [keepLink, setKeepLink] = useState(true);
+  const [suggested, setSuggested] = useState<{ key: string; list: PlanSuggestion[] } | null>(null);
+  /** undefined: the default (first suggestion); null: None; else `item|month`. */
+  const [paysChoice, setPaysChoice] = useState<string | null | undefined>(undefined);
   const [reference, setReference] = useState(saved?.reference ?? "");
   const [status, setStatus] = useState<TransactionStatus>(saved?.status ?? "uncleared");
   const [errors, setErrors] = useState<Partial<Record<Field, string>>>({});
@@ -174,6 +203,48 @@ export function TransactionForm({
   const amountMinor = parsedAmount.ok && parsedAmount.minor > 0n ? parsedAmount.minor : null;
   const upcoming = date > todayIso;
   const awaiting = saved !== null && !saved.confirmed && !upcoming;
+
+  // R7 US3 8 (FR-013): what is being entered may pay an unpaid planned payment. Suggestions only:
+  // the user can choose another or None. Asked for (debounced) when the details that matter change.
+  const payable = canPayPlan(kind, kind === "person" ? personAction : null);
+  const suggestKey =
+    !planLink && payable && amountMinor !== null && date
+      ? JSON.stringify({
+          kind,
+          toAccountId: kind === "transfer" && toAccountId ? toAccountId : null,
+          payeeId: kind !== "transfer" && payee?.type === "existing" ? payee.id : null,
+          personAction: kind === "person" ? personAction : null,
+          amountMinor: amountMinor.toString(),
+          date,
+        })
+      : null;
+  useEffect(() => {
+    if (!suggestKey) return;
+    let current = true;
+    const timer = setTimeout(() => {
+      void planSuggestions(JSON.parse(suggestKey)).then((list) => {
+        if (current) setSuggested({ key: suggestKey, list });
+      });
+    }, 400);
+    return () => {
+      current = false;
+      clearTimeout(timer);
+    };
+  }, [suggestKey]);
+  const suggestions = suggested && suggested.key === suggestKey ? suggested.list : [];
+  const suggestionKey = (s: PlanSuggestion) => `${s.itemId}|${s.month}`;
+  const chosenSuggestion = paysChoice === null ? null : (suggestions.find((s) => suggestionKey(s) === paysChoice) ?? suggestions[0] ?? null);
+  /** The item-month this transaction will pay when saved, or null. */
+  const paying: { itemId: string; month: string } | null = !payable
+    ? null
+    : planLink
+      ? planLink.fixed || keepLink
+        ? { itemId: planLink.itemId, month: planLink.month }
+        : null
+      : chosenSuggestion
+        ? { itemId: chosenSuggestion.itemId, month: chosenSuggestion.month }
+        : null;
+  const unpaying = saved !== null && planLink !== null && !planLink.fixed;
 
   /** Accounts offered: active ones, plus the one already used (FR-006). */
   const accountOptions = (current: string) => {
@@ -316,6 +387,9 @@ export function TransactionForm({
       status,
     };
     if (ownFlow) fields.flow = flow;
+    // The two link fields always travel together (R7-03).
+    fields.planItemId = paying?.itemId ?? null;
+    fields.planMonth = paying?.month ?? null;
     const check = TransactionCreateFields.safeParse({ ...fields, kind });
     if (!check.success) {
       setFormError(check.error.issues[0]?.message ?? REFUSALS.VALIDATION_FAILED!);
@@ -350,6 +424,8 @@ export function TransactionForm({
       notes: tx.notes,
       reference: tx.reference,
       status: tx.status,
+      planItemId: tx.planItemId,
+      planMonth: tx.planMonth,
     };
     const diff = Object.fromEntries(
       Object.entries(fields).filter(([key, value]) => JSON.stringify(original[key]) !== JSON.stringify(value)),
@@ -357,6 +433,10 @@ export function TransactionForm({
     if ("amountMinor" in diff || "lines" in diff) {
       diff.amountMinor = fields.amountMinor;
       diff.lines = fields.lines;
+    }
+    if ("planItemId" in diff || "planMonth" in diff) {
+      diff.planItemId = fields.planItemId;
+      diff.planMonth = fields.planMonth;
     }
     return diff;
   }
@@ -472,7 +552,7 @@ export function TransactionForm({
         </Alert>
       )}
 
-      {mode.type === "create" && kind !== "interest" ? (
+      {mode.type === "create" && kind !== "interest" && !planLink?.fixed ? (
         <fieldset className="flex flex-col gap-2">
           <legend className="mb-1 text-sm font-medium">Type</legend>
           <div className="flex flex-wrap gap-1 rounded-lg border border-border p-1">
@@ -499,6 +579,12 @@ export function TransactionForm({
             </>
           )}
           .{saved && " To change the type, delete this one and add it again."}
+        </p>
+      )}
+
+      {planLink?.fixed && (
+        <p id="pays-plan" className="rounded-md border border-border bg-muted p-2 text-sm">
+          Pays: <span className="font-medium">{planLink.name}</span> ({monthName(planLink.month)}). Saving records the payment and marks it paid.
         </p>
       )}
 
@@ -702,6 +788,46 @@ export function TransactionForm({
         </div>
       </div>
 
+      {unpaying && planLink && (
+        <div className="flex flex-col gap-1 rounded-md border border-border p-3">
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={keepLink} onChange={(e) => setKeepLink(e.target.checked)} />
+            Pays: {planLink.name} ({monthName(planLink.month)})
+          </label>
+          <p className="text-sm text-muted-foreground">
+            {keepLink ? "Untick to unlink it: the planned payment is then no longer paid by this transaction." : "It will be unlinked when you save. The transaction itself does not change."}
+          </p>
+          {keepLink && status === "void" && saved?.status !== "void" && (
+            <p role="status" className="text-sm font-medium">
+              Voiding this transaction makes {planLink.name} ({monthName(planLink.month)}) unpaid again.
+            </p>
+          )}
+        </div>
+      )}
+
+      {!planLink && suggestions.length > 0 && (
+        <fieldset className="flex flex-col gap-1 rounded-md border border-border p-3">
+          <legend className="px-1 text-sm font-medium">Pays a planned payment?</legend>
+          {suggestions.map((s) => (
+            <label key={suggestionKey(s)} className="flex items-center gap-2 text-sm">
+              <input
+                type="radio"
+                name={`${ids}-pays`}
+                checked={chosenSuggestion !== null && suggestionKey(chosenSuggestion) === suggestionKey(s)}
+                onChange={() => setPaysChoice(suggestionKey(s))}
+              />
+              <span>
+                Pays: {s.name} ({s.monthLabel}) · <Money value={BigInt(s.leftMinor)} currency={currency} /> left
+              </span>
+            </label>
+          ))}
+          <label className="flex items-center gap-2 text-sm">
+            <input type="radio" name={`${ids}-pays`} checked={chosenSuggestion === null} onChange={() => setPaysChoice(null)} />
+            None
+          </label>
+        </fieldset>
+      )}
+
       <div className="flex flex-wrap gap-2">
         <Button type="submit" disabled={busy}>
           Save
@@ -724,6 +850,7 @@ export function TransactionForm({
       {confirmDelete && (
         <ConfirmDialog title="Delete this transaction?" confirmLabel="Delete" destructive busy={busy} onConfirm={() => void remove()} onCancel={() => setConfirmDelete(false)}>
           It leaves every balance and total. Its history is kept.
+          {unpaying && planLink && ` It pays ${planLink.name} (${monthName(planLink.month)}): that planned payment will no longer count it as paid.`}
         </ConfirmDialog>
       )}
     </form>
