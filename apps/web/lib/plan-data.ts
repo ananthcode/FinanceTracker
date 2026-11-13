@@ -9,6 +9,7 @@ import {
   summarise,
   todayInZone,
   type AccountView,
+  type MovementTotals,
   type Month,
   type PlanAccount,
   type PlanItem,
@@ -28,6 +29,8 @@ export interface PlanData {
   items: PlanItem[];
   accounts: AccountView[];
   planAccounts: PlanAccount[];
+  /** Each person's counted movement total, for the people panel (same source as People and the Dashboard). */
+  peopleMovements: MovementTotals;
   /** The months asked for, each kept within earliest … latest. */
   months: Month[];
   /** Views by month, for those months. */
@@ -75,6 +78,7 @@ export async function loadPlan(supabase: SupabaseClient, prefs: Preferences, mon
     items,
     accounts,
     planAccounts,
+    peopleMovements: totals.people,
     views,
   };
 }

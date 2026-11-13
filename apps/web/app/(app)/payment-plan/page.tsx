@@ -1,8 +1,22 @@
 import Link from "next/link";
-import { categoryPath, DEFAULT_PREFERENCES, indexCategories, monthOf, parseMonthParam, todayInZone, withLikely, type PlanMonthView, type TransactionView } from "@ft/core";
+import {
+  categoryPath,
+  DEFAULT_PREFERENCES,
+  indexCategories,
+  monthOf,
+  parseMonthParam,
+  peopleTotals,
+  personBalanceOf,
+  todayInZone,
+  withLikely,
+  type PlanMonthView,
+  type TransactionView,
+} from "@ft/core";
 import { getPreferences, listCategories, listPayees, planCandidates } from "@ft/db";
+import { Comparison } from "@/components/plan/Comparison";
 import type { PlanNames } from "@/components/plan/labels";
 import { PayActions } from "@/components/plan/PayActions";
+import { PeopleOwed } from "@/components/plan/PeopleOwed";
 import { MonthNav, PlanMonth } from "@/components/plan/PlanMonth";
 import { RowActions } from "@/components/plan/RowActions";
 import { buttonVariants } from "@/components/ui/button";
@@ -83,6 +97,13 @@ export default async function PaymentPlanPage({ searchParams }: { searchParams: 
     category: (id) => (id && index.has(id) ? categoryPath(id, index) : null),
   };
   const returnTo = `/payment-plan?month=${month.slice(0, 7)}`;
+  // People with a balance, as the People screen counts them (FR-017).
+  const persons = payees.filter((p) => p.kind === "person");
+  const owing = peopleTotals(persons, (p) => personBalanceOf(p, plan.peopleMovements));
+  const peopleOwed = persons
+    .map((p) => ({ id: p.id, name: p.name, balanceMinor: personBalanceOf(p, plan.peopleMovements) }))
+    .filter((p) => p.balanceMinor !== 0n)
+    .sort((a, b) => a.name.localeCompare(b.name));
 
   return (
     <section aria-labelledby="page-title" className="flex flex-col gap-6">
@@ -128,6 +149,8 @@ export default async function PaymentPlanPage({ searchParams }: { searchParams: 
           );
         }}
       />
+      <Comparison view={view} currency={currency} />
+      <PeopleOwed people={peopleOwed} owedToYou={owing.owedToYou} youOwe={owing.youOwe} currency={currency} />
     </section>
   );
 }

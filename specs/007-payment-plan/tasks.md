@@ -175,8 +175,8 @@ Migration names are `20261113000NNN_*` (`<ts>`), in the listed order.
 
 **Independent Test**: An unpaid September rent shows in October as Overdue with its September due date, and Everyday Savings shows still to pay, available and "short by".
 
-- [ ] T028 [P] [US4] Playwright `apps/web/e2e/r7-us4-overdue.spec.ts`: US4 1–4, S4-a, SC-005 (carried once; "counted in <month>" elsewhere; paying it clears every month)
-- [ ] T029 [US4] `components/plan/CarriedOver.tsx`, `CashByAccount.tsx` (balances from the R2 accounts summary; card available credit when a limit is set) — passes T028
+- [X] T028 [P] [US4] Playwright `apps/web/e2e/r7-us4-overdue.spec.ts`: US4 1–4, S4-a, SC-005 (carried once; "counted in <month>" elsewhere; paying it clears every month)
+- [X] T029 [US4] `components/plan/CarriedOver.tsx`, `CashByAccount.tsx` (balances from the R2 accounts summary; card available credit when a limit is set) — passes T028
 
 ## Phase 7: User Story 5 — Comparison and people panel (P2)
 
@@ -184,8 +184,8 @@ Migration names are `20261113000NNN_*` (`<ts>`), in the listed order.
 
 **Independent Test**: The comparison states the difference in words, and the people totals equal the People screen.
 
-- [ ] T030 [P] [US5] Playwright `apps/web/e2e/r7-us5-compare.spec.ts`: US5 1–2, S5-a (difference in words; people totals equal People; a person opens)
-- [ ] T031 [US5] `components/plan/Comparison.tsx`, `PeopleOwed.tsx` (people balances from the R6 Dashboard source) — passes T030
+- [X] T030 [P] [US5] Playwright `apps/web/e2e/r7-us5-compare.spec.ts`: US5 1–2, S5-a (difference in words; people totals equal People; a person opens)
+- [X] T031 [US5] `components/plan/Comparison.tsx`, `PeopleOwed.tsx` (people balances from the R6 Dashboard source) — passes T030
 
 ## Phase 8: Cross-cutting — safe to spend and month-check nudge (FR-018, FR-023)
 
