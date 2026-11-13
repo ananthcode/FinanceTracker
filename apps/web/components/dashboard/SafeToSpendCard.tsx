@@ -10,8 +10,9 @@ import { Label } from "@/components/ui/label";
 import { apiFetch } from "@/lib/api/client";
 
 /**
- * Safe to spend (R6 FR-002, FR-003; clarify Q1): the result and its four parts in words, and the
- * buffer, which can be changed here (also in Settings).
+ * Safe to spend (R6 FR-002, FR-003; clarify Q1; R7 FR-018): the result and its five parts in words —
+ * the fifth is what is still to pay in the payment plan — and the buffer, which can be changed here
+ * (also in Settings).
  */
 export function SafeToSpendCard({ safe, currency }: { safe: SafeToSpend; currency: string }) {
   const ids = useId();
@@ -59,6 +60,10 @@ export function SafeToSpendCard({ safe, currency }: { safe: SafeToSpend; currenc
         <dt className="text-muted-foreground">Less still to pay this month</dt>
         <dd className="text-right tabular-nums">
           <Money value={safe.upcomingMinor} currency={currency} />
+        </dd>
+        <dt className="text-muted-foreground">Less still to pay in your plan</dt>
+        <dd id="safe-plan" className="text-right tabular-nums">
+          <Money value={safe.planUnpaidMinor} currency={currency} />
         </dd>
         <dt className="text-muted-foreground">Less your buffer</dt>
         <dd className="text-right tabular-nums">

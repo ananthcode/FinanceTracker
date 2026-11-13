@@ -201,8 +201,8 @@ Migration names are `20261113000NNN_*` (`<ts>`), in the listed order.
   - the setting off, and a checked month;
   - in `packages/core/test/reports.test.ts` and `plan.test.ts`.
 - [X] T033 Core `packages/core/src/plan/nudge.ts`, `planUnpaidForSafeToSpend` in `month.ts`, `safeToSpend` gains `planUnpaidMinor` in `packages/core/src/reports/index.ts` — passes T032
-- [ ] T034 [P] Playwright `apps/web/e2e/r7-nudge.spec.ts` (fixed clock): S6-a, S6-b, SC-008 (window, Not now until tomorrow, Plan checked on the nudge and the plan, setting off); `r6-us1-dashboard.spec.ts` updated for the plan part (S7-a)
-- [ ] T035 Wire the nudge and the safe-to-spend part into the UI. Passes T034.
+- [X] T034 [P] Playwright `apps/web/e2e/r7-nudge.spec.ts` (fixed clock): S6-a, S6-b, SC-008 (window, Not now until tomorrow, Plan checked on the nudge and the plan, setting off); `r6-us1-dashboard.spec.ts` updated for the plan part (S7-a)
+- [X] T035 Wire the nudge and the safe-to-spend part into the UI. Passes T034.
   - `components/plan/PlanNudge.tsx`, on the Dashboard `apps/web/app/(app)/page.tsx` and on the plan
     screen.
   - "Not now" in `localStorage` (`ft.planNudge.snoozedUntil`, wrapped in try/catch).

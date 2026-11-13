@@ -1,11 +1,14 @@
 import Link from "next/link";
 import {
+  addMonths,
   countedAccounts,
   DEFAULT_PREFERENCES,
+  monthOf,
   movementsFromTotals,
   peopleTotals,
   periodOf,
   personBalanceOf,
+  planUnpaidForSafeToSpend,
   safeToSpend,
   summarise,
   todayInZone,
@@ -23,8 +26,10 @@ import {
 } from "@ft/db";
 import { SafeToSpendCard } from "@/components/dashboard/SafeToSpendCard";
 import { Money } from "@/components/Money";
+import { PlanNudge } from "@/components/plan/PlanNudge";
 import { buttonVariants } from "@/components/ui/button";
 import { publicEnv } from "@/lib/env";
+import { loadPlan } from "@/lib/plan-data";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 function Figure({ id, label, href, children }: { id: string; label: string; href: string; children: React.ReactNode }) {
@@ -50,7 +55,8 @@ export default async function DashboardPage() {
   const todayIso = todayInZone(prefs.timezone);
   const month = periodOf("this_month", todayIso, prefs.fyStartMonth);
   await runInterestProposals(supabase).catch(() => 0);
-  const [accounts, groups, people, totals, months, upcoming, waiting] = await Promise.all([
+  const planMonthNow = monthOf(todayIso);
+  const [accounts, groups, people, totals, months, upcoming, waiting, plan] = await Promise.all([
     listAccounts(supabase),
     listGroups(supabase),
     listPayees(supabase, "person"),
@@ -58,6 +64,8 @@ export default async function DashboardPage() {
     monthTotals(supabase, month),
     searchTransactions(supabase, { upcoming: true, to: month.to }, null, 200),
     toConfirmCount(supabase),
+    // R7: this month's unpaid plan items lower safe to spend; next month is for the nudge's count.
+    loadPlan(supabase, prefs, [planMonthNow, addMonths(planMonthNow, 1)]),
   ]);
   const currency = prefs.baseCurrency;
 
@@ -96,6 +104,8 @@ export default async function DashboardPage() {
     upcoming: upcoming.rows,
     monthEnd: month.to,
     bufferMinor: BigInt(prefs.bufferMinor),
+    // Unpaid plan items not already counted as card owed or as an upcoming transaction (R7 FR-018).
+    planUnpaidMinor: planUnpaidForSafeToSpend(plan.views.get(planMonthNow)!, new Map(plan.items.map((i) => [i.id, i])), counted.ids, month.to),
   });
   const thisMonth = months[0] ?? { incomeMinor: 0n, spendingMinor: 0n };
   const net = thisMonth.incomeMinor - thisMonth.spendingMinor;
@@ -106,6 +116,15 @@ export default async function DashboardPage() {
       <h1 id="page-title" className="text-2xl font-semibold">
         Dashboard
       </h1>
+
+      {plan.items.some((i) => i.state === "active") && (
+        <PlanNudge
+          planNudge={prefs.planNudge}
+          planCheckedMonth={prefs.planCheckedMonth}
+          timezone={prefs.timezone}
+          estimated={Object.fromEntries([...plan.views].map(([m, v]) => [m, v.estimatedCount]))}
+        />
+      )}
 
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <Figure id="dash-net-worth" label="Net worth" href="/accounts">

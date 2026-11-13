@@ -213,6 +213,25 @@ export function PreferencesForm({
         </div>
       )}
 
+      {mode === "settings" && (
+        <div className="flex flex-col gap-1">
+          <label className="flex items-center gap-2">
+            <input
+              id="plan-nudge-setting"
+              type="checkbox"
+              checked={prefs.planNudge}
+              onChange={(e) => set("planNudge", e.target.checked)}
+              aria-describedby="plan-nudge-hint"
+            />
+            Remind me to check next month&rsquo;s plan
+          </label>
+          <p id="plan-nudge-hint" className="text-sm text-muted-foreground">
+            From the 25th to the 5th, the Dashboard and the Payment plan ask you to check the coming month until you select
+            &ldquo;Plan checked&rdquo;. Applies on every device.
+          </p>
+        </div>
+      )}
+
       <section id="format-preview" aria-labelledby="preview-title" className="rounded-md border border-border p-3 text-sm">
         <h2 id="preview-title" className="mb-1 font-medium">
           Preview

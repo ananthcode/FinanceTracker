@@ -1,5 +1,6 @@
 import Link from "next/link";
 import {
+  addMonths,
   categoryPath,
   DEFAULT_PREFERENCES,
   indexCategories,
@@ -17,6 +18,7 @@ import { Comparison } from "@/components/plan/Comparison";
 import type { PlanNames } from "@/components/plan/labels";
 import { PayActions } from "@/components/plan/PayActions";
 import { PeopleOwed } from "@/components/plan/PeopleOwed";
+import { PlanCheckedButton, PlanNudge } from "@/components/plan/PlanNudge";
 import { MonthNav, PlanMonth } from "@/components/plan/PlanMonth";
 import { RowActions } from "@/components/plan/RowActions";
 import { buttonVariants } from "@/components/ui/button";
@@ -34,8 +36,14 @@ export default async function PaymentPlanPage({ searchParams }: { searchParams: 
   const supabase = await createServerSupabase();
   const { data } = await supabase.auth.getUser();
   const prefs = (await getPreferences(supabase, data.user?.id ?? "")) ?? DEFAULT_PREFERENCES;
-  const requested = parseMonthParam(param) ?? monthOf(todayInZone(prefs.timezone));
-  const [plan, payees, categories] = await Promise.all([loadPlan(supabase, prefs, [requested]), listPayees(supabase), listCategories(supabase)]);
+  const thisMonth = monthOf(todayInZone(prefs.timezone));
+  const requested = parseMonthParam(param) ?? thisMonth;
+  // This month and next are also computed for the month-check nudge's estimated counts (FR-023).
+  const [plan, payees, categories] = await Promise.all([
+    loadPlan(supabase, prefs, [requested, thisMonth, addMonths(thisMonth, 1)]),
+    listPayees(supabase),
+    listCategories(supabase),
+  ]);
   const month = plan.months[0]!;
   const currency = prefs.baseCurrency;
   const items = new Map(plan.items.map((i) => [i.id, i]));
@@ -115,7 +123,16 @@ export default async function PaymentPlanPage({ searchParams }: { searchParams: 
           Add a planned payment
         </Link>
       </div>
-      <MonthNav month={month} earliest={plan.earliest} latest={plan.latest} />
+      <PlanNudge
+        planNudge={prefs.planNudge}
+        planCheckedMonth={prefs.planCheckedMonth}
+        timezone={prefs.timezone}
+        estimated={Object.fromEntries([...plan.views].map(([m, v]) => [m, v.estimatedCount]))}
+      />
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <MonthNav month={month} earliest={plan.earliest} latest={plan.latest} />
+        <PlanCheckedButton month={month} planCheckedMonth={prefs.planCheckedMonth} timezone={prefs.timezone} />
+      </div>
       <PlanMonth
         view={view}
         items={items}
