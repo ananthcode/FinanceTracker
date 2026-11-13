@@ -127,8 +127,8 @@ Migration names are `20261113000NNN_*` (`<ts>`), in the listed order.
   - `app.pull_changes` gains `plan_item` and `plan_occurrence`;
   - `app._reset_user_data` and the erasure functions include the new tables and preference columns;
   - passes T013.
-- [ ] T015 [P] Integration `apps/web/lib/plan-sync.int.test.ts`: push/pull round trip for both entities; `occurrenceId` TS = `app._plan_occurrence_id` on 50 random pairs; `/api/me` returns `planNudge: true`, `planCheckedMonth: null`; `PATCH /api/me/preferences` with `planCheckedMonth` stores the later month
-- [ ] T016 Changes builders in `apps/web/lib/sync-client.ts` (`changes.createPlanItem`, `updatePlanItem`, `deletePlanItem`, `setPlanMonth`, `linkTransaction`, `unlinkTransaction`) and repository `packages/db/src/repositories/plan.ts` (`planItems`, `planOccurrences(months)`, `planLinks(upTo)`, `planCandidates(from, to, payeeIds, cardIds)`) — passes T015
+- [X] T015 [P] Integration `apps/web/lib/plan-sync.int.test.ts`: push/pull round trip for both entities; `occurrenceId` TS = `app._plan_occurrence_id` on 50 random pairs; `/api/me` returns `planNudge: true`, `planCheckedMonth: null`; `PATCH /api/me/preferences` with `planCheckedMonth` stores the later month
+- [X] T016 Changes builders in `apps/web/lib/sync-client.ts` (`changes.createPlanItem`, `updatePlanItem`, `deletePlanItem`, `setPlanMonth`, `linkTransaction`, `unlinkTransaction`) and repository `packages/db/src/repositories/plan.ts` (`planItems`, `planOccurrences(months)`, `planLinks(upTo)`, `planCandidates(from, to, payeeIds, cardIds)`) — passes T015
 
 ## Phase 3: User Story 1 — This month's plan on one screen (P1) 🎯 MVP
 

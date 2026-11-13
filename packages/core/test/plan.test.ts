@@ -14,6 +14,7 @@ import {
   type PlanItem,
   type PlanOccurrence,
   type PlanTerm,
+  type PlanTermValues,
 } from "../src";
 import vectors from "./vectors/plan.json";
 
@@ -111,7 +112,12 @@ describe("terms (FR-008, clarify Q5)", () => {
   }
   for (const c of vectors.terms.edits) {
     it(`edit from ${c.from} in ${c.currentMonth}`, () => {
-      const change = { ...c.change, ...("amountMinor" in c.change ? { amountMinor: BigInt(c.change.amountMinor as string) } : {}) };
+      const raw = c.change as { amountMinor?: string; dueDay?: number; accountId?: string };
+      const change: Partial<PlanTermValues> = {
+        ...(raw.amountMinor !== undefined ? { amountMinor: BigInt(raw.amountMinor) } : {}),
+        ...(raw.dueDay !== undefined ? { dueDay: raw.dueDay } : {}),
+        ...(raw.accountId !== undefined ? { accountId: raw.accountId } : {}),
+      };
       if ("error" in c) {
         expect(() => editTerms(terms, c.from, change, c.currentMonth)).toThrow(PlanRuleError);
         return;
