@@ -51,10 +51,10 @@ test("keyboard only: Tab reaches the navigation in order and Enter opens a secti
     await page.keyboard.press("Tab");
     order.push(await page.evaluate(() => document.activeElement?.getAttribute("aria-label") ?? document.activeElement?.textContent?.trim() ?? ""));
   }
-  expect(order.slice(0, 8)).toEqual(["Hide balances", "Dashboard", "Accounts", "People", "Transactions", "Payment plan", "Settings", order[7]]);
+  expect(order.slice(0, 8)).toEqual(["Hide balances", "Dashboard", "Accounts", "People", "Transactions", "Reports", "Payment plan", "Settings"]);
   // Focus is visibly outlined (not colour of text alone).
-  // Focus is on stop 8; two Shift+Tabs go back to stop 6, "Payment plan" (R3 added People at stop 4).
-  for (let i = 0; i < 2; i++) await page.keyboard.press("Shift+Tab");
+  // Focus is on stop 8; one Shift+Tab goes back to stop 7, "Payment plan" (R3 added People, R6 Reports).
+  await page.keyboard.press("Shift+Tab");
   await expect(page.locator(":focus")).toHaveText("Payment plan");
   const outline = await page.evaluate(() => getComputedStyle(document.activeElement!).outlineStyle);
   expect(outline).not.toBe("none");
@@ -215,6 +215,45 @@ test("R4 transactions: list, To confirm, filters, bulk bar, every form type, spl
   await page.getByRole("button", { name: "Split into lines" }).click();
   await page.getByRole("button", { name: "Add line" }).click();
   await expectNoViolations(page, "split editor");
+});
+
+test("R6 Dashboard, Reports (each view, table, keyboard) and a person statement (T021)", async ({ page, request }) => {
+  test.slow(); // many page scans over the demo data
+  await ensureOwner(request);
+  const member = uniqueEmail("a11yrpt");
+  await createMember(request, member);
+  await signInUI(page, member);
+  await seedAccounts(member, { demo: true });
+  await seedLists(member, { demo: true });
+  await seedDemoTransactions(member);
+
+  await page.goto("/people");
+  const ravi = (await page.locator("[data-person-name='Ravi Kumar']").getByRole("link").getAttribute("href"))!;
+  const pages = ["/", "/reports?view=spending&period=last_month", "/reports?view=income&period=last_month", "/reports?view=trend", `${ravi}/statement`];
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    for (const path of pages) {
+      await page.goto(path);
+      await expectNoViolations(page, `${path} @${width}px`);
+    }
+  }
+
+  // The table view, a drill step and the safe-to-spend buffer form, by keyboard.
+  await page.setViewportSize({ width: 1280, height: 844 });
+  await page.goto("/reports?view=spending&period=last_month");
+  await page.getByText("Show as table").focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("details table")).toBeVisible();
+  await expectNoViolations(page, "reports table open");
+  await page.getByRole("list", { name: "Spending by category" }).getByRole("link").first().focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("navigation", { name: "Breadcrumb" })).toContainText("All spending");
+  await expectNoViolations(page, "reports second level");
+  await page.goto("/");
+  await page.getByRole("button", { name: "Change buffer" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByLabel("Buffer to keep")).toBeVisible();
+  await expectNoViolations(page, "dashboard buffer form");
 });
 
 test("R5 Settings › Your data: both states and both dialogs, keyboard only (T023)", async ({ page, request }) => {

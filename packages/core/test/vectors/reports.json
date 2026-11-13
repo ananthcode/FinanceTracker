@@ -1,0 +1,69 @@
+{
+  "description": "Spending and income drill-down and month totals (R6 FR-005 – FR-007; SC-002). Hand-computed. Shared by packages/core/test/reports.test.ts and the SQL parity test (app.category_payee_totals, app.month_totals).",
+  "categories": [
+    { "id": "food", "name": "Food", "kind": "expense", "parentId": null },
+    { "id": "groceries", "name": "Groceries", "kind": "expense", "parentId": "food" },
+    { "id": "eating", "name": "Eating out", "kind": "expense", "parentId": "food" },
+    { "id": "transport", "name": "Transport", "kind": "expense", "parentId": null },
+    { "id": "salary", "name": "Salary", "kind": "income", "parentId": null },
+    { "id": "bonus", "name": "Bonus", "kind": "income", "parentId": "salary" }
+  ],
+  "payees": [
+    { "id": "shop", "kind": "business" },
+    { "id": "cafe", "kind": "business" },
+    { "id": "pay", "kind": "business" },
+    { "id": "ravi", "kind": "person" }
+  ],
+  "accounts": [
+    { "id": "a1", "type": "bank" },
+    { "id": "a2", "type": "credit_card" }
+  ],
+  "transactions": [
+    { "id": "t1", "date": "2026-10-03", "kind": "expense", "flow": "out", "accountId": "a1", "amountMinor": "1000", "categoryId": "groceries", "payeeId": "shop" },
+    { "id": "t2", "date": "2026-10-05", "kind": "expense", "flow": "out", "accountId": "a1", "amountMinor": "500", "categoryId": "groceries", "payeeId": "shop" },
+    { "id": "t3", "date": "2026-10-06", "kind": "refund", "flow": "in", "accountId": "a1", "amountMinor": "200", "categoryId": "groceries", "payeeId": "shop" },
+    { "id": "t4", "date": "2026-10-07", "kind": "expense", "flow": "out", "accountId": "a1", "amountMinor": "300", "categoryId": "food" },
+    { "id": "t5", "date": "2026-10-08", "kind": "expense", "flow": "out", "accountId": "a2", "amountMinor": "3000", "payeeId": "cafe", "lines": [
+      { "id": "l1", "amountMinor": "1000", "categoryId": "eating" },
+      { "id": "l2", "amountMinor": "2000", "personId": "ravi", "personAction": "paid_on_behalf" }
+    ] },
+    { "id": "t6", "date": "2026-10-09", "kind": "expense", "flow": "out", "accountId": "a1", "amountMinor": "400" },
+    { "id": "t7", "date": "2026-10-10", "kind": "expense", "flow": "out", "accountId": "a1", "amountMinor": "999", "categoryId": "transport", "payeeId": "cafe", "status": "void" },
+    { "id": "t8", "date": "2026-10-11", "kind": "expense", "flow": "out", "accountId": "a1", "amountMinor": "888", "categoryId": "transport", "confirmed": false },
+    { "id": "t9", "date": "2026-10-12", "kind": "transfer", "flow": "out", "accountId": "a1", "toAccountId": "a2", "amountMinor": "5000" },
+    { "id": "t10", "date": "2026-10-01", "kind": "income", "flow": "in", "accountId": "a1", "amountMinor": "85000", "categoryId": "salary", "payeeId": "pay" },
+    { "id": "t11", "date": "2026-10-15", "kind": "income", "flow": "in", "accountId": "a1", "amountMinor": "10000", "categoryId": "bonus", "payeeId": "pay" },
+    { "id": "t12", "date": "2026-09-20", "kind": "expense", "flow": "out", "accountId": "a1", "amountMinor": "700", "categoryId": "transport", "payeeId": "shop" },
+    { "id": "t13", "date": "2026-10-20", "kind": "refund", "flow": "in", "accountId": "a1", "amountMinor": "50", "categoryId": "transport" },
+    { "id": "t14", "date": "2026-10-21", "kind": "person", "flow": "out", "personAction": "lent", "accountId": "a1", "amountMinor": "7000", "payeeId": "ravi" },
+    { "id": "t15", "date": "2026-10-22", "kind": "expense", "flow": "out", "accountId": "a1", "amountMinor": "70", "categoryId": "groceries", "payeeId": "shop", "state": "deleted" }
+  ],
+  "period": { "from": "2026-10-01", "to": "2026-10-31" },
+  "expect": {
+    "notes": "Groceries 1000+500−200 = 1300 (shop). Food itself 300 (no payee); Food total 300+1300+1000 = 2600. Eating out 1000 (cafe; Ravi's 2000 share is a person movement). Uncategorised 400. Transport −50 (a refund larger than its spending this month; void, unconfirmed and September left out). Spending 2600+400−50 = 2950. Salary 85000 itself + Bonus 10000 = 95000. Transfers, lending and the deleted entry count nowhere.",
+    "expense": {
+      "totalMinor": "2950",
+      "nodes": {
+        "food": { "ownMinor": "300", "totalMinor": "2600", "payees": { "none": "300" } },
+        "groceries": { "ownMinor": "1300", "totalMinor": "1300", "payees": { "shop": "1300" } },
+        "eating": { "ownMinor": "1000", "totalMinor": "1000", "payees": { "cafe": "1000" } },
+        "uncategorised": { "ownMinor": "400", "totalMinor": "400", "payees": { "none": "400" } },
+        "transport": { "ownMinor": "-50", "totalMinor": "-50", "payees": { "none": "-50" } }
+      },
+      "top": ["food", "uncategorised", "transport"]
+    },
+    "income": {
+      "totalMinor": "95000",
+      "nodes": {
+        "salary": { "ownMinor": "85000", "totalMinor": "95000", "payees": { "pay": "85000" } },
+        "bonus": { "ownMinor": "10000", "totalMinor": "10000", "payees": { "pay": "10000" } }
+      },
+      "top": ["salary"]
+    },
+    "monthsPeriod": { "from": "2026-09-01", "to": "2026-10-31" },
+    "months": [
+      { "month": "2026-09-01", "incomeMinor": "0", "spendingMinor": "700" },
+      { "month": "2026-10-01", "incomeMinor": "95000", "spendingMinor": "2950" }
+    ]
+  }
+}

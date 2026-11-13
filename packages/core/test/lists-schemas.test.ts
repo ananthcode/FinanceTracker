@@ -68,6 +68,7 @@ describe("payee changes", () => {
       openingBalanceDate: null,
       includeInNetWorth: false,
       interestMode: "none", // R4
+      statementSign: "they_owe_positive", // R6
     });
     expect(change("payee", "create", person).success).toBe(true);
     expect(change("payee", "create", { ...person, openingBalanceMinor: "-450000" }).success).toBe(true);

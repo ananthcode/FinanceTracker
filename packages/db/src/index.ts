@@ -7,3 +7,4 @@ export * from "./repositories/sync";
 export * from "./repositories/lists";
 export * from "./repositories/transactions";
 export * from "./repositories/data";
+export * from "./repositories/reports";

@@ -10,7 +10,10 @@ export const FiltersSchema = z
     to: z.iso.date().optional(),
     accountId: z.uuid().optional(),
     categoryId: z.union([z.uuid(), z.literal("uncategorised")]).optional(),
-    payeeId: z.uuid().optional(),
+    // R6: only the category itself, not its sub-categories (the report's payee level).
+    categoryExact: z.boolean().optional(),
+    // R6: "none" = transactions with no payee.
+    payeeId: z.union([z.uuid(), z.literal("none")]).optional(),
     tagId: z.uuid().optional(),
     kinds: z.array(z.enum(TRANSACTION_KINDS)).max(6).optional(),
     statuses: z.array(z.enum(TRANSACTION_STATUSES)).max(4).optional(),
@@ -51,6 +54,7 @@ export function filtersFromParams(params: Record<string, string | string[] | und
     const shape = FiltersSchema.shape[key as keyof typeof FiltersSchema.shape];
     if (shape.safeParse(value).success) filters[key] = value;
   }
+  if (one("exact") === "1" && filters.categoryId) filters.categoryExact = true;
   return filters as TransactionFilters;
 }
 

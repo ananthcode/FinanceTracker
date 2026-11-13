@@ -7,7 +7,7 @@ import { z } from "zod";
 import { IsoDate, MinorString } from "../accounts/schemas";
 import { Notes, trimmedName } from "../schemas/text";
 import { INTEREST_MODES } from "../transactions/types";
-import { PAYEE_KINDS } from "./types";
+import { PAYEE_KINDS, STATEMENT_SIGNS } from "./types";
 
 export const PayeeName = trimmedName(60);
 export const PayeeKindSchema = z.enum(PAYEE_KINDS);
@@ -23,6 +23,8 @@ const fields = {
   includeInNetWorth: z.boolean(),
   /** People only (R4 FR-013): none, automatic or manual interest. */
   interestMode: z.enum(INTEREST_MODES),
+  /** People only (R6 FR-010): which direction their statement shows as positive. */
+  statementSign: z.enum(STATEMENT_SIGNS),
 };
 
 /** A business may only send the neutral opening values. */
@@ -48,6 +50,7 @@ export const PayeeCreateFields = z
     openingBalanceDate: fields.openingBalanceDate.default(null),
     includeInNetWorth: fields.includeInNetWorth.default(false),
     interestMode: fields.interestMode.default("none"),
+    statementSign: fields.statementSign.default("they_owe_positive"),
   })
   .strict()
   .refine((f) => f.kind !== "person" || f.openingBalanceDate !== null, {

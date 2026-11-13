@@ -5,12 +5,14 @@ import { ensureOwner, signInUI } from "./helpers/owner";
 import { createMember, PASSWORD } from "./helpers/users";
 
 /** T098 — User Story 5: signed-in shell (quickstart S5-a; FR-034, FR-035). */
-// `placeholder`: the section still shows "Coming soon" (Accounts became real in R2, Transactions in R4).
+// `placeholder`: the section still shows "Coming soon" (Accounts became real in R2, Transactions in R4,
+// the Dashboard and Reports in R6).
 const ENTRIES = [
-  { label: "Dashboard", path: "/", heading: "Dashboard", placeholder: true },
+  { label: "Dashboard", path: "/", heading: "Dashboard", placeholder: false }, // R6
   { label: "Accounts", path: "/accounts", heading: "Accounts", placeholder: false },
   { label: "People", path: "/people", heading: "People", placeholder: false }, // R3
   { label: "Transactions", path: "/transactions", heading: "Transactions", placeholder: false }, // R4
+  { label: "Reports", path: "/reports", heading: "Reports", placeholder: false }, // R6
   { label: "Payment plan", path: "/payment-plan", heading: "Payment plan", placeholder: true },
   { label: "Settings", path: "/settings", heading: "Settings", placeholder: false },
 ];

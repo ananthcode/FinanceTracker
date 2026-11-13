@@ -83,7 +83,17 @@ test("the transaction screens are masked too (R4 SC-006, FR-024)", async ({ page
   const account = await page.locator("[data-account-row]").getByRole("link", { name: "Everyday Savings" }).getAttribute("href");
   await page.goto("/people");
   const person = await page.locator("[data-person-name='Ravi Kumar']").getByRole("link").getAttribute("href");
-  for (const path of ["/transactions", account!, person!]) {
+  // R6 (T023): the Dashboard, each report view and a person statement.
+  for (const path of [
+    "/transactions",
+    account!,
+    person!,
+    "/",
+    "/reports?view=spending&period=last_month",
+    "/reports?view=income&period=last_month",
+    "/reports?view=trend",
+    `${person!}/statement`,
+  ]) {
     await page.goto(path);
     await expect(page.locator("main")).toContainText("₹••••");
     // "₹0.00" in a rule ("the balance must be ₹0.00") is not one of the user's amounts.

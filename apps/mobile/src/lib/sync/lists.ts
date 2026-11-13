@@ -31,5 +31,7 @@ export function payeeFromRow(row: SyncRow): PayeeView {
     includeInNetWorth: row.includeInNetWorth === true,
     // R4: the person's interest setting (none until the server says otherwise).
     interestMode: (row.interestMode as PayeeView["interestMode"] | undefined) ?? "none",
+    // R6: which way their statement is signed (the default until the server says otherwise).
+    statementSign: (row.statementSign as PayeeView["statementSign"] | undefined) ?? "they_owe_positive",
   };
 }
