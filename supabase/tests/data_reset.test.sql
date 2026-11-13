@@ -20,7 +20,7 @@ select (app.pull_changes(0) ->> 'cursor') as old_cursor from (select tests.authe
 select tests.authenticate_as(:'asha_id');
 select throws_ok($$ select app._reset_user_data(auth.uid(), 'web') $$, '42501', null, 'the worker is not callable by clients');
 select is(app.reset_my_data('web') -> 'removed',
-          '{"accounts": 3, "categories": 3, "groups": 1, "payees": 3, "rates": 0, "tags": 1, "transactions": 1}'::jsonb,
+          '{"accounts": 3, "categories": 3, "groups": 1, "payees": 3, "planItems": 0, "planMonths": 0, "rates": 0, "tags": 1, "transactions": 1}'::jsonb,
           'US2 2: says what was removed');
 select tests.as_superuser();
 select is((select count(*)::int from public.accounts where user_id = :'asha_id')

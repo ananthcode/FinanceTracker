@@ -64,7 +64,7 @@ Migration names are `20261113000NNN_*` (`<ts>`), in the listed order.
 
 ## Phase 2: Foundational (core rules, appliers, sync)
 
-- [ ] T007 [P] Vectors in `packages/core/test/vectors/plan.json`, run by `packages/core/test/plan.test.ts`. They cover:
+- [X] T007 [P] Vectors in `packages/core/test/vectors/plan.json`, run by `packages/core/test/plan.test.ts`. They cover:
   - **Months and terms:**
     - `occurrenceId` cases;
     - `appliesIn` for each frequency, start and end months, and a one-off;
@@ -82,8 +82,8 @@ Migration names are `20261113000NNN_*` (`<ts>`), in the listed order.
     - previous-month comparison;
     - "today" at the user's timezone midnight boundary.
   - **Zero and very large amounts.**
-- [ ] T008 Core `packages/core/src/plan/months.ts` (`occurrenceId`, `appliesIn`, `termFor`, `dueDate`, `editTerms`) and `packages/core/src/plan/month.ts` (`plannedFor`, `planMonth`) — passes T007
-- [ ] T009 [P] pgTAP `supabase/tests/plan_apply.test.sql` and `plan_rls.test.sql` (with helpers in `supabase/tests/04_plan_helpers.sql`):
+- [X] T008 Core `packages/core/src/plan/months.ts` (`occurrenceId`, `appliesIn`, `termFor`, `dueDate`, `editTerms`) and `packages/core/src/plan/month.ts` (`plannedFor`, `planMonth`) — passes T007
+- [X] T009 [P] pgTAP `supabase/tests/plan_apply.test.sql` and `plan_rls.test.sql` (with helpers in `supabase/tests/04_plan_helpers.sql`):
   - **Isolation:** own data only. Another user's item, account, payee or category is refused as
     `INVALID_PLAN_ITEM`. The owner-admin cannot read.
   - **Item checks:** wrong target fields, a card bill's pay-from set to the card itself, and terms
@@ -98,12 +98,12 @@ Migration names are `20261113000NNN_*` (`<ts>`), in the listed order.
     - a create for an existing occurrence merges per field;
     - conflicting updates resolve latest-wins.
   - **Audit:** rows for create, edit, delete and month edits.
-- [ ] T010 Migration `<ts>_plan_apply.sql`:
+- [X] T010 Migration `<ts>_plan_apply.sql`:
   - `app._apply_plan_item` and `app._apply_plan_occurrence` (validation, field versions — `terms` as
     one field — and soft delete);
   - `app._apply_one` dispatches the new entities;
   - passes T009.
-- [ ] T011 [P] pgTAP `supabase/tests/plan_links.test.sql`:
+- [X] T011 [P] pgTAP `supabase/tests/plan_links.test.sql`:
   - **Linking:** a transaction create or update with `planItemId` and `planMonth` links.
   - **Refused as `INVALID_PLAN_LINK`:**
     - a foreign or deleted item, or a month outside its range;
@@ -113,17 +113,17 @@ Migration names are `20261113000NNN_*` (`<ts>`), in the listed order.
   - **Keeping links:** unlinking keeps the other fields; delete and void keep the link fields.
   - **Merges:** a payee or category merge or relocate repoints `plan_items.payee_id` and
     `category_id`.
-- [ ] T012 Migration `<ts>_plan_links.sql`:
+- [X] T012 Migration `<ts>_plan_links.sql`:
   - `app._apply_transaction` accepts `planItemId`/`planMonth` with the R7-03 rules;
   - `app._repoint_payee` and `app._repoint_category` also update `plan_items`, bumping field
     versions;
   - passes T011.
-- [ ] T013 [P] pgTAP `supabase/tests/plan_data.test.sql`:
+- [X] T013 [P] pgTAP `supabase/tests/plan_data.test.sql`:
   - pull returns both entities (including deleted rows) and the transaction link fields;
   - `reset_my_data` and erasure remove items and occurrences and clear the preferences;
   - `scrub_user_from_audit` covers the new target types;
   - the preference grant only lets the checked month move forward.
-- [ ] T014 Migration `<ts>_plan_pull_reset.sql`:
+- [X] T014 Migration `<ts>_plan_pull_reset.sql`:
   - `app.pull_changes` gains `plan_item` and `plan_occurrence`;
   - `app._reset_user_data` and the erasure functions include the new tables and preference columns;
   - passes T013.

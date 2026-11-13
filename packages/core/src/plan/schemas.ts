@@ -150,14 +150,19 @@ export function targetProblem(f: {
   }
 }
 
+/**
+ * Only the fields the user changed are sent (no defaults): two devices creating the same item-month
+ * merge per field (R7-02), so an unsent field must not carry a version.
+ */
 export const PlanOccurrenceCreateFields = z
   .object({
     itemId: z.uuid(),
     month: PlanMonthString,
-    amountMinor: NonNegativeMinor.nullable().default(null),
-    skipped: z.boolean().default(false),
+    amountMinor: NonNegativeMinor.nullable().optional(),
+    skipped: z.boolean().optional(),
   })
-  .strict();
+  .strict()
+  .refine((f) => f.amountMinor !== undefined || f.skipped !== undefined, "Set an amount or skip the month");
 export const PlanOccurrenceUpdateFields = z
   .object({ amountMinor: NonNegativeMinor.nullable(), skipped: z.boolean() })
   .partial()
