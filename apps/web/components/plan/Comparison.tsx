@@ -25,7 +25,8 @@ export function Comparison({ view, currency }: { view: PlanMonthView; currency: 
           </>
         )}
       </p>
-      <div className="overflow-x-auto">
+      {/* Focusable so a keyboard user can scroll it on a narrow screen (WCAG 2.1.1). */}
+      <div className="overflow-x-auto" tabIndex={0} role="region" aria-labelledby="plan-compare-title">
         <table className="w-full min-w-[28rem] border-collapse text-left text-sm">
           <caption className="sr-only">
             Planned and paid in {monthName(view.month)} and {monthName(previous.month)}

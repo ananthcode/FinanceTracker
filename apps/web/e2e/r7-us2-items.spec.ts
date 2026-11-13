@@ -58,7 +58,7 @@ test("a month's amount, estimates, edits from a month, skip, end and delete (US2
 
   // US2 4 / S2-c: an edit from next month's view applies from next month; this month keeps what it showed.
   await openPlan(page, next);
-  await planRow(page, "Home loan EMI").getByRole("link", { name: "Home loan EMI" }).click();
+  await planRow(page, "Home loan EMI").getByRole("link", { name: "Home loan EMI", exact: true }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Edit Home loan EMI" })).toBeVisible();
   const from = page.getByLabel("Apply amount, day and account changes from");
   await expect(from).toHaveValue(monthParam(next));
@@ -74,7 +74,7 @@ test("a month's amount, estimates, edits from a month, skip, end and delete (US2
 
   // An edit cannot apply from before the current month.
   await page.goto(`/payment-plan?month=${monthParam(monthAfter(-1))}`);
-  await planRow(page, "Rent").getByRole("link", { name: "Rent" }).click();
+  await planRow(page, "Rent").getByRole("link", { name: "Rent", exact: true }).click();
   await expect(page.getByLabel("Apply amount, day and account changes from")).toHaveValue(monthParam(thisMonth));
 
   // US2 5: skip one month (it counts in no total), undo it; end the item after a month.
@@ -97,7 +97,7 @@ test("a month's amount, estimates, edits from a month, skip, end and delete (US2
 
   // FR-008: deleting an item keeps its paid months, shown as removed, and removes the rest.
   await openPlan(page);
-  await planRow(page, "Rent").getByRole("link", { name: "Rent" }).click();
+  await planRow(page, "Rent").getByRole("link", { name: "Rent", exact: true }).click();
   await page.getByRole("button", { name: "Delete" }).click();
   const dialog = page.getByRole("dialog", { name: "Delete this planned payment?" });
   await expect(dialog).toContainText("paid months stay");
