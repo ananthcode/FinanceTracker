@@ -136,10 +136,10 @@ Migration names are `20261113000NNN_*` (`<ts>`), in the listed order.
 
 **Independent Test**: With the demo household, this month lists items by due date with the right statuses, and planned = paid + still to pay.
 
-- [ ] T017 [P] [US1] Core `packages/core/src/demo/plan.ts` + `demo/changes.ts` wiring (R7-11): demo items (2 EMIs, rent, 2 card bills amount varies, school fees every 3 months, yearly car insurance, a person repayment, a subscription), past months linked to existing demo transactions, one item unpaid last month; vectors in `packages/core/test/demo.test.ts` updated (deterministic, links valid)
-- [ ] T018 [P] [US1] Playwright `apps/web/e2e/r7-us1-plan.spec.ts` with a fixed clock: US1 1–4, S1-a, S1-b (statuses in words, totals add up, ‹ › months, range limits, empty state with "Add a planned payment")
-- [ ] T019 [US1] `apps/web/app/(app)/payment-plan/page.tsx` (replaces `ComingSoon`), `components/plan/PlanMonth.tsx`, `PlanRow.tsx`, `PlanTotals.tsx` (ids per contracts/client-plan.md; `<Money>`; `?month=`) — passes T018
-- [ ] T020 [US1] Update `apps/web/e2e/us5-shell.spec.ts` (Payment plan is a real screen) and `us7-hide-balances.spec.ts` (plan amounts masked)
+- [X] T017 [P] [US1] Core `packages/core/src/demo/plan.ts` + `demo/changes.ts` wiring (R7-11): demo items (2 EMIs, rent, 2 card bills amount varies, school fees every 3 months, yearly car insurance, a person repayment, a subscription), past months linked to existing demo transactions, one item unpaid last month; vectors in `packages/core/test/demo.test.ts` updated (deterministic, links valid)
+- [X] T018 [P] [US1] Playwright `apps/web/e2e/r7-us1-plan.spec.ts` with a fixed clock: US1 1–4, S1-a, S1-b (statuses in words, totals add up, ‹ › months, range limits, empty state with "Add a planned payment")
+- [X] T019 [US1] `apps/web/app/(app)/payment-plan/page.tsx` (replaces `ComingSoon`), `components/plan/PlanMonth.tsx`, `PlanRow.tsx`, `PlanTotals.tsx` (ids per contracts/client-plan.md; `<Money>`; `?month=`) — passes T018
+- [X] T020 [US1] Update `apps/web/e2e/us5-shell.spec.ts` (Payment plan is a real screen) and `us7-hide-balances.spec.ts` (plan amounts masked)
 
 ## Phase 4: User Story 2 — Set up planned payments (P1)
 
@@ -147,8 +147,8 @@ Migration names are `20261113000NNN_*` (`<ts>`), in the listed order.
 
 **Independent Test**: The S2 items appear in exactly their months, a month's amount changes only that month, and an edit from next month leaves this month unchanged.
 
-- [ ] T021 [P] [US2] Playwright `apps/web/e2e/r7-us2-items.spec.ts`: US2 1–7, S2-a–S2-c (frequencies, set amount, one-off from a month view, "Apply from" default = viewed month and min = current month, end, skip, delete warning with paid months kept as "removed", estimated label)
-- [ ] T022 [US2] `apps/web/app/(app)/payment-plan/new/page.tsx`, `[id]/page.tsx`, `components/plan/ItemForm.tsx` (target picker: payee + category / credit card / person + action; Amount varies; due day; from account; frequency with N; start/end month; notes; "Apply from" on edit) and row actions Set amount / Skip / Undo skip / End in `PlanRow.tsx` via `actions.ts` — passes T021
+- [X] T021 [P] [US2] Playwright `apps/web/e2e/r7-us2-items.spec.ts`: US2 1–7, S2-a–S2-c (frequencies, set amount, one-off from a month view, "Apply from" default = viewed month and min = current month, end, skip, delete warning with paid months kept as "removed", estimated label)
+- [X] T022 [US2] `apps/web/app/(app)/payment-plan/new/page.tsx`, `[id]/page.tsx`, `components/plan/ItemForm.tsx` (target picker: payee + category / credit card / person + action; Amount varies; due day; from account; frequency with N; start/end month; notes; "Apply from" on edit) and row actions Set amount / Skip / Undo skip / End in `PlanRow.tsx` via `actions.ts` — passes T021
 
 ## Phase 5: User Story 3 — Pay or link, never twice (P1)
 
@@ -156,7 +156,7 @@ Migration names are `20261113000NNN_*` (`<ts>`), in the listed order.
 
 **Independent Test**: Pay on Rent creates one transaction and Rent becomes Paid; linking marks an item Paid without creating a transaction; balances change once.
 
-- [ ] T023 [P] [US3] Core vectors added to `packages/core/test/vectors/plan.json` for `likelyMatches`, `paysSuggestions` and `payDraft`:
+- [X] T023 [P] [US3] Core vectors added to `packages/core/test/vectors/plan.json` for `likelyMatches`, `paysSuggestions` and `payDraft`:
   - target matching for payees, cards and people;
   - the ±20 % amount rule in integers, with edges at exactly 20 %;
   - the date window (10 days around the due date, or in the item's month);
@@ -164,7 +164,7 @@ Migration names are `20261113000NNN_*` (`<ts>`), in the listed order.
   - already-linked transactions left out;
   - drafts for payee, card and person items;
   - an archived account or a deleted payee leaves that field empty.
-- [ ] T024 [US3] Core `packages/core/src/plan/match.ts` — passes T023
+- [X] T024 [US3] Core `packages/core/src/plan/match.ts` — passes T023
 - [ ] T025 [P] [US3] Playwright `apps/web/e2e/r7-us3-pay.spec.ts`: US3 1–8, S3-a–S3-e, SC-002 (one transaction, balance once), SC-004 (Pay → Save ≤ 3 selections); refusal when linking an already-linked transaction; unlink; void warning (FR-020)
 - [ ] T026 [US3] Pay: `/transactions/new?plan=&month=` builds `payDraft` and sends the link with the create; `components/plan/LinkDialog.tsx` (likely first, then search via `search_transactions`); "Looks paid — link?" in `PlanRow.tsx`; `actions.ts` `planSuggestions`, `linkCandidates`. Already-linked search results are shown disabled with "Already pays <item> (<month>) — unlink it first", and `changes.linkTransaction` refuses a transaction whose stored link is set (US3 3, R7-03)
 - [ ] T027 [US3] `components/transactions/TransactionForm.tsx` "Pays:" choice (debounced `planSuggestions`, first ticked, others and None) and transaction detail `apps/web/app/(app)/transactions/[id]` "Pays <item> (<month>)" with Unlink; delete/void warnings — passes T025
@@ -193,14 +193,14 @@ Migration names are `20261113000NNN_*` (`<ts>`), in the listed order.
 
 **Independent Test**: S6-a, S6-b, S7-a.
 
-- [ ] T032 [P] Core vectors for `planUnpaidForSafeToSpend`, `safeToSpend` with `planUnpaidMinor`, and `nudgeFor`:
+- [X] T032 [P] Core vectors for `planUnpaidForSafeToSpend`, `safeToSpend` with `planUnpaidMinor`, and `nudgeFor`:
   - excluded from the subtraction: card bills, accounts not in net worth, and amounts already
     linked as upcoming (subtracted once);
   - nudge days: the 24th, 25th, the last day of the month, the 1st, 5th and 6th;
   - December to January;
   - the setting off, and a checked month;
   - in `packages/core/test/reports.test.ts` and `plan.test.ts`.
-- [ ] T033 Core `packages/core/src/plan/nudge.ts`, `planUnpaidForSafeToSpend` in `month.ts`, `safeToSpend` gains `planUnpaidMinor` in `packages/core/src/reports/index.ts` — passes T032
+- [X] T033 Core `packages/core/src/plan/nudge.ts`, `planUnpaidForSafeToSpend` in `month.ts`, `safeToSpend` gains `planUnpaidMinor` in `packages/core/src/reports/index.ts` — passes T032
 - [ ] T034 [P] Playwright `apps/web/e2e/r7-nudge.spec.ts` (fixed clock): S6-a, S6-b, SC-008 (window, Not now until tomorrow, Plan checked on the nudge and the plan, setting off); `r6-us1-dashboard.spec.ts` updated for the plan part (S7-a)
 - [ ] T035 Wire the nudge and the safe-to-spend part into the UI. Passes T034.
   - `components/plan/PlanNudge.tsx`, on the Dashboard `apps/web/app/(app)/page.tsx` and on the plan

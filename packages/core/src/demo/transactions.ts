@@ -112,7 +112,7 @@ export function demoTransactions(todayIso: string): DemoTransactions {
       add({ date: at(2), kind: "transfer", flow: "out", accountId: savings, toAccountId: cash, amountMinor: 500_000n, notes: "Cash withdrawal" });
       add({ date: at(2), kind: "transfer", flow: "out", accountId: savings, toAccountId: wallet, amountMinor: 50_000n, notes: "Wallet top-up" });
     }
-    if (upTo(at(3))) add({ date: at(3), kind: "expense", flow: "out", accountId: savings, amountMinor: 2_500_000n, categoryId: category("Home › Rent"), notes: "Rent" });
+    if (upTo(at(3))) add({ date: at(3), kind: "expense", flow: "out", accountId: savings, amountMinor: 2_500_000n, payeeId: payee("Sunrise Apartments"), categoryId: category("Home › Rent"), notes: "Rent" });
     [5, 12, 19, 26].forEach((dd, w) => {
       if (!upTo(at(dd))) return;
       add({
@@ -171,7 +171,7 @@ export function demoTransactions(todayIso: string): DemoTransactions {
   if (groceries[groceries.length - 1]) groceries[groceries.length - 1]!.status = "follow_up";
   // Upcoming: next month's rent. Waiting: a school fee dated three days ago, not yet confirmed.
   const next = monthsFrom(START, `${addDays(`${todayIso.slice(0, 7)}-28`, 7)}`).at(-1)!;
-  add({ date: day(next, 3), kind: "expense", flow: "out", accountId: savings, amountMinor: 2_500_000n, categoryId: category("Home › Rent"), notes: "Rent" });
+  add({ date: day(next, 3), kind: "expense", flow: "out", accountId: savings, amountMinor: 2_500_000n, payeeId: payee("Sunrise Apartments"), categoryId: category("Home › Rent"), notes: "Rent" });
   const waiting = addDays(todayIso, -3);
   if (waiting >= START) {
     add({ date: waiting, kind: "expense", flow: "out", accountId: savings, amountMinor: 1_850_000n, payeeId: payee("Greenfield School"), categoryId: category("Education › School & college fees"), confirmed: false, notes: "Term fee" });

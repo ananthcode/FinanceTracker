@@ -221,7 +221,8 @@ export function planMonth(input: PlanInput): PlanMonthView {
 
   const rowsOf = (month: Month): PlanRow[] =>
     input.items
-      .filter((i) => (i.state === "active" && appliesIn(i, month)) || hasLinks(i.id, month))
+      // A removed item keeps only the months it was actually paid in (FR-008).
+      .filter((i) => (i.state === "active" ? appliesIn(i, month) || hasLinks(i.id, month) : paidOf(i.id, month) > 0n))
       .map((i) => rowFor(i, month))
       .sort((a, b) => (a.dueDate === b.dueDate ? a.name.localeCompare(b.name) : a.dueDate < b.dueDate ? -1 : 1));
 
@@ -301,4 +302,26 @@ export function planMonth(input: PlanInput): PlanMonthView {
     },
     estimatedCount: rows.filter((r) => r.estimated && r.status !== "skipped").length,
   };
+}
+
+/**
+ * What safe to spend also subtracts (FR-018, research R7-08): this month's unpaid plan items, carried
+ * ones included, paid from accounts counted in net worth. Left out, so nothing is subtracted twice:
+ * card bills (what the card owes is already subtracted) and linked payments not confirmed yet that
+ * R6 already counts as upcoming (dated up to the month's end, from a counted account).
+ */
+export function planUnpaidForSafeToSpend(
+  view: Pick<PlanMonthView, "rows" | "carried" | "countedHere">,
+  items: ReadonlyMap<string, PlanItem>,
+  countedAccountIds: ReadonlySet<string>,
+  monthEnd: string,
+): bigint {
+  let total = 0n;
+  for (const row of view.countedHere ? [...view.rows, ...view.carried] : view.rows) {
+    const item = items.get(row.itemId);
+    if (!item || item.target === "card" || row.leftMinor <= 0n || !countedAccountIds.has(row.accountId)) continue;
+    const upcoming = row.links.filter((l) => !l.counted && l.date <= monthEnd).reduce((s, l) => s + l.amountMinor, 0n);
+    if (row.leftMinor > upcoming) total += row.leftMinor - upcoming;
+  }
+  return total;
 }

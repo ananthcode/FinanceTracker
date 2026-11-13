@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Change, DEMO_HLC_DEVICE, demoAccounts, demoChanges, demoLists, demoTransactions, parseHlc, type ChangeInput } from "../src";
+import { Change, DEMO_HLC_DEVICE, demoAccounts, demoChanges, demoLists, demoPlan, demoTransactions, parseHlc, type ChangeInput } from "../src";
 
 /** R5 T003 — the demo household as sync changes (research R5-01). */
 const TODAY = "2026-11-01";
@@ -8,10 +8,11 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/;
 /** Every id a change's fields point at (the references to remap). */
 function references(c: ChangeInput): string[] {
   const f = (c.fields ?? {}) as Record<string, unknown>;
-  const refs = ["groupId", "parentId", "defaultCategoryId", "accountId", "toAccountId", "payeeId", "categoryId"]
+  const refs = ["groupId", "parentId", "defaultCategoryId", "accountId", "toAccountId", "payeeId", "categoryId", "cardAccountId", "planItemId", "itemId"]
     .map((k) => f[k])
     .filter((v): v is string => typeof v === "string");
   for (const id of (f.tagIds as string[] | undefined) ?? []) refs.push(id);
+  for (const t of (f.terms as Record<string, unknown>[] | undefined) ?? []) refs.push(t.accountId as string);
   for (const l of (f.lines as Record<string, unknown>[] | undefined) ?? []) {
     for (const k of ["categoryId", "personId"]) if (typeof l[k] === "string") refs.push(l[k] as string);
     for (const id of (l.tagIds as string[] | undefined) ?? []) refs.push(id);
@@ -63,9 +64,11 @@ describe("demoChanges", () => {
     const { groups, accounts } = demoAccounts();
     const { categories, tags, payees } = demoLists();
     const { transactions, rates } = demoTransactions(TODAY);
-    expect([count("account_group"), count("account"), count("category"), count("tag"), count("payee"), count("person_rate"), count("transaction")]).toEqual([
-      groups.length, accounts.length, categories.length, tags.length, payees.length, rates.length, transactions.length,
+    const plan = demoPlan(TODAY, transactions);
+    expect([count("account_group"), count("account"), count("category"), count("tag"), count("payee"), count("person_rate"), count("transaction"), count("plan_item"), count("plan_occurrence")]).toEqual([
+      groups.length, accounts.length, categories.length, tags.length, payees.length, rates.length, transactions.length, plan.items.length, plan.occurrences.length,
     ]);
+    expect(changes.filter((c) => (c.fields as { planItemId?: string } | undefined)?.planItemId).length).toBe(plan.links.size);
   });
 
   it("gives every user the same records with their own ids", () => {

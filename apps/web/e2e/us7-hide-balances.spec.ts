@@ -1,6 +1,7 @@
 import { expect, test } from "./fixtures";
 import { addAccount, newSignedInMember } from "./helpers/accounts";
 import { seedAccounts, seedLists, uniqueEmail } from "./helpers/db";
+import { loadDemoFromSettings } from "./helpers/data";
 import { addPerson } from "./helpers/lists";
 import { ensureOwner, signInUI } from "./helpers/owner";
 import { seedDemoTransactions } from "./helpers/transactions";
@@ -99,6 +100,18 @@ test("the transaction screens are masked too (R4 SC-006, FR-024)", async ({ page
     // "₹0.00" in a rule ("the balance must be ₹0.00") is not one of the user's amounts.
     expect((await page.locator("main").innerText()).replaceAll("₹0.00", ""), path).not.toMatch(/₹\s?[\d,]+\.\d{2}/);
   }
+});
+
+test("the payment plan is masked too; statuses and words remain (R7 S7-b, FR-021)", async ({ page, request }) => {
+  test.slow();
+  await page.setViewportSize({ width: 1280, height: 800 });
+  await newSignedInMember(page, request, "hideplan");
+  await loadDemoFromSettings(page);
+  await page.getByRole("switch", { name: "Hide balances" }).click();
+  await page.goto("/payment-plan");
+  await expect(page.locator("main")).toContainText("₹••••");
+  await expect(page.locator("[data-plan-status]").first()).toBeVisible();
+  expect((await page.locator("main").innerText()).replaceAll("₹0.00", "")).not.toMatch(/₹\s?[\d,]+\.\d{2}/);
 });
 
 test("on narrow screens the toggle is in the top bar", async ({ page, request }) => {

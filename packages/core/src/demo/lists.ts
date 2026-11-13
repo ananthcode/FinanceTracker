@@ -95,6 +95,12 @@ export function demoLists(): DemoLists {
     business(6, "Acme Payroll", "Salary › Salary"),
     business(7, "Corner Cafe", "Food & groceries › Eating out"),
     business(8, "Metro Rail", "Transport › Public transport"),
+    // R7: who the demo plan pays.
+    business(9, "Sunrise Apartments", "Home › Rent", "Landlord"),
+    business(10, "HomeFirst Finance", "Interest paid › Loan interest"),
+    business(16, "SafeDrive Insurance", "Insurance › Vehicle insurance"),
+    business(17, "AutoLease Finance", "Interest paid › Loan interest"),
+    business(18, "Stream Plus", "Entertainment › Subscriptions"),
     person(11, "Ravi Kumar", 1_500_000n, { includeInNetWorth: true, notes: "Lent for his bike, Apr 2025", interestMode: "automatic" }),
     person(12, "Meera Iyer", -450_000n, { interestMode: "manual", statementSign: "i_owe_positive" }),
     person(13, "Anil Rao", 0n),

@@ -85,6 +85,25 @@ export function editTerms(terms: readonly PlanTerm[], from: Month, change: Parti
   return [...kept, { ...base, ...change, fromMonth: at }];
 }
 
+const MONTH_NAMES = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
+
+/** "November 2026" */
+export function monthName(month: Month): string {
+  return `${MONTH_NAMES[monthIndexOf(month)]} ${yearOf(month)}`;
+}
+
+/** `?month=yyyy-MM` → `yyyy-MM-01`, or null when it is not a month. */
+export function parseMonthParam(value: string | undefined | null): Month | null {
+  if (!value || !/^\d{4}-(0[1-9]|1[0-2])$/.test(value)) return null;
+  return `${value}-01`;
+}
+
+/** Terms for a new start month: the term in force then starts it; later entries stay (R7-01). */
+export function moveStart(terms: readonly PlanTerm[], start: Month): PlanTerm[] {
+  const first = termFor({ terms: [...terms] }, start);
+  return [{ ...first, fromMonth: start }, ...terms.filter((t) => t.fromMonth > start)];
+}
+
 /** The earliest month the plan can show: the earliest item start (FR-004). */
 export function earliestPlanMonth(items: readonly Pick<PlanItem, "startMonth">[], fallback: Month): Month {
   return items.reduce((min, i) => (i.startMonth < min ? i.startMonth : min), fallback);

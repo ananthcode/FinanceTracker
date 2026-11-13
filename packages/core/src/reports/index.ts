@@ -199,6 +199,8 @@ export interface SafeToSpend {
   cardOwedMinor: bigint;
   /** Not-yet-confirmed outgoings dated up to the end of this month. */
   upcomingMinor: bigint;
+  /** Unpaid plan items this month, not already counted above (R7 FR-018). */
+  planUnpaidMinor: bigint;
   bufferMinor: bigint;
   /** Never below zero. */
   resultMinor: bigint;
@@ -209,7 +211,9 @@ export interface SafeToSpend {
 type Upcoming = Pick<TransactionView, "kind" | "flow" | "accountId" | "amountMinor" | "date" | "state" | "confirmed" | "status">;
 
 /**
- * Safe to spend (clarify Q1, 2026-11-01): held − card owed − upcoming outgoings − buffer.
+ * Safe to spend (clarify Q1, 2026-11-01; R7 FR-018): held − card owed − upcoming outgoings − unpaid
+ * plan items − buffer. `planUnpaidMinor` comes from the plan (planUnpaidForSafeToSpend), which leaves
+ * out card bills and linked upcoming payments, so nothing is subtracted twice.
  * `held` / `cardOwed` are the accounts summary's owned and owed without people. Upcoming outgoings:
  * transactions not yet confirmed, not void, dated up to `monthEnd`, that take money out of an account
  * counted in net worth (expenses; person movements out). Transfers and income are skipped.
@@ -222,6 +226,8 @@ export function safeToSpend(input: {
   countedAccountIds: ReadonlySet<string>;
   monthEnd: string;
   bufferMinor: bigint;
+  /** Default 0: no plan. */
+  planUnpaidMinor?: bigint;
 }): SafeToSpend {
   let upcomingMinor = 0n;
   for (const t of input.upcoming) {
@@ -230,11 +236,13 @@ export function safeToSpend(input: {
     const outgoing = t.kind === "expense" || (t.kind === "person" && t.flow === "out");
     if (outgoing) upcomingMinor += t.amountMinor;
   }
-  const raw = input.heldMinor - input.cardOwedMinor - upcomingMinor - input.bufferMinor;
+  const planUnpaidMinor = input.planUnpaidMinor ?? 0n;
+  const raw = input.heldMinor - input.cardOwedMinor - upcomingMinor - planUnpaidMinor - input.bufferMinor;
   return {
     heldMinor: input.heldMinor,
     cardOwedMinor: input.cardOwedMinor,
     upcomingMinor,
+    planUnpaidMinor,
     bufferMinor: input.bufferMinor,
     resultMinor: raw > 0n ? raw : 0n,
     shortfallMinor: raw < 0n ? -raw : 0n,

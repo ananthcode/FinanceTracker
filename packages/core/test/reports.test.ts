@@ -119,10 +119,21 @@ describe("safeToSpend (clarify Q1, 2026-11-01)", () => {
       heldMinor: 10_000_000n,
       cardOwedMinor: 1_825_000n,
       upcomingMinor: 2_600_000n,
+      planUnpaidMinor: 0n,
       bufferMinor: 500_000n,
       resultMinor: 5_075_000n,
       shortfallMinor: 0n,
     });
+  });
+
+  it("also subtracts unpaid plan items, exactly (R7 FR-018, SC-006)", () => {
+    const base = { heldMinor: counted.heldMinor, cardOwedMinor: counted.cardOwedMinor, countedAccountIds: counted.ids, monthEnd: "2026-11-30", bufferMinor: 500_000n, upcoming: [] };
+    const without = safeToSpend(base);
+    const withPlan = safeToSpend({ ...base, planUnpaidMinor: 4_250_000n });
+    expect(withPlan.planUnpaidMinor).toBe(4_250_000n);
+    expect(without.resultMinor - withPlan.resultMinor).toBe(4_250_000n);
+    const short = safeToSpend({ ...base, planUnpaidMinor: 99_000_000n });
+    expect([short.resultMinor, short.shortfallMinor]).toEqual([0n, 99_000_000n - without.resultMinor]);
   });
 
   it("never goes below zero; the shortfall is kept", () => {
