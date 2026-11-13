@@ -16,8 +16,15 @@
 
 ## Core shapes
 
-- **CategoryNode**: `{ id|"uncategorised", name, ownMinor, totalMinor, children: CategoryNode[], payees:
-  { id|"none", name, totalMinor }[] }` — `totalMinor` = own + children; payees add up to own.
+As built (packages/core `reports` and `statements`):
+
+- **ReportNode**: `{ id|"uncategorised", name, ownMinor, totalMinor, children: ReportNode[], payees:
+  { id|"none", totalMinor }[] }` — `totalMinor` = own + children; payees add up to own. A **ReportTree**
+  holds `{ kind, totalMinor, nodes, byId }`. Payee names are looked up by the screen.
+- **TrendMonth**: `{ month, incomeMinor, spendingMinor, netMinor }`, every month of the period.
 - **SafeToSpend**: `{ heldMinor, cardOwedMinor, upcomingMinor, bufferMinor, resultMinor, shortfallMinor }`.
-- **Statement**: `{ person, from, to, sign, openingMinor, rows: { date, label, notes, amountMinor,
-  balanceMinor, transactionId }[], closingMinor }` — amounts as displayed under the sign.
+- **PersonStatement**: `{ from, to, sign, openingMinor, rows: { transactionId, date, label, notes,
+  amountMinor, balanceMinor }[], closingMinor, realClosingMinor }` — amounts as displayed under the
+  sign; `realClosingMinor` (positive = they owe the user) gives the closing words.
+- **StatementDocument**: the text a shared file shows — title, source (display name), range, what
+  positive means, opening, rows (notes only when included), "no movements" line, closing in words.

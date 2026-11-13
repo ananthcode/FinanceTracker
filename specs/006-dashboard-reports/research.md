@@ -58,6 +58,10 @@ share in text; slices under 2 % grouped as "Other" only in the chart, never in t
 vertical bars for the trend, as SVG with a `<table>` alternative (`details` "Show as table"). Colours
 come from the category appearance; patterns are not needed because every value is labelled in text.
 
+**As built**: no "Other" group — the ranked bar list shows every entry as a labelled link, so nothing
+needs grouping; the trend's spending bars are striped as a second cue. With hide-balances on, bar
+lengths, shares and the trend bars are hidden too (they tell the amounts).
+
 ## R6-08 New fields
 
 **Decision**: `user_preferences.buffer_minor bigint not null default 0 check (>= 0)` via the R1
@@ -68,5 +72,6 @@ mapper (R4 lesson: every client mapping must learn a new required field in the s
 ## R6-09 Navigation and URLs
 
 **Decision**: "Reports" joins the main navigation after Transactions. Report state is in the URL
-(`/reports?view=spending|income|trend&period=…&from=…&to=…&category=…&payee=…`), so the breadcrumb and
-the browser's back button work and a report can be bookmarked.
+(`/reports?view=spending|income|trend&period=…&from=…&to=…&cat=…&own=1&payee=…`), so the breadcrumb and
+the browser's back button work and a report can be bookmarked. (As built: `cat` is the category,
+`own=1` its own amount when it has sub-categories.)

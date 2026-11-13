@@ -66,9 +66,9 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order.
 - [X] T021 [P] Accessibility: `a11y.spec.ts` covers `/`, `/reports` (each view, table toggle, keyboard), the statement (1280/390 px)
 - [X] T022 [P] Performance `apps/web/e2e/r6-performance.spec.ts` (E2E_PRODUCTION): 20,000 transactions — Dashboard < 2 s, drill step / period < 1 s (SC-003)
 - [X] T023 [P] Hide-balances list gains `/`, `/reports`, the statement (SC-006 of R1)
-- [ ] T024 Write `specs/006-dashboard-reports/review-notes.md`
-- [ ] T025 Run every suite; write `specs/006-dashboard-reports/validation.md`
-- [ ] T026 Converge: contracts as built, ROADMAP status, Android task carried to the Android phase
+- [X] T024 Write `specs/006-dashboard-reports/review-notes.md`
+- [X] T025 Run every suite; write `specs/006-dashboard-reports/validation.md`
+- [X] T026 Converge: contracts as built, ROADMAP status, Android task carried to the Android phase
 
 ## Dependencies
 

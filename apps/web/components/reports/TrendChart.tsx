@@ -26,7 +26,8 @@ export function TrendChart({ months }: { months: TrendMonth[] }) {
   return (
     <div className="flex flex-col gap-4">
       {!hideBalances && (
-        <div className="overflow-x-auto">
+        // Scrolls sideways on a phone: focusable, so it can be scrolled by keyboard (WCAG 2.1.1).
+        <div role="region" aria-label="Chart: income and spending per month" tabIndex={0} className="overflow-x-auto focus-visible:outline-2 focus-visible:outline-brand">
           <svg role="img" aria-label="Income and spending per month — the same numbers are in the table below" width={months.length * step + 16} height={180} className="text-foreground">
             <defs>
               <pattern id="spending-stripes" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)">
