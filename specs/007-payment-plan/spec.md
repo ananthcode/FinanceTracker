@@ -120,7 +120,8 @@ another; account balances change once.
    suggested first (same payee or card, amount near what is left, date near the due date) and the user
    can search for any other; linking adds that transaction's amount to what is paid.
 3. **Given** a transaction already linked to a plan item, **When** the user tries to link it to another,
-   **Then** it is refused with an explanation; a transaction pays at most one item-month.
+   **Then** it is refused with an explanation (it already pays <item> (<month>); unlink it first); a
+   transaction pays at most one item-month.
 4. **Given** an item-month paid less than planned (e.g. ₹8,000.00 of a ₹20,000.00 card bill), **When**
    shown, **Then** it is Part paid with "₹12,000.00 left", lists each linked transaction, and Pay
    pre-fills the amount left; once the linked total reaches the planned amount it is Paid.
@@ -219,7 +220,8 @@ Android phase.
   plan month; the transaction stays in its own month for reports.
 - A transaction is linked and then edited (amount, date): the item shows the new paid amount and date.
 - A credit-card bill item: Pay records a transfer from the pay-from account to the card; when the
-  amount varies and none is set for the month, the estimate is the card's amount owed (FR-006).
+  amount varies and none is set for the month, the estimate is the card's amount owed plus what is
+  already paid that month (FR-006).
 - A person item (e.g. monthly repayment to a relative): Pay records the person movement ("Repaid to",
   "Lent to"), which updates the person's balance.
 - Every N months with N from 2 to 12; yearly = every 12 months from its start month.
@@ -257,14 +259,15 @@ Android phase.
 - **FR-006**: Users MUST be able to set one month's planned amount for an item without changing the
   item, and to skip one month. For an item marked "amount varies" with no amount set for the month, the
   planned amount MUST be an estimate labelled "estimated": the previous month's paid amount for that
-  item, or the usual amount when nothing was paid; for a card bill, the card's current amount owed
-  (shown only for the current and coming months; past months use the usual amount). Clarified
-  2026-11-13.
+  item, or the usual amount when nothing was paid; for a card bill, the card's current amount owed plus
+  what is already paid toward that month, so a part payment does not shrink the plan (shown only for
+  the current and coming months; past months use the usual amount). Clarified 2026-11-13.
 - **FR-007**: Users MUST be able to add a one-off item from a month's view; it applies to that month
   only.
 - **FR-008**: Edits to an item's amount, due day or account MUST apply from a chosen month onward —
   by default the month being viewed, never earlier than the current month (clarified 2026-11-13);
-  earlier months keep what they showed. Deleting an item MUST keep its paid months (shown under the
+  earlier months keep what they showed. Changing an item's start month, end month or frequency MUST NOT
+  drop a month that has linked payments. Deleting an item MUST keep its paid months (shown under the
   item's name as removed) and remove everything else of it.
 - **FR-009**: Plan items MUST be the user's own and synced like other records (offline edits on later
   clients; conflicts resolved per field, as R2–R4).
@@ -321,8 +324,10 @@ Android phase.
   (dates in the user's timezone), the Dashboard and the Payment plan screen MUST show a nudge to check
   the coming month's plan (from the 25th: next month; from the 1st to the 5th: this month), with the
   number of amounts still estimated, opening that month. The month counts as entered, and no nudge
-  appears for it, only once the user has selected "Plan checked" for it (offered on the nudge and on the
-  month's plan view; the choice syncs to the user's other clients). "Not now" hides the nudge until the
+  appears for it, only once the user has selected "Plan checked" for it (offered on the nudge and on that
+  month's plan view — the month the nudge is about: this month from the 1st to the 5th, otherwise next
+  month; the choice syncs to the user's other clients, and checking a month also counts the months
+  before it as checked). "Not now" hides the nudge until the
   next day on that client. A setting ("Remind me to check next month's plan", on by default, synced)
   turns the nudge off completely. The nudge MUST appear in both the web app and the Android app
   (Android in the Android phase, US6); it is in-app only (no phone or email notification). Added by the
@@ -337,8 +342,9 @@ Android phase.
 - **Item month (occurrence)**: one item in one month — planned amount (set for that month, else the
   usual amount or, when the amount varies, the estimate), due date, skipped or not, and the linked
   transactions. Recorded when the user changes, skips or pays it; otherwise derived from the item.
-- **Month check**: the user's record that a month's plan has been checked (FR-023); one per user and
-  month, synced. A user preference turns the nudge on or off (on by default).
+- **Month check**: the latest month whose plan the user marked checked (FR-023); that month and the
+  months before it count as checked. One per user, synced with the user's preferences. A user
+  preference turns the nudge on or off (on by default).
 - **Payment link**: a transaction paying (part of) one item month; an item month can have several; a
   transaction has at most one.
 
@@ -374,8 +380,8 @@ Android phase.
   in the add-transaction form (clarified 2026-11-13).
 - Deleting an item that has paid months keeps those months' records (shown under the item's old name);
   deleting one with none removes it entirely.
-- Card-bill items marked "amount varies" are estimated from the card's current amount owed until the
-  month's amount is set; other varying items from last month's paid amount (clarified 2026-11-13).
+- Card-bill items marked "amount varies" are estimated from the card's current amount owed (plus what
+  is already paid that month) until the month's amount is set; other varying items from last month's paid amount (clarified 2026-11-13).
 - The month-check nudge (FR-023) is an in-app prompt on web and Android; phone notifications and
   reminders stay in Phase 2b. "Not now" is remembered per client, not synced.
 - The plan's months are calendar months; financial-year views are not needed.

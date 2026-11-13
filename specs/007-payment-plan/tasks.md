@@ -43,8 +43,8 @@ Migration names are `20261113000NNN_*` (`<ts>`), in the listed order.
 - [ ] T003 Migration `<ts>_plan_rules.sql`:
   - RLS select-own for active users and SELECT-only grants on both tables;
   - `sync.stamp_row` and `audit.capture_record_change` triggers;
-  - the preferences column grant `update (plan_nudge, plan_checked_month)` (the stored month only
-    moves forward: `greatest`);
+  - the preferences column grant `update (plan_nudge, plan_checked_month)`, plus a `before update`
+    trigger keeping `plan_checked_month = greatest(old, new)` (reset and erasure must still clear it);
   - `app._plan_occurrence_id(item uuid, month date)` (research R7-02).
 - [ ] T004 [P] Core shapes in `packages/core/src/plan/schemas.ts`:
   - Zod schemas for the plan item (create and update), occurrence and term;
@@ -77,7 +77,7 @@ Migration names are `20261113000NNN_*` (`<ts>`), in the listed order.
     - totals where planned = paid + left − overpaid;
     - unconfirmed, void and deleted links not counted;
     - carried over counted only in the current month (SC-005);
-    - removed items with links;
+    - removed items with links, and a linked month the item no longer applies to (still shown);
     - per-account cash: balance, card available credit, short by;
     - previous-month comparison;
     - "today" at the user's timezone midnight boundary.
@@ -88,8 +88,11 @@ Migration names are `20261113000NNN_*` (`<ts>`), in the listed order.
     `INVALID_PLAN_ITEM`. The owner-admin cannot read.
   - **Item checks:** wrong target fields, a card bill's pay-from set to the card itself, and terms
     out of order are refused.
-  - **Terms and start month:** `TERMS_IN_PAST`, and `HAS_PAYMENTS` when `startMonth` moves past
-    linked months.
+  - **Terms and months:**
+    - `TERMS_IN_PAST`, measured at the change's HLC month, with a 31st-of-month offline edit
+      accepted after midnight and an HLC two months old refused;
+    - `HAS_PAYMENTS` when the start month, end month, frequency or interval would drop a linked
+      month.
   - **Occurrences:**
     - `INVALID_OCCURRENCE` for a wrong id or a month the item does not apply to;
     - a create for an existing occurrence merges per field;
@@ -163,7 +166,7 @@ Migration names are `20261113000NNN_*` (`<ts>`), in the listed order.
   - an archived account or a deleted payee leaves that field empty.
 - [ ] T024 [US3] Core `packages/core/src/plan/match.ts` — passes T023
 - [ ] T025 [P] [US3] Playwright `apps/web/e2e/r7-us3-pay.spec.ts`: US3 1–8, S3-a–S3-e, SC-002 (one transaction, balance once), SC-004 (Pay → Save ≤ 3 selections); refusal when linking an already-linked transaction; unlink; void warning (FR-020)
-- [ ] T026 [US3] Pay: `/transactions/new?plan=&month=` builds `payDraft` and sends the link with the create; `components/plan/LinkDialog.tsx` (likely first, then search via `search_transactions`); "Looks paid — link?" in `PlanRow.tsx`; `actions.ts` `planSuggestions`, `linkCandidates`
+- [ ] T026 [US3] Pay: `/transactions/new?plan=&month=` builds `payDraft` and sends the link with the create; `components/plan/LinkDialog.tsx` (likely first, then search via `search_transactions`); "Looks paid — link?" in `PlanRow.tsx`; `actions.ts` `planSuggestions`, `linkCandidates`. Already-linked search results are shown disabled with "Already pays <item> (<month>) — unlink it first", and `changes.linkTransaction` refuses a transaction whose stored link is set (US3 3, R7-03)
 - [ ] T027 [US3] `components/transactions/TransactionForm.tsx` "Pays:" choice (debounced `planSuggestions`, first ticked, others and None) and transaction detail `apps/web/app/(app)/transactions/[id]` "Pays <item> (<month>)" with Unlink; delete/void warnings — passes T025
 
 ## Phase 6: User Story 4 — Overdue carry-forward and cash by account (P2)
@@ -203,7 +206,7 @@ Migration names are `20261113000NNN_*` (`<ts>`), in the listed order.
   - `components/plan/PlanNudge.tsx`, on the Dashboard `apps/web/app/(app)/page.tsx` and on the plan
     screen.
   - "Not now" in `localStorage` (`ft.planNudge.snoozedUntil`, wrapped in try/catch).
-  - "Plan checked" goes through `PATCH /api/me/preferences`.
+  - "Plan checked" goes through `PATCH /api/me/preferences`. It is offered only on the nudge's month.
   - Settings switch: "Remind me to check next month's plan".
   - `components/dashboard/SafeToSpendCard.tsx` shows "Still to pay in your plan".
 
@@ -216,7 +219,7 @@ Migration names are `20261113000NNN_*` (`<ts>`), in the listed order.
 - [ ] T037 [P] Accessibility in `apps/web/e2e/a11y.spec.ts`. Covered: the plan month, the item form, the link dialog and the nudge, at 1280 and 390 px, plus a keyboard Pay flow (SC-007).
 - [ ] T038 [P] Performance `apps/web/e2e/r7-performance.spec.ts` (E2E_PRODUCTION): 100 items, 24 months of links — plan < 2 s, month change < 1 s (SC-003)
 - [ ] T039 Write `specs/007-payment-plan/review-notes.md`. List the explicit-review items from the plan's post-design re-check.
-- [ ] T040 Run every suite; write `specs/007-payment-plan/validation.md`
+- [ ] T040 Run every suite and write `specs/007-payment-plan/validation.md`, including the manual rows from quickstart.md and the SC-004 timing (a monthly item set up in under 1 minute).
 - [ ] T041 Converge: contracts as built, `ROADMAP.md` R7 status, Android task carried to the Android phase
 
 ## Dependencies

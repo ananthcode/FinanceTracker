@@ -13,7 +13,10 @@ entries from M on, and appends one entry from M. The array has one field version
 edit stays in the audit history (Principle IV).
 
 The month an edit applies from is chosen in the form (default: the month being viewed) and is
-refused when earlier than the user's current month (`TERMS_IN_PAST`).
+refused when earlier than the user's current month (`TERMS_IN_PAST`). "Current month" is the month of
+the change's own time (its HLC wall clock, in the user's timezone), but never more than one month
+before the server's current month. An edit made offline on the 31st and synced after midnight is
+therefore still accepted, and an old clock cannot rewrite older history.
 
 **Rationale**: one row per item keeps identity stable for comparisons and links; the terms list is
 small (one entry per edit) and fully reproduces what any month showed.
@@ -53,6 +56,26 @@ the caller's and not deleted; `planMonth` is a 1st of a month within the item's 
 transaction is an expense, a transfer, or a person movement out (`lent`, `repaid_to`,
 `paid_on_behalf`). Existing links survive the item's later deletion (FR-008: paid months stay).
 Composite FK `(plan_item_id, user_id) → plan_items(id, user_id)`.
+
+**Linking an already-linked transaction (US3 3)**: the fields would simply move the link, so the
+refusal is a client rule:
+- Plan-side linking ("Link existing", "Looks paid — link?") lists only unlinked transactions.
+  Search results that are already linked are shown disabled with "Already pays <item> (<month>) —
+  unlink it first".
+- The `linkTransaction` builder refuses a transaction whose stored link is set.
+- Moving a link on purpose stays possible from the transaction's own form ("Pays:"), which shows the
+  current link.
+
+The invariant "at most one item-month" holds by construction either way. Two offline devices linking
+one transaction resolve latest-wins.
+
+**Months with links stay (FR-008)**: an item update is refused with `HAS_PAYMENTS` when:
+- `start_month` moves after a linked month;
+- `end_month` moves before a linked month;
+- `frequency` or `interval_months` changes so that a linked month no longer applies.
+
+A link can still reach such a month through an offline conflict. `planMonth` therefore always shows
+an item-month that has links, even if the item no longer applies there.
 
 A linked transaction that is **not confirmed yet** (upcoming) is not paid; the item-month shows it as
 "Upcoming payment linked" and it reduces what safe to spend subtracts for that item (R7-08).
@@ -130,6 +153,12 @@ this month) or null (outside the window, nudge off, or checked). "Not now" is st
 `localStorage` (`ft.planNudge.snoozedUntil` = tomorrow's date), wrapped in try/catch; on Android in
 the Android phase it uses local storage the same way. The count of estimated amounts comes from
 `planMonth` for the target month.
+
+"Plan checked" is offered only for the month the nudge is about: this month from the 1st to the 5th,
+otherwise next month. So checking can never skip over an unchecked month. The stored month only moves
+forward. A `before update` trigger on `user_preferences` keeps `greatest(old, new)` for
+`plan_checked_month`. A column grant alone cannot enforce this. Reset and erasure clear it by
+deleting the row or through a definer path that bypasses the trigger.
 
 **Rationale**: preferences already reach both clients and need no new synced entity; a "checked
 through" date is enough because only the coming month is ever nudged. Offline marking on Android

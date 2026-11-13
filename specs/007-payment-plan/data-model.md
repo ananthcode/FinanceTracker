@@ -44,8 +44,10 @@ Money is `bigint` paise; months are `date` values on the 1st (`yyyy-MM-01`), and
 Indexes: `(user_id, state)`. Unique `(id, user_id)` (composite FK target).
 
 **Edits from a month (FR-008)**: an update of `terms` must leave every entry with `fromMonth` before the
-user's current month exactly as stored (`TERMS_IN_PAST` otherwise). `start_month` can move only while
-the item has no links before the new start (`HAS_PAYMENTS`).
+user's current month exactly as stored (`TERMS_IN_PAST` otherwise; the current month is that of the
+change's HLC time, at most one month before the server's, R7-01). `start_month`, `end_month`,
+`frequency` and `interval_months` can change only when no linked month stops applying (`HAS_PAYMENTS`,
+R7-03).
 
 ## Entity: Item month — `public.plan_occurrences` (synced)
 
@@ -81,7 +83,8 @@ or `paid_on_behalf` (`INVALID_PLAN_LINK`). Partial index
 | `plan_nudge` | `boolean` not null default true | "Remind me to check next month's plan" |
 | `plan_checked_month` | `date` null | Day 1; the latest month marked "Plan checked" |
 
-Column grants allow `update (plan_nudge, plan_checked_month)`.
+Column grants allow `update (plan_nudge, plan_checked_month)`. A `before update` trigger keeps
+`plan_checked_month = greatest(old, new)`, so it only moves forward (R7-09).
 
 ## Derived (core, mirrored nowhere else)
 

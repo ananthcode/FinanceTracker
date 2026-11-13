@@ -12,6 +12,10 @@
 | `/` Dashboard (R6, extended) | Month-check nudge; safe to spend shows "Still to pay in your plan" as a fifth part |
 | `/settings` (extended) | "Remind me to check next month's plan" switch |
 
+"Plan checked" appears only on the nudge's month (this month from the 1st to the 5th, otherwise next
+month). The link dialog lists unlinked transactions. Already-linked search results are shown disabled
+with "Already pays <item> (<month>) — unlink it first".
+
 Every amount goes through `<Money>` (hide-balances). Statuses, "estimated" and directions are words.
 Ids for tests: `#plan-month`, `#plan-total-planned`, `#plan-total-paid`, `#plan-total-left`,
 `[data-plan-row]` with `data-status`, `#plan-carried`, `#plan-cash`, `#plan-compare`, `#plan-people`,

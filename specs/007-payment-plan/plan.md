@@ -60,8 +60,8 @@ history (SC-003); Pay in ≤ 3 selections (SC-004).
 - No financial data in logs.
 
 **Scale/Scope**:
-- Routes: 3 new (`/payment-plan`, `/payment-plan/new`, `/payment-plan/[id]`), 4 extended
-  (Dashboard, Settings, transaction new/edit).
+- Routes: 3 new (`/payment-plan`, `/payment-plan/new`, `/payment-plan/[id]`), 5 extended
+  (Dashboard, Settings, transaction new, edit and detail).
 - Data: 2 synced tables, plus 2 transaction fields and 2 preference fields.
 - Stories: 6 (5 on the web now).
 

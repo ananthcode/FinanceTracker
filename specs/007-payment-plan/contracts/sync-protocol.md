@@ -46,8 +46,8 @@ Server-controlled: `userId`, `state`, timestamps, `fieldVersions`, `serverSeq`.
 | Code | When |
 |------|------|
 | `INVALID_PLAN_ITEM` | Target fields do not match `target`; an account, card, payee or category that is not the caller's, has the wrong type or kind, or is deleted; terms out of order or not starting at `startMonth` |
-| `TERMS_IN_PAST` | An update changes or removes a term entry before the user's current month |
-| `HAS_PAYMENTS` | `startMonth` moved after a month that has links |
+| `TERMS_IN_PAST` | An update changes or removes a term entry before the user's current month (the month of the change's HLC time, at most one month before the server's) |
+| `HAS_PAYMENTS` | A change to `startMonth`, `endMonth`, `frequency` or `intervalMonths` would leave a month that has links outside the item's months |
 | `INVALID_OCCURRENCE` | Wrong id derivation; the month is not one the item applies to; the item is deleted |
 | `INVALID_PLAN_LINK` | A link to a deleted or foreign item; a month outside its range; a transaction kind that cannot pay a plan item |
 
