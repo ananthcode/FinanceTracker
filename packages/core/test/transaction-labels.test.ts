@@ -31,6 +31,8 @@ function tx(partial: Partial<TransactionView>): TransactionView {
     interestMonth: null,
     userEdited: false,
     state: "active",
+    planItemId: null,
+    planMonth: null,
     ...partial,
   };
 }

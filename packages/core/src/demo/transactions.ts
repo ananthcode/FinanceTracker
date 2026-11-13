@@ -78,6 +78,8 @@ export function demoTransactions(todayIso: string): DemoTransactions {
       interestMonth: null,
       userEdited: false,
       state: "active",
+      planItemId: null,
+      planMonth: null,
       ...t,
     };
     // Planned: anything after today waits (FR-002a).

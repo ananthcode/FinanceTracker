@@ -61,8 +61,10 @@ export function PreferencesForm({
     setStatus(null);
     const isSetup = mode === "setup";
     // categoriesStart is set only by the start choice (R3 FR-007); the preferences endpoint refuses it.
-    const { baseCurrency, categoriesStart, ...editable } = prefs;
+    // The checked month is set only by "Plan checked" (R7 FR-023), never by this form.
+    const { baseCurrency, categoriesStart, planCheckedMonth, ...editable } = prefs;
     void categoriesStart;
+    void planCheckedMonth;
     if (!isSetup) {
       const parsed = buffer.trim() === "" ? ({ ok: true, minor: 0n } as const) : parseAmountInput(buffer, { currency: baseCurrency });
       if (!parsed.ok || parsed.minor < 0n) {

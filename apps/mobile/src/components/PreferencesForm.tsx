@@ -80,8 +80,12 @@ export function PreferencesForm({
     setBusy(true);
     setStatus(null);
     // categoriesStart is set only by the start choice (R3 FR-007); the preferences endpoint refuses it.
-    const { baseCurrency, categoriesStart, ...editable } = { ...prefs, timezone: timezoneText };
+    // The buffer and the plan reminder are edited elsewhere: never send them from here (R3 lesson).
+    const { baseCurrency, categoriesStart, bufferMinor, planNudge, planCheckedMonth, ...editable } = { ...prefs, timezone: timezoneText };
     void categoriesStart;
+    void bufferMinor;
+    void planNudge;
+    void planCheckedMonth;
     try {
       if (mode === "setup") {
         await api("/api/me/setup", {

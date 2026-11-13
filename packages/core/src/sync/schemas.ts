@@ -15,9 +15,25 @@ import {
   TransactionCreateFields,
   TransactionUpdateFields,
 } from "../transactions/schemas";
+import {
+  PlanItemCreateFields,
+  PlanItemUpdateFields,
+  PlanOccurrenceCreateFields,
+  PlanOccurrenceUpdateFields,
+} from "../plan/schemas";
 import { HLC_PATTERN } from "./hlc";
 
-export const SYNC_ENTITIES = ["account", "account_group", "category", "tag", "payee", "transaction", "person_rate"] as const;
+export const SYNC_ENTITIES = [
+  "account",
+  "account_group",
+  "category",
+  "tag",
+  "payee",
+  "transaction",
+  "person_rate",
+  "plan_item",
+  "plan_occurrence",
+] as const;
 export type SyncEntity = (typeof SYNC_ENTITIES)[number];
 
 export const CHANGE_KINDS = ["create", "update", "archive", "restore", "delete", "merge", "relocate"] as const;
@@ -37,6 +53,8 @@ const FIELD_SCHEMAS: Record<SyncEntity, Partial<Record<ChangeKind, z.ZodType>>> 
   payee: { create: PayeeCreateFields, update: PayeeUpdateFields, merge: MergeFields, relocate: RelocateFields },
   transaction: { create: TransactionCreateFields, update: TransactionUpdateFields },
   person_rate: { create: PersonRateCreateFields, update: PersonRateUpdateFields },
+  plan_item: { create: PlanItemCreateFields, update: PlanItemUpdateFields },
+  plan_occurrence: { create: PlanOccurrenceCreateFields, update: PlanOccurrenceUpdateFields },
 };
 
 /** Groups are only created, renamed, reordered and deleted (FR-009a); R3 lists merge; R4 relocates. */
@@ -48,6 +66,9 @@ const ALLOWED_KINDS: Record<SyncEntity, readonly ChangeKind[]> = {
   payee: ["create", "update", "delete", "merge", "relocate"],
   transaction: ["create", "update", "delete"],
   person_rate: ["create", "update", "delete"],
+  plan_item: ["create", "update", "delete"],
+  // A create for an existing (deterministic) id merges as an update (R7-02).
+  plan_occurrence: ["create", "update"],
 };
 
 export const Change = z
@@ -112,6 +133,12 @@ export const REJECTION_CODES = [
   "INVALID_CATEGORY",
   // R5: the change was made before the user's data was reset; drop it.
   "DATA_RESET",
+  // R7 (contracts/sync-protocol.md)
+  "INVALID_PLAN_ITEM",
+  "TERMS_IN_PAST",
+  "HAS_PAYMENTS",
+  "INVALID_OCCURRENCE",
+  "INVALID_PLAN_LINK",
 ] as const;
 export type RejectionCode = (typeof REJECTION_CODES)[number];
 
@@ -145,6 +172,9 @@ export const PullResponse = z.object({
     payee: z.array(PulledRow),
     transaction: z.array(PulledRow),
     person_rate: z.array(PulledRow),
+    // Optional so a newer client still reads an older server's pull.
+    plan_item: z.array(PulledRow).default([]),
+    plan_occurrence: z.array(PulledRow).default([]),
   }),
 });
 export type PullResponse = z.output<typeof PullResponse>;

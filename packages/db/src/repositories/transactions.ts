@@ -46,12 +46,14 @@ export function transactionFromRow(r: Raw): TransactionView {
     interestMonth: (r.interest_month as string | null) ?? null,
     userEdited: r.user_edited as boolean,
     state: r.state as TransactionView["state"],
+    planItemId: (r.plan_item_id as string | null) ?? null,
+    planMonth: (r.plan_month as string | null) ?? null,
   };
 }
 
 const COLUMNS =
   "id, date, time_of_day, kind, flow, account_id, to_account_id, amount_minor::text, payee_id, person_action, " +
-  "category_id, lines, tag_ids, notes, reference, status, confirmed, generated, interest_month, user_edited, state";
+  "category_id, lines, tag_ids, notes, reference, status, confirmed, generated, interest_month, user_edited, state, plan_item_id, plan_month";
 
 /** One of the caller's transactions, or null (also for deleted ones). */
 export async function getTransaction(db: SupabaseClient, id: string): Promise<TransactionView | null> {

@@ -83,6 +83,12 @@ export type Database = {
 "_my_reset_seq":
 { Args: Record<PropertyKey, never>; Returns: number
                            },
+"_plan_applies":
+{ Args: { "p_end": string,"p_interval": number,"p_month": string,"p_start": string }; Returns: boolean
+                           },
+"_plan_occurrence_id":
+{ Args: { "p_item": string,"p_month": string }; Returns: string
+                           },
 "_propose_interest":
 { Args: { "p_today": string,"p_user": string }; Returns: number
                            },
@@ -374,6 +380,58 @@ isOneToOne: false
       referencedColumns: ["id","user_id"]
     }
                   ]
+                },"plan_items": {
+                  Row: {
+                    "amount_varies": boolean,"card_account_id": string | null,"category_id": string | null,"created_at": string,"deleted_at": string | null,"end_month": string | null,"field_versions": NonNullable<Json>,"frequency": Database["public"]['Enums']["plan_frequency"],"id": string,"interval_months": number,"name": string,"notes": string | null,"payee_id": string | null,"person_action": Database["public"]['Enums']["person_action"] | null,"server_seq": number,"start_month": string,"state": Database["public"]['Enums']["record_state"],"target": Database["public"]['Enums']["plan_target"],"terms": NonNullable<Json>,"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_varies"?: boolean,"card_account_id"?: string | null,"category_id"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"end_month"?: string | null,"field_versions"?: NonNullable<Json>,"frequency": Database["public"]['Enums']["plan_frequency"],"id": string,"interval_months": number,"name": string,"notes"?: string | null,"payee_id"?: string | null,"person_action"?: Database["public"]['Enums']["person_action"] | null,"server_seq": number,"start_month": string,"state"?: Database["public"]['Enums']["record_state"],"target": Database["public"]['Enums']["plan_target"],"terms": NonNullable<Json>,"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "amount_varies"?: boolean,"card_account_id"?: string | null,"category_id"?: string | null,"created_at"?: string,"deleted_at"?: string | null,"end_month"?: string | null,"field_versions"?: NonNullable<Json>,"frequency"?: Database["public"]['Enums']["plan_frequency"],"id"?: string,"interval_months"?: number,"name"?: string,"notes"?: string | null,"payee_id"?: string | null,"person_action"?: Database["public"]['Enums']["person_action"] | null,"server_seq"?: number,"start_month"?: string,"state"?: Database["public"]['Enums']["record_state"],"target"?: Database["public"]['Enums']["plan_target"],"terms"?: NonNullable<Json>,"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "plan_items_card_account_id_user_id_fkey"
+      columns: ["card_account_id","user_id"]
+isOneToOne: false
+      referencedRelation: "accounts"
+      referencedColumns: ["id","user_id"]
+    },{
+      foreignKeyName: "plan_items_category_id_user_id_fkey"
+      columns: ["category_id","user_id"]
+isOneToOne: false
+      referencedRelation: "categories"
+      referencedColumns: ["id","user_id"]
+    },{
+      foreignKeyName: "plan_items_payee_id_user_id_fkey"
+      columns: ["payee_id","user_id"]
+isOneToOne: false
+      referencedRelation: "payees"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
+                },"plan_occurrences": {
+                  Row: {
+                    "amount_minor": number | null,"created_at": string,"deleted_at": string | null,"field_versions": NonNullable<Json>,"id": string,"item_id": string,"month": string,"server_seq": number,"skipped": boolean,"state": Database["public"]['Enums']["record_state"],"updated_at": string,"user_id": string
+                  }
+                  ComputedFields: never
+                  Insert: {
+                    "amount_minor"?: number | null,"created_at"?: string,"deleted_at"?: string | null,"field_versions"?: NonNullable<Json>,"id": string,"item_id": string,"month": string,"server_seq": number,"skipped"?: boolean,"state"?: Database["public"]['Enums']["record_state"],"updated_at"?: string,"user_id": string
+                  }
+                  Update: {
+                    "amount_minor"?: number | null,"created_at"?: string,"deleted_at"?: string | null,"field_versions"?: NonNullable<Json>,"id"?: string,"item_id"?: string,"month"?: string,"server_seq"?: number,"skipped"?: boolean,"state"?: Database["public"]['Enums']["record_state"],"updated_at"?: string,"user_id"?: string
+                  }
+                  Relationships: [
+                    {
+      foreignKeyName: "plan_occurrences_item_id_user_id_fkey"
+      columns: ["item_id","user_id"]
+isOneToOne: false
+      referencedRelation: "plan_items"
+      referencedColumns: ["id","user_id"]
+    }
+                  ]
                 },"profiles": {
                   Row: {
                     "created_at": string,"display_name": string | null,"email": string,"last_sign_in_at": string | null,"privacy_notice_shown_at": string | null,"role": Database["public"]['Enums']["user_role"],"setup_completed_at": string | null,"status": Database["public"]['Enums']["access_status"],"updated_at": string,"user_id": string
@@ -410,14 +468,14 @@ isOneToOne: false
                   ]
                 },"transactions": {
                   Row: {
-                    "account_id": string | null,"amount_minor": number,"category_id": string | null,"confirmed": boolean,"created_at": string,"date": string,"deleted_at": string | null,"field_versions": NonNullable<Json>,"flow": Database["public"]['Enums']["money_flow"],"generated": boolean,"id": string,"interest_month": string | null,"kind": Database["public"]['Enums']["transaction_kind"],"lines": NonNullable<Json>,"notes": string | null,"payee_id": string | null,"person_action": Database["public"]['Enums']["person_action"] | null,"reference": string | null,"server_seq": number,"state": Database["public"]['Enums']["record_state"],"status": Database["public"]['Enums']["transaction_status"],"tag_ids": (string)[],"time_of_day": string | null,"to_account_id": string | null,"updated_at": string,"user_edited": boolean,"user_id": string
+                    "account_id": string | null,"amount_minor": number,"category_id": string | null,"confirmed": boolean,"created_at": string,"date": string,"deleted_at": string | null,"field_versions": NonNullable<Json>,"flow": Database["public"]['Enums']["money_flow"],"generated": boolean,"id": string,"interest_month": string | null,"kind": Database["public"]['Enums']["transaction_kind"],"lines": NonNullable<Json>,"notes": string | null,"payee_id": string | null,"person_action": Database["public"]['Enums']["person_action"] | null,"plan_item_id": string | null,"plan_month": string | null,"reference": string | null,"server_seq": number,"state": Database["public"]['Enums']["record_state"],"status": Database["public"]['Enums']["transaction_status"],"tag_ids": (string)[],"time_of_day": string | null,"to_account_id": string | null,"updated_at": string,"user_edited": boolean,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "account_id"?: string | null,"amount_minor": number,"category_id"?: string | null,"confirmed"?: boolean,"created_at"?: string,"date": string,"deleted_at"?: string | null,"field_versions"?: NonNullable<Json>,"flow": Database["public"]['Enums']["money_flow"],"generated"?: boolean,"id": string,"interest_month"?: string | null,"kind": Database["public"]['Enums']["transaction_kind"],"lines"?: NonNullable<Json>,"notes"?: string | null,"payee_id"?: string | null,"person_action"?: Database["public"]['Enums']["person_action"] | null,"reference"?: string | null,"server_seq": number,"state"?: Database["public"]['Enums']["record_state"],"status"?: Database["public"]['Enums']["transaction_status"],"tag_ids"?: (string)[],"time_of_day"?: string | null,"to_account_id"?: string | null,"updated_at"?: string,"user_edited"?: boolean,"user_id": string
+                    "account_id"?: string | null,"amount_minor": number,"category_id"?: string | null,"confirmed"?: boolean,"created_at"?: string,"date": string,"deleted_at"?: string | null,"field_versions"?: NonNullable<Json>,"flow": Database["public"]['Enums']["money_flow"],"generated"?: boolean,"id": string,"interest_month"?: string | null,"kind": Database["public"]['Enums']["transaction_kind"],"lines"?: NonNullable<Json>,"notes"?: string | null,"payee_id"?: string | null,"person_action"?: Database["public"]['Enums']["person_action"] | null,"plan_item_id"?: string | null,"plan_month"?: string | null,"reference"?: string | null,"server_seq": number,"state"?: Database["public"]['Enums']["record_state"],"status"?: Database["public"]['Enums']["transaction_status"],"tag_ids"?: (string)[],"time_of_day"?: string | null,"to_account_id"?: string | null,"updated_at"?: string,"user_edited"?: boolean,"user_id": string
                   }
                   Update: {
-                    "account_id"?: string | null,"amount_minor"?: number,"category_id"?: string | null,"confirmed"?: boolean,"created_at"?: string,"date"?: string,"deleted_at"?: string | null,"field_versions"?: NonNullable<Json>,"flow"?: Database["public"]['Enums']["money_flow"],"generated"?: boolean,"id"?: string,"interest_month"?: string | null,"kind"?: Database["public"]['Enums']["transaction_kind"],"lines"?: NonNullable<Json>,"notes"?: string | null,"payee_id"?: string | null,"person_action"?: Database["public"]['Enums']["person_action"] | null,"reference"?: string | null,"server_seq"?: number,"state"?: Database["public"]['Enums']["record_state"],"status"?: Database["public"]['Enums']["transaction_status"],"tag_ids"?: (string)[],"time_of_day"?: string | null,"to_account_id"?: string | null,"updated_at"?: string,"user_edited"?: boolean,"user_id"?: string
+                    "account_id"?: string | null,"amount_minor"?: number,"category_id"?: string | null,"confirmed"?: boolean,"created_at"?: string,"date"?: string,"deleted_at"?: string | null,"field_versions"?: NonNullable<Json>,"flow"?: Database["public"]['Enums']["money_flow"],"generated"?: boolean,"id"?: string,"interest_month"?: string | null,"kind"?: Database["public"]['Enums']["transaction_kind"],"lines"?: NonNullable<Json>,"notes"?: string | null,"payee_id"?: string | null,"person_action"?: Database["public"]['Enums']["person_action"] | null,"plan_item_id"?: string | null,"plan_month"?: string | null,"reference"?: string | null,"server_seq"?: number,"state"?: Database["public"]['Enums']["record_state"],"status"?: Database["public"]['Enums']["transaction_status"],"tag_ids"?: (string)[],"time_of_day"?: string | null,"to_account_id"?: string | null,"updated_at"?: string,"user_edited"?: boolean,"user_id"?: string
                   }
                   Relationships: [
                     {
@@ -439,6 +497,12 @@ isOneToOne: false
       referencedRelation: "payees"
       referencedColumns: ["id","user_id"]
     },{
+      foreignKeyName: "transactions_plan_item_fk"
+      columns: ["plan_item_id","user_id"]
+isOneToOne: false
+      referencedRelation: "plan_items"
+      referencedColumns: ["id","user_id"]
+    },{
       foreignKeyName: "transactions_to_account_id_user_id_fkey"
       columns: ["to_account_id","user_id"]
 isOneToOne: false
@@ -448,14 +512,14 @@ isOneToOne: false
                   ]
                 },"user_preferences": {
                   Row: {
-                    "accounts_view": Database["public"]['Enums']["accounts_view"],"base_currency": string,"buffer_minor": number,"categories_start": Database["public"]['Enums']["categories_start"] | null,"date_format": Database["public"]['Enums']["date_format"],"fy_start_month": number,"number_format": Database["public"]['Enums']["number_format"],"timezone": string,"updated_at": string,"user_id": string
+                    "accounts_view": Database["public"]['Enums']["accounts_view"],"base_currency": string,"buffer_minor": number,"categories_start": Database["public"]['Enums']["categories_start"] | null,"date_format": Database["public"]['Enums']["date_format"],"fy_start_month": number,"number_format": Database["public"]['Enums']["number_format"],"plan_checked_month": string | null,"plan_nudge": boolean,"timezone": string,"updated_at": string,"user_id": string
                   }
                   ComputedFields: never
                   Insert: {
-                    "accounts_view"?: Database["public"]['Enums']["accounts_view"],"base_currency"?: string,"buffer_minor"?: number,"categories_start"?: Database["public"]['Enums']["categories_start"] | null,"date_format"?: Database["public"]['Enums']["date_format"],"fy_start_month"?: number,"number_format"?: Database["public"]['Enums']["number_format"],"timezone"?: string,"updated_at"?: string,"user_id": string
+                    "accounts_view"?: Database["public"]['Enums']["accounts_view"],"base_currency"?: string,"buffer_minor"?: number,"categories_start"?: Database["public"]['Enums']["categories_start"] | null,"date_format"?: Database["public"]['Enums']["date_format"],"fy_start_month"?: number,"number_format"?: Database["public"]['Enums']["number_format"],"plan_checked_month"?: string | null,"plan_nudge"?: boolean,"timezone"?: string,"updated_at"?: string,"user_id": string
                   }
                   Update: {
-                    "accounts_view"?: Database["public"]['Enums']["accounts_view"],"base_currency"?: string,"buffer_minor"?: number,"categories_start"?: Database["public"]['Enums']["categories_start"] | null,"date_format"?: Database["public"]['Enums']["date_format"],"fy_start_month"?: number,"number_format"?: Database["public"]['Enums']["number_format"],"timezone"?: string,"updated_at"?: string,"user_id"?: string
+                    "accounts_view"?: Database["public"]['Enums']["accounts_view"],"base_currency"?: string,"buffer_minor"?: number,"categories_start"?: Database["public"]['Enums']["categories_start"] | null,"date_format"?: Database["public"]['Enums']["date_format"],"fy_start_month"?: number,"number_format"?: Database["public"]['Enums']["number_format"],"plan_checked_month"?: string | null,"plan_nudge"?: boolean,"timezone"?: string,"updated_at"?: string,"user_id"?: string
                   }
                   Relationships: [
                     
@@ -469,7 +533,7 @@ isOneToOne: false
             [_ in never]: never
           }
           Enums: {
-            "access_status": "active"|"disabled","account_type": "bank"|"cash"|"wallet"|"credit_card","accounts_view": "by_type"|"my_groups","audit_action": "invitation_created"|"invitation_resent"|"invitation_revoked"|"invitation_accepted"|"invitation_expired"|"invitation_delivery_failed"|"owner_recovered"|"user_disabled"|"user_enabled"|"user_erased"|"sign_in_succeeded"|"sign_in_failed"|"sign_in_locked"|"password_reset_requested"|"password_reset_completed"|"signed_out"|"preference_changed"|"setup_completed"|"app_lock_enabled"|"app_lock_disabled"|"account_created"|"account_edited"|"account_reordered"|"account_archived"|"account_restored"|"account_deleted"|"account_sync_renamed"|"account_group_created"|"account_group_renamed"|"account_group_reordered"|"account_group_deleted"|"category_created"|"category_edited"|"category_moved"|"category_hidden"|"category_unhidden"|"category_merged"|"category_deleted"|"category_sync_renamed"|"tag_created"|"tag_renamed"|"tag_merged"|"tag_deleted"|"tag_sync_renamed"|"payee_created"|"payee_edited"|"payee_hidden"|"payee_unhidden"|"payee_merged"|"payee_deleted"|"payee_sync_renamed"|"transaction_created"|"transaction_edited"|"transaction_confirmed"|"transaction_deleted"|"person_rate_created"|"person_rate_edited"|"person_rate_deleted"|"category_relocated"|"payee_relocated"|"demo_data_loaded"|"data_reset","categories_start": "suggested"|"empty","category_kind": "expense"|"income","date_format": "dd-MMM-yyyy"|"dd/MM/yyyy"|"yyyy-MM-dd","interest_mode": "none"|"automatic"|"manual","invitation_delivery_status": "sent"|"failed","invitation_status": "pending"|"accepted"|"revoked"|"superseded","money_flow": "out"|"in","number_format": "indian"|"international","payee_kind": "business"|"person","person_action": "lent"|"repaid_to"|"paid_on_behalf"|"borrowed"|"received_back"|"collected_on_behalf"|"adjustment","record_state": "active"|"archived"|"deleted","statement_sign": "they_owe_positive"|"i_owe_positive","transaction_kind": "expense"|"income"|"refund"|"transfer"|"person"|"interest","transaction_status": "uncleared"|"cleared"|"follow_up"|"void","user_role": "owner"|"member"
+            "access_status": "active"|"disabled","account_type": "bank"|"cash"|"wallet"|"credit_card","accounts_view": "by_type"|"my_groups","audit_action": "invitation_created"|"invitation_resent"|"invitation_revoked"|"invitation_accepted"|"invitation_expired"|"invitation_delivery_failed"|"owner_recovered"|"user_disabled"|"user_enabled"|"user_erased"|"sign_in_succeeded"|"sign_in_failed"|"sign_in_locked"|"password_reset_requested"|"password_reset_completed"|"signed_out"|"preference_changed"|"setup_completed"|"app_lock_enabled"|"app_lock_disabled"|"account_created"|"account_edited"|"account_reordered"|"account_archived"|"account_restored"|"account_deleted"|"account_sync_renamed"|"account_group_created"|"account_group_renamed"|"account_group_reordered"|"account_group_deleted"|"category_created"|"category_edited"|"category_moved"|"category_hidden"|"category_unhidden"|"category_merged"|"category_deleted"|"category_sync_renamed"|"tag_created"|"tag_renamed"|"tag_merged"|"tag_deleted"|"tag_sync_renamed"|"payee_created"|"payee_edited"|"payee_hidden"|"payee_unhidden"|"payee_merged"|"payee_deleted"|"payee_sync_renamed"|"transaction_created"|"transaction_edited"|"transaction_confirmed"|"transaction_deleted"|"person_rate_created"|"person_rate_edited"|"person_rate_deleted"|"category_relocated"|"payee_relocated"|"demo_data_loaded"|"data_reset"|"plan_item_created"|"plan_item_edited"|"plan_item_deleted"|"plan_month_created"|"plan_month_edited","categories_start": "suggested"|"empty","category_kind": "expense"|"income","date_format": "dd-MMM-yyyy"|"dd/MM/yyyy"|"yyyy-MM-dd","interest_mode": "none"|"automatic"|"manual","invitation_delivery_status": "sent"|"failed","invitation_status": "pending"|"accepted"|"revoked"|"superseded","money_flow": "out"|"in","number_format": "indian"|"international","payee_kind": "business"|"person","person_action": "lent"|"repaid_to"|"paid_on_behalf"|"borrowed"|"received_back"|"collected_on_behalf"|"adjustment","plan_frequency": "monthly"|"every_n_months"|"yearly"|"one_off","plan_target": "payee"|"card"|"person","record_state": "active"|"archived"|"deleted","statement_sign": "they_owe_positive"|"i_owe_positive","transaction_kind": "expense"|"income"|"refund"|"transfer"|"person"|"interest","transaction_status": "uncleared"|"cleared"|"follow_up"|"void","user_role": "owner"|"member"
           }
           CompositeTypes: {
             [_ in never]: never
@@ -589,7 +653,7 @@ export const Constants = {
           }
         },"public": {
           Enums: {
-            "access_status": ["active", "disabled"],"account_type": ["bank", "cash", "wallet", "credit_card"],"accounts_view": ["by_type", "my_groups"],"audit_action": ["invitation_created", "invitation_resent", "invitation_revoked", "invitation_accepted", "invitation_expired", "invitation_delivery_failed", "owner_recovered", "user_disabled", "user_enabled", "user_erased", "sign_in_succeeded", "sign_in_failed", "sign_in_locked", "password_reset_requested", "password_reset_completed", "signed_out", "preference_changed", "setup_completed", "app_lock_enabled", "app_lock_disabled", "account_created", "account_edited", "account_reordered", "account_archived", "account_restored", "account_deleted", "account_sync_renamed", "account_group_created", "account_group_renamed", "account_group_reordered", "account_group_deleted", "category_created", "category_edited", "category_moved", "category_hidden", "category_unhidden", "category_merged", "category_deleted", "category_sync_renamed", "tag_created", "tag_renamed", "tag_merged", "tag_deleted", "tag_sync_renamed", "payee_created", "payee_edited", "payee_hidden", "payee_unhidden", "payee_merged", "payee_deleted", "payee_sync_renamed", "transaction_created", "transaction_edited", "transaction_confirmed", "transaction_deleted", "person_rate_created", "person_rate_edited", "person_rate_deleted", "category_relocated", "payee_relocated", "demo_data_loaded", "data_reset"],"categories_start": ["suggested", "empty"],"category_kind": ["expense", "income"],"date_format": ["dd-MMM-yyyy", "dd/MM/yyyy", "yyyy-MM-dd"],"interest_mode": ["none", "automatic", "manual"],"invitation_delivery_status": ["sent", "failed"],"invitation_status": ["pending", "accepted", "revoked", "superseded"],"money_flow": ["out", "in"],"number_format": ["indian", "international"],"payee_kind": ["business", "person"],"person_action": ["lent", "repaid_to", "paid_on_behalf", "borrowed", "received_back", "collected_on_behalf", "adjustment"],"record_state": ["active", "archived", "deleted"],"statement_sign": ["they_owe_positive", "i_owe_positive"],"transaction_kind": ["expense", "income", "refund", "transfer", "person", "interest"],"transaction_status": ["uncleared", "cleared", "follow_up", "void"],"user_role": ["owner", "member"]
+            "access_status": ["active", "disabled"],"account_type": ["bank", "cash", "wallet", "credit_card"],"accounts_view": ["by_type", "my_groups"],"audit_action": ["invitation_created", "invitation_resent", "invitation_revoked", "invitation_accepted", "invitation_expired", "invitation_delivery_failed", "owner_recovered", "user_disabled", "user_enabled", "user_erased", "sign_in_succeeded", "sign_in_failed", "sign_in_locked", "password_reset_requested", "password_reset_completed", "signed_out", "preference_changed", "setup_completed", "app_lock_enabled", "app_lock_disabled", "account_created", "account_edited", "account_reordered", "account_archived", "account_restored", "account_deleted", "account_sync_renamed", "account_group_created", "account_group_renamed", "account_group_reordered", "account_group_deleted", "category_created", "category_edited", "category_moved", "category_hidden", "category_unhidden", "category_merged", "category_deleted", "category_sync_renamed", "tag_created", "tag_renamed", "tag_merged", "tag_deleted", "tag_sync_renamed", "payee_created", "payee_edited", "payee_hidden", "payee_unhidden", "payee_merged", "payee_deleted", "payee_sync_renamed", "transaction_created", "transaction_edited", "transaction_confirmed", "transaction_deleted", "person_rate_created", "person_rate_edited", "person_rate_deleted", "category_relocated", "payee_relocated", "demo_data_loaded", "data_reset", "plan_item_created", "plan_item_edited", "plan_item_deleted", "plan_month_created", "plan_month_edited"],"categories_start": ["suggested", "empty"],"category_kind": ["expense", "income"],"date_format": ["dd-MMM-yyyy", "dd/MM/yyyy", "yyyy-MM-dd"],"interest_mode": ["none", "automatic", "manual"],"invitation_delivery_status": ["sent", "failed"],"invitation_status": ["pending", "accepted", "revoked", "superseded"],"money_flow": ["out", "in"],"number_format": ["indian", "international"],"payee_kind": ["business", "person"],"person_action": ["lent", "repaid_to", "paid_on_behalf", "borrowed", "received_back", "collected_on_behalf", "adjustment"],"plan_frequency": ["monthly", "every_n_months", "yearly", "one_off"],"plan_target": ["payee", "card", "person"],"record_state": ["active", "archived", "deleted"],"statement_sign": ["they_owe_positive", "i_owe_positive"],"transaction_kind": ["expense", "income", "refund", "transfer", "person", "interest"],"transaction_status": ["uncleared", "cleared", "follow_up", "void"],"user_role": ["owner", "member"]
           }
         }
 } as const

@@ -24,8 +24,8 @@ Migration names are `20261113000NNN_*` (`<ts>`), in the listed order.
 
 ## Phase 1: Setup (schema and shapes)
 
-- [ ] T001 Migration `<ts>_plan_enums.sql` in `supabase/migrations/`: enums `plan_frequency` (`monthly`, `every_n_months`, `yearly`, `one_off`) and `plan_target` (`payee`, `card`, `person`); audit actions `plan_item_created`, `plan_item_edited`, `plan_item_deleted`, `plan_month_edited`; target types `plan_item`, `plan_occurrence`
-- [ ] T002 Migration `<ts>_plan_tables.sql`. Every rule is listed in data-model.md.
+- [X] T001 Migration `<ts>_plan_enums.sql` in `supabase/migrations/`: enums `plan_frequency` (`monthly`, `every_n_months`, `yearly`, `one_off`) and `plan_target` (`payee`, `card`, `person`); audit actions `plan_item_created`, `plan_item_edited`, `plan_item_deleted`, `plan_month_edited`; target types `plan_item`, `plan_occurrence`
+- [X] T002 Migration `<ts>_plan_tables.sql`. Every rule is listed in data-model.md.
   - `public.plan_items`, with checks:
     - `name` 1–60 chars;
     - target fields per `target`;
@@ -40,13 +40,13 @@ Migration names are `20261113000NNN_*` (`<ts>`), in the listed order.
     (`date null`, day 1).
   - Composite FKs `(x_id, user_id)`.
   - Indexes `plan_items (user_id, state)` and `plan_occurrences (user_id, month)`.
-- [ ] T003 Migration `<ts>_plan_rules.sql`:
+- [X] T003 Migration `<ts>_plan_rules.sql`:
   - RLS select-own for active users and SELECT-only grants on both tables;
   - `sync.stamp_row` and `audit.capture_record_change` triggers;
   - the preferences column grant `update (plan_nudge, plan_checked_month)`, plus a `before update`
     trigger keeping `plan_checked_month = greatest(old, new)` (reset and erasure must still clear it);
   - `app._plan_occurrence_id(item uuid, month date)` (research R7-02).
-- [ ] T004 [P] Core shapes in `packages/core/src/plan/schemas.ts`:
+- [X] T004 [P] Core shapes in `packages/core/src/plan/schemas.ts`:
   - Zod schemas for the plan item (create and update), occurrence and term;
   - `PlanItem` and `PlanOccurrence` views;
   - transaction schema and view gain `planItemId` and `planMonth`;
@@ -55,12 +55,12 @@ Migration names are `20261113000NNN_*` (`<ts>`), in the listed order.
   - `PreferencesSchema` gains `planNudge` and `planCheckedMonth` in
     `packages/core/src/schemas/me.ts`;
   - export from `packages/core/src/index.ts`.
-- [ ] T005 [P] Clients learn the new fields (R4 lesson):
+- [X] T005 [P] Clients learn the new fields (R4 lesson):
   - `packages/db/src/repositories/preferences.ts` and `transactions.ts` mappers, `sync.ts` pull rows;
   - the mobile `apps/mobile/src/lib/sync/transactions.ts` row mapper, plus a new
     `apps/mobile/src/lib/sync/plan.ts` row mapper with store tables (no screens);
   - the web and mobile preferences forms omit fields they do not edit.
-- [ ] T006 `pnpm db:types` (regenerates `packages/db/src/types.gen.ts`)
+- [X] T006 `pnpm db:types` (regenerates `packages/db/src/types.gen.ts`)
 
 ## Phase 2: Foundational (core rules, appliers, sync)
 
