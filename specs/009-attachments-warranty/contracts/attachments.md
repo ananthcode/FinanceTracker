@@ -27,12 +27,20 @@ Pull: `rows` gains `attachment`; transaction rows carry the warranty fields.
 
 ## HTTP
 
+As built (2026-11-14):
+
+- `POST /api/attachments` `{ transactionId, contentType, sizeBytes }` → `{ id, uploadUrl }`: a one-time upload
+  link for `<caller>/<id>` (the browser PUTs the file to it, then pushes the record). 404 when the transaction
+  is not the caller's live one; 409 `LIMIT_REACHED` (10 on it) or `QUOTA_EXCEEDED` (with the free space);
+  400 for other types or sizes over 10 MB; rate-limited.
+- `GET /api/attachments/:id[?download=1]` → 302 to a signed link valid for 120 s; 404 for another user's or a
+  deleted attachment; 401 without a session.
+- `POST /api/attachments/cleanup` → `{ removed }`: removes the caller's orphan files (research R9-03).
 - `PATCH /api/me/preferences` gains `warrantyFirstDays` (15/30/60/90) and `warrantySecondDays` (15/30/60/null),
-  checked together (the second below the first).
-- `GET /api/me/attachments/usage` → `{ files, bytes, allowance }` for Settings.
-- Server action `cleanupAttachmentFiles()` removes the caller's orphan objects (research R9-03).
-- `POST /api/me/data` (R5) reset and reset-and-load also remove the user's files; demo load uploads the
-  synthetic receipt before applying the changes.
+  sent together (the second below the first), else 400.
+- `POST /api/me/data` (R5): reset and reset-and-load also remove the user's files (`removed.attachments`
+  counts the records); a load stores the synthetic receipt first (`loaded.attachment`).
+- Usage for Settings is read on the server with `app.my_attachment_usage()` (no separate endpoint).
 
 ## Screens
 

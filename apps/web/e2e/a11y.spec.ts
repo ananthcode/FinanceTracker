@@ -49,13 +49,14 @@ test("keyboard only: Tab reaches the navigation in order and Enter opens a secti
   await page.goto("/");
 
   const order: string[] = [];
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 9; i++) {
     await page.keyboard.press("Tab");
     order.push(await page.evaluate(() => document.activeElement?.getAttribute("aria-label") ?? document.activeElement?.textContent?.trim() ?? ""));
   }
-  expect(order.slice(0, 8)).toEqual(["Hide balances", "Dashboard", "Accounts", "People", "Transactions", "Reports", "Payment plan", "Settings"]);
+  expect(order.slice(0, 9)).toEqual(["Hide balances", "Dashboard", "Accounts", "People", "Transactions", "Reports", "Payment plan", "Warranties", "Settings"]);
   // Focus is visibly outlined (not colour of text alone).
-  // Focus is on stop 8; one Shift+Tab goes back to stop 7, "Payment plan" (R3 added People, R6 Reports).
+  // Focus is on stop 9; two Shift+Tabs go back to stop 7, "Payment plan" (R3 added People, R6 Reports, R9 Warranties).
+  await page.keyboard.press("Shift+Tab");
   await page.keyboard.press("Shift+Tab");
   await expect(page.locator(":focus")).toHaveText("Payment plan");
   const outline = await page.evaluate(() => getComputedStyle(document.activeElement!).outlineStyle);
