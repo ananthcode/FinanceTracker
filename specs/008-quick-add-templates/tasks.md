@@ -40,9 +40,9 @@ Migration names are `20261114000NNN_*` (`<ts>`), in the listed order.
 
 ## Phase 3: User Story 1 — Record in one tap (P1) 🎯 MVP
 
-- [ ] T014 [P] [US1] Demo templates `packages/core/src/demo/templates.ts` + `demo/changes.ts` (Milk ₹60.00 cash, Groceries amount each time, Fuel ₹2,500.00 on the card, Wallet top-up transfer ₹500.00, Repay Meera ₹5,000.00 tied to the plan's "Repay Meera"); demo tests updated
-- [ ] T015 [P] [US1] Playwright `apps/web/e2e/r8-us1-record.spec.ts`: US1 1–10, S1-a – S1-e, SC-001, SC-002 (one transaction, balance once, Undo exact, repeat asks, tied links, empty amount refused, split amount opens the form, missing reference opens the form)
-- [ ] T016 [US1] `apps/web/components/templates/QuickAdd.tsx` (list with amount box, Record, Edit first, status message with Undo, repeat check) on `/transactions`; `/transactions/new?template=<id>` fills the form (tied: "Pays:" ticked) — passes T015
+- [X] T014 [P] [US1] Demo templates `packages/core/src/demo/templates.ts` + `demo/changes.ts` (Milk ₹60.00 cash, Groceries amount each time, Fuel ₹2,500.00 on the card, Wallet top-up transfer ₹500.00, Repay Meera ₹5,000.00 tied to the plan's "Repay Meera"); demo tests updated
+- [X] T015 [P] [US1] Playwright `apps/web/e2e/r8-us1-record.spec.ts`: US1 1–10, S1-a – S1-e, SC-001, SC-002 (one transaction, balance once, Undo exact, repeat asks, tied links, empty amount refused, split amount opens the form, missing reference opens the form)
+- [X] T016 [US1] `apps/web/components/templates/QuickAdd.tsx` (list with amount box, Record, Edit first, status message with Undo, repeat check) on `/transactions`; `/transactions/new?template=<id>` fills the form (tied: "Pays:" ticked) — passes T015
 
 ## Phase 4: User Story 2 — Make and manage templates (P1)
 

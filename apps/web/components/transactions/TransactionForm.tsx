@@ -80,8 +80,16 @@ interface OpeningProblem {
 }
 
 export type TransactionFormMode =
-  | { type: "create"; kind?: Tab | "interest"; accountId?: string | null; payeeId?: string | null; draft?: PayDraft }
+  | { type: "create"; kind?: Tab | "interest"; accountId?: string | null; payeeId?: string | null; draft?: FormDraft }
   | { type: "edit"; transaction: TransactionView };
+
+/** Starting values for a new transaction: from Pay (R7) or from a template (R8, which adds lines and tags). */
+export type FormDraft = Omit<PayDraft, "planItemId" | "planMonth" | "accountId" | "amountMinor"> & {
+  accountId: string | null;
+  amountMinor: bigint | null;
+  lines?: TransactionView["lines"];
+  tagIds?: string[];
+};
 
 /**
  * The planned payment this transaction pays (R7 US3): opened from Pay (`fixed`: it always links), or
@@ -159,7 +167,7 @@ export function TransactionForm({
   const [accountId, setAccountId] = useState(saved?.accountId ?? (draft ? (draft.accountId ?? "") : defaultAccount));
   const [toAccountId, setToAccountId] = useState(saved?.toAccountId ?? draft?.toAccountId ?? "");
   const [amount, setAmount] = useState(
-    saved ? formatAmountInput(saved.amountMinor, currency) : draft && draft.amountMinor > 0n ? formatAmountInput(draft.amountMinor, currency) : "",
+    saved ? formatAmountInput(saved.amountMinor, currency) : draft?.amountMinor && draft.amountMinor > 0n ? formatAmountInput(draft.amountMinor, currency) : "",
   );
   const [date, setDate] = useState(saved?.date ?? todayIso);
   const [time, setTime] = useState(saved?.timeOfDay ?? "");
@@ -172,8 +180,12 @@ export function TransactionForm({
   const [personAction, setPersonAction] = useState<PersonAction>(saved?.personAction ?? draft?.personAction ?? "lent");
   const [flow, setFlow] = useState<MoneyFlow>(saved?.flow ?? "out");
   const [categoryId, setCategoryId] = useState<string | null>(saved?.categoryId ?? draft?.categoryId ?? null);
-  const [lines, setLines] = useState<SplitLineDraft[] | null>(saved && saved.lines.length > 0 ? saved.lines.map((l) => lineDraft(l, currency)) : null);
-  const [tagIds, setTagIds] = useState<string[]>(saved?.tagIds ?? []);
+  const [lines, setLines] = useState<SplitLineDraft[] | null>(() => {
+    const from = saved?.lines ?? draft?.lines ?? [];
+    // A template's lines get fresh ids: they become this transaction's own.
+    return from.length > 0 ? from.map((l) => ({ ...lineDraft(l, currency), id: saved ? l.id : crypto.randomUUID() })) : null;
+  });
+  const [tagIds, setTagIds] = useState<string[]>(saved?.tagIds ?? draft?.tagIds ?? []);
   const [createdTags, setCreatedTags] = useState<TagView[]>([]);
   const [notes, setNotes] = useState(saved?.notes ?? draft?.notes ?? "");
   // R7 "Pays:" — the link is kept unless unticked; otherwise the first suggestion is ticked by default.

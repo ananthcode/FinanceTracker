@@ -4,3 +4,4 @@ export * from "./lists";
 export * from "./transactions";
 export * from "./changes";
 export * from "./plan";
+export * from "./templates";
