@@ -33,3 +33,4 @@
 
 - All items pass on the first review. File formats (JSON, Excel .xlsx, CSV, zip) are named because they are what the user asked for, not implementation choices.
 - Informed defaults are recorded in Assumptions; scope questions go to /speckit-clarify.
+- Clarified 2026-11-14 (3 questions): optional backup password; receipts restored by import; change history not exported. All items still pass.

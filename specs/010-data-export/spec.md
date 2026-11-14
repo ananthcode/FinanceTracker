@@ -13,6 +13,14 @@ in rupees with the user's number format in Excel/CSV and exact paise in JSON; at
 the export when asked (R9); JSON import restores into empty data (as the demo load does) with validation and a
 clear report; nothing about the user's data is logged. Web first; Android in the Android phase."
 
+## Clarifications
+
+### Session 2026-11-14
+
+- Q: Should the backup file be protected with a password? → A: Optional: the user may lock a backup with a password typed at export; the same password is needed to import it; a lost password cannot be recovered. Excel and CSV exports are not locked.
+- Q: When a backup includes receipt files, should importing it put the files back too? → A: Yes: a backup may include the attachment files, and importing it stores them again and links them to their transactions, within the 200 MB allowance.
+- Q: Should exports include the change history? → A: No: exports hold the user's records only; after an import the history starts fresh ("imported from a backup").
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Export everything as a backup and bring it back (Priority: P1)
@@ -42,7 +50,9 @@ person balance, report total, plan month and template is the same as before.
 4. **Given** a file that is not a backup of this app, is damaged, is from a newer format version, or contains
    records that break the app's rules, **When** the user imports it, **Then** nothing is imported and the
    report says what is wrong (the first problems, in words).
-5. **Given** a backup made by another user of the app, **When** it is imported, **Then** it becomes the
+5. **Given** a backup locked with a password, **When** the user imports it, **Then** they are asked for the
+   password; a wrong one is refused and nothing changes.
+6. **Given** a backup made by another user of the app, **When** it is imported, **Then** it becomes the
    importing user's own data (no link to the other user remains).
 
 ---
@@ -142,7 +152,7 @@ Export to a file and share it from the phone; import a backup on the phone.
 - **FR-002**: A backup MUST contain every live record of the user (accounts and groups, categories, tags,
   payees and people, transactions with split lines, interest rates, plan items and plan months, templates,
   attachment details, warranty fields, preferences), a format version, the app version and the export time;
-  amounts as exact paise. Change history is not included.
+  amounts as exact paise. Change history is not included (clarified 2026-11-14).
 - **FR-003**: Excel and CSV exports MUST have one sheet / file per record type with readable column names, names
   instead of ids (category as its full path), dates as dates, amounts in rupees with two decimals (Excel in the
   user's number format; CSV with a dot and no grouping), and split lines as their own sheet linked by a
@@ -175,10 +185,15 @@ Export to a file and share it from the phone; import a backup on the phone.
 - **FR-013**: Restored data MUST be the importing user's own (new ids are fine; references kept); balances,
   person balances, report totals, plan statuses and template order MUST equal those at export time.
 - **FR-014**: A backup that includes attachment files MUST restore them within the user's allowance; if they
-  do not fit, the user is told before the import and may import without the files.
+  do not fit, the user is told before the import and may import without the files. Clarified 2026-11-14.
 - **FR-015**: After an import, a report MUST say what was restored (counts by type, files restored or skipped).
 
 **Privacy and history**
+
+- **FR-018**: Users MUST be able to lock a backup with a password of their choice at export (optional, at
+  least 8 characters, typed twice); a locked backup cannot be read without it, and importing it asks for it.
+  The app MUST say plainly that a lost password cannot be recovered. A wrong password refuses the import
+  without changing anything. Excel and CSV exports are not locked. Clarified 2026-11-14.
 
 - **FR-016**: Exports and imports MUST be recorded in the change history (that it happened, the format, the
   counts) without any record contents; nothing about the data (names, amounts, notes) is written to logs.
