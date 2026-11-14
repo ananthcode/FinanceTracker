@@ -1,6 +1,6 @@
 import Link from "next/link";
-import { DEFAULT_PREFERENCES, parseMonthParam, payDraft, templateProblems, todayInZone, type TemplateProblem } from "@ft/core";
-import { getPreferences, getTemplate, listAccounts, listCategories, listPayees, listTags } from "@ft/db";
+import { DEFAULT_PREFERENCES, parseMonthParam, payDraft, templateProblems, todayInZone, visibleTemplates, type TemplateProblem } from "@ft/core";
+import { getPreferences, getTemplate, listAccounts, listCategories, listPayees, listTags, listTemplates } from "@ft/db";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { TransactionForm, type FormDraft, type PlanLinkProp } from "@/components/transactions/TransactionForm";
 import { loadPlan } from "@/lib/plan-data";
@@ -88,6 +88,8 @@ export default async function NewTransactionPage({ searchParams }: { searchParam
       }
     }
   }
+  // "Start from a template" (R8 US3 2): only on a plain new transaction.
+  const starters = !draft && !planLink ? visibleTemplates(await listTemplates(supabase)) : [];
   const MISSING: Record<TemplateProblem, string> = {
     account: "the account",
     toAccount: "the account the money goes to",
@@ -104,6 +106,23 @@ export default async function NewTransactionPage({ searchParams }: { searchParam
       <h1 id="page-title" className="text-2xl font-semibold">
         {planLink && !templateName ? `Pay ${planLink.name}` : "Add transaction"}
       </h1>
+      {starters.length > 0 && (
+        <nav aria-label="Start from a template" className="flex flex-col gap-1.5">
+          <p className="text-sm font-medium">Start from a template</p>
+          <ul className="flex flex-wrap gap-2">
+            {starters.map((t) => (
+              <li key={t.id}>
+                <Link
+                  href={`/transactions/new?template=${t.id}&returnTo=${encodeURIComponent(returnTo)}`}
+                  className="inline-flex rounded-md border border-border px-3 py-1 text-sm hover:bg-muted"
+                >
+                  {t.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
       {templateName && (
         <p className="text-sm text-muted-foreground">
           From the template <span className="font-medium text-foreground">{templateName}</span>. Nothing is recorded until you save.
@@ -117,6 +136,8 @@ export default async function NewTransactionPage({ searchParams }: { searchParam
         </Alert>
       )}
       <TransactionForm
+        // A new start (another template, or Pay) on the same page must reset the form's state.
+        key={`${typeof params.template === "string" ? params.template : ""}|${typeof params.plan === "string" ? params.plan : ""}|${planMonth ?? ""}`}
         mode={{ type: "create", kind: type, accountId, payeeId, draft }}
         planLink={planLink}
         accounts={accounts}

@@ -46,13 +46,13 @@ Migration names are `20261114000NNN_*` (`<ts>`), in the listed order.
 
 ## Phase 4: User Story 2 — Make and manage templates (P1)
 
-- [ ] T017 [P] [US2] Playwright `apps/web/e2e/r8-us2-manage.spec.ts`: US2 1–6, S2-a, S2-b, SC-003, SC-005 (form per kind, Save as template, move up/down/top, hide/show, delete, edit leaves recordings unchanged, name taken, tie offers fitting items only)
-- [ ] T018 [US2] `/templates`, `/templates/new`, `/templates/[id]`, `components/templates/TemplateForm.tsx`, `ManageTemplates.tsx`; "Save as template" on the transaction screen — passes T017
+- [X] T017 [P] [US2] Playwright `apps/web/e2e/r8-us2-manage.spec.ts`: US2 1–6, S2-a, S2-b, SC-003, SC-005 (form per kind, Save as template, move up/down/top, hide/show, delete, edit leaves recordings unchanged, name taken, tie offers fitting items only)
+- [X] T018 [US2] `/templates`, `/templates/new`, `/templates/[id]`, `components/templates/TemplateForm.tsx`, `ManageTemplates.tsx`; "Save as template" on the transaction screen — passes T017
 
 ## Phase 5: User Story 3 — Quick add where it is needed (P2)
 
-- [ ] T019 [P] [US3] Playwright `apps/web/e2e/r8-us3-where.spec.ts`: US3 1–4, S3-a, S3-b (Dashboard strip first 6 and More; absent with none; "Start from a template" fills the form; empty state)
-- [ ] T020 [US3] Dashboard strip and "Start from a template" in the add form — passes T019
+- [X] T019 [P] [US3] Playwright `apps/web/e2e/r8-us3-where.spec.ts`: US3 1–4, S3-a, S3-b (Dashboard strip first 6 and More; absent with none; "Start from a template" fills the form; empty state)
+- [X] T020 [US3] Dashboard strip and "Start from a template" in the add form — passes T019
 
 ## Phase 6: User Story 4 — Android (P3)
 

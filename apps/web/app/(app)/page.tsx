@@ -27,9 +27,11 @@ import {
 import { SafeToSpendCard } from "@/components/dashboard/SafeToSpendCard";
 import { Money } from "@/components/Money";
 import { PlanNudge } from "@/components/plan/PlanNudge";
+import { QuickAdd } from "@/components/templates/QuickAdd";
 import { buttonVariants } from "@/components/ui/button";
 import { publicEnv } from "@/lib/env";
 import { loadPlan } from "@/lib/plan-data";
+import { loadQuickAdd } from "@/lib/templates-data";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 function Figure({ id, label, href, children }: { id: string; label: string; href: string; children: React.ReactNode }) {
@@ -56,7 +58,7 @@ export default async function DashboardPage() {
   const month = periodOf("this_month", todayIso, prefs.fyStartMonth);
   await runInterestProposals(supabase).catch(() => 0);
   const planMonthNow = monthOf(todayIso);
-  const [accounts, groups, people, totals, months, upcoming, waiting, plan] = await Promise.all([
+  const [accounts, groups, people, totals, months, upcoming, waiting, plan, quick] = await Promise.all([
     listAccounts(supabase),
     listGroups(supabase),
     listPayees(supabase, "person"),
@@ -66,6 +68,8 @@ export default async function DashboardPage() {
     toConfirmCount(supabase),
     // R7: this month's unpaid plan items lower safe to spend; next month is for the nudge's count.
     loadPlan(supabase, prefs, [planMonthNow, addMonths(planMonthNow, 1)]),
+    // R8: the first few quick-add templates.
+    loadQuickAdd(supabase, prefs),
   ]);
   const currency = prefs.baseCurrency;
 
@@ -116,6 +120,20 @@ export default async function DashboardPage() {
       <h1 id="page-title" className="text-2xl font-semibold">
         Dashboard
       </h1>
+
+      {quick.templates.length > 0 && (
+        <section id="quick-add-strip" aria-labelledby="quick-add-strip-title" className="flex flex-col gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
+            <h2 id="quick-add-strip-title" className="text-lg font-semibold">
+              Quick add
+            </h2>
+            <Link href="/transactions#quick-add" className="text-sm text-brand-strong underline dark:text-brand">
+              More
+            </Link>
+          </div>
+          <QuickAdd templates={quick.templates} info={quick.info} today={quick.today} currency={currency} limit={6} returnTo="/" />
+        </section>
+      )}
 
       {plan.items.some((i) => i.state === "active") && (
         <PlanNudge
