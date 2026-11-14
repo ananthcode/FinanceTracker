@@ -31,4 +31,4 @@
 
 ## Notes
 
-- Defaults open to clarify: 200 MB allowance per user (FR-005); 10 files per transaction and PDFs up to 10 MB (FR-001, FR-002); warranty "expires soon" = 30 days (FR-010); attachments per transaction, not per split line.
+- Clarified 2026-11-14 (3 questions): 200 MB per user; deleting a transaction deletes its attachments; two warranty reminders (60 and 30 days by default, set in Settings).

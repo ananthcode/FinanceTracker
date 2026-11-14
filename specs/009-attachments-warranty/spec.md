@@ -11,6 +11,14 @@ photos / PDFs to a transaction (compressed, offline-capable upload queue); warra
 a transaction. Files are kept in the existing Supabase project's storage (free tier), private to each
 user. Web first; Android (camera capture and the offline upload queue) in the Android phase."
 
+## Clarifications
+
+### Session 2026-11-14
+
+- Q: How much attachment space does each user get? → A: 200 MB per user (about 600 compressed photos or 100 large PDFs); an attachment that would go over it is refused with how much is free.
+- Q: What happens to a transaction's attachments when the transaction is deleted? → A: They are deleted too (files and records); the delete confirmation says how many ("Its 2 attachments are deleted too").
+- Q: How early does a warranty count as expiring soon? → A: Two reminders per warranty, set in Settings: a first reminder (default 60 days before expiry) and a second one (default 30 days); the first can be 15, 30, 60 or 90 days, the second 15, 30 or 60 days and always closer to expiry than the first, and the second can be turned off. A reminder is an in-app notice on the Dashboard; "Got it" dismisses it for that warranty until the next reminder (synced across devices).
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Attach a receipt to a transaction (Priority: P1)
@@ -61,10 +69,15 @@ attached; the Warranties list shows it with the days left and opens the transact
 2. **Given** warranties, **When** the user opens Warranties, **Then** they see every active warranty with the
    item (payee, notes or category), the purchase date, the expiry date and the time left in words ("3 months
    left", "expires in 12 days", "expired 4 days ago"), soonest first, and whether a receipt is attached.
-3. **Given** a warranty that expires within 30 days, **When** the user opens the Dashboard, **Then** a short
-   notice says how many expire soon, linking to Warranties; expired ones move to an "Expired" section.
-4. **Given** the transaction list, **When** the user filters by "Under warranty", **Then** only those show.
-5. **Given** a warranty, **When** the user turns it off, **Then** it leaves the list (the attachments stay).
+3. **Given** a warranty that reaches its first reminder (60 days before expiry by default), **When** the user
+   opens the Dashboard, **Then** a notice names it with the days left, linking to Warranties; "Got it" hides
+   it until the second reminder (30 days by default), when it appears again; expired ones move to an
+   "Expired" section of Warranties.
+4. **Given** Settings, **When** the user changes the first reminder (15, 30, 60 or 90 days) or the second
+   (15, 30, 60 days or off; always closer to expiry than the first), **Then** every warranty uses the new
+   days, on every device.
+5. **Given** the transaction list, **When** the user filters by "Under warranty", **Then** only those show.
+6. **Given** a warranty, **When** the user turns it off, **Then** it leaves the list (the attachments stay).
 
 ---
 
@@ -106,8 +119,9 @@ phone's.
 
 ### Edge Cases
 
-- A transaction is deleted: its attachments stay with it (deleted transactions can't be opened) and are
-  removed with a data reset or account erasure; its warranty leaves the Warranties list.
+- A transaction is deleted: its attachments are deleted with it (files and records), the delete
+  confirmation says how many, and its warranty leaves the Warranties list. Deleted on another device while
+  offline: the attachments go when that delete reaches the server.
 - A transaction is voided: its attachments and warranty stay (a void purchase might still be under
   warranty… or not — the user decides).
 - Upload interrupted (network lost on the web): the attachment is not saved and the user is told to try
@@ -134,10 +148,11 @@ phone's.
   open or download them; links to open a file MUST stop working within minutes.
 - **FR-004**: Attachment details (name, type, size, date added, the transaction) MUST sync like other records
   so other devices show them; the files themselves download when opened.
-- **FR-005**: Each user MUST have an attachment allowance (200 MB by default); an attachment that would exceed
-  it MUST be refused with how much is free. Settings MUST show files and space used.
-- **FR-006**: Deleting an attachment MUST remove the file from storage; a data reset or account erasure MUST
-  remove every file of the user.
+- **FR-005**: Each user MUST have an attachment allowance of 200 MB; an attachment that would exceed it MUST
+  be refused with how much is free. Settings MUST show files and space used. Clarified 2026-11-14.
+- **FR-006**: Deleting an attachment MUST remove the file from storage. Deleting a transaction MUST delete its
+  attachments too (the confirmation says how many). A data reset or account erasure MUST remove every file
+  of the user. Clarified 2026-11-14.
 - **FR-007**: An attachment MUST be recorded only when its file is stored completely (no record without a
   file); a failed upload leaves nothing behind.
 
@@ -148,8 +163,11 @@ phone's.
 - **FR-009**: A Warranties screen MUST list active warranties soonest-expiring first with item, purchase date,
   expiry, time left in words and whether a receipt is attached, and expired ones in their own section; each
   opens its transaction.
-- **FR-010**: The Dashboard MUST show how many warranties expire within 30 days (hidden when none), linking to
-  Warranties.
+- **FR-010**: Each warranty MUST get two in-app reminders on the Dashboard: the first a set number of days
+  before expiry (15, 30, 60 or 90; default 60) and the second closer to expiry (15, 30 or 60, below the
+  first; default 30; can be off). A reminder names the item and the days left and links to Warranties;
+  "Got it" dismisses it for that warranty until its next reminder, on every device. The two settings are
+  in Settings and sync. No notice shows when no reminder is due. Clarified 2026-11-14.
 - **FR-011**: The transaction list MUST offer an "Under warranty" filter.
 - **FR-012**: Warranty fields MUST sync like other transaction fields (conflicts per field).
 
@@ -167,6 +185,8 @@ phone's.
   transaction; the user's own; synced (details), stored privately (file).
 - **Warranty**: on a transaction — under warranty (yes/no), expiry date, note.
 - **Allowance**: the space a user's attachments may use, and how much is used.
+- **Warranty reminders**: the user's two reminder settings (days before expiry), and for each warranty which
+  reminder was last dismissed.
 
 ## Success Criteria *(mandatory)*
 
@@ -175,8 +195,8 @@ phone's.
 - **SC-001**: A user attaches a receipt to a transaction in at most 3 selections (Attach, choose the file,
   confirm), and a 4 MB phone photo is stored at under 1 MB and still readable.
 - **SC-002**: No user can open, list or download another user's attachment in any way (tested).
-- **SC-003**: Every warranty expiring within 30 days appears on the Dashboard count and at the top of
-  Warranties; none expiring later is counted.
+- **SC-003**: Every warranty appears on the Dashboard from its first reminder day until dismissed, again from
+  its second reminder day until dismissed, and never otherwise; Warranties always lists it, soonest first.
 - **SC-004**: After a data reset or account erasure, none of the user's files remain in storage.
 - **SC-005**: Opening an attachment starts showing it within 2 seconds on a normal connection.
 - **SC-006**: The attachment and warranty screens pass the accessibility checks used for other screens at
