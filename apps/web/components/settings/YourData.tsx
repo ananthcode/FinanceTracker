@@ -29,6 +29,7 @@ function describe(counts: Counts, kind: "loaded" | "removed"): string {
           plural(n("tag"), "tag", "tags"),
           plural(n("person_rate"), "interest rate", "interest rates"),
           plural(n("plan_item"), "planned payment", "planned payments"),
+          plural(n("template"), "quick-add template", "quick-add templates"),
           plural(n("transaction"), "transaction", "transactions"),
         ]
       : [
@@ -37,6 +38,7 @@ function describe(counts: Counts, kind: "loaded" | "removed"): string {
           plural(n("payees"), "payee or person", "payees and people"),
           plural(n("tags"), "tag", "tags"),
           plural(n("planItems"), "planned payment", "planned payments"),
+          plural(n("templates"), "quick-add template", "quick-add templates"),
           plural(n("transactions"), "transaction", "transactions"),
         ];
   return `${parts.slice(0, -1).join(", ")} and ${parts.at(-1)}`;

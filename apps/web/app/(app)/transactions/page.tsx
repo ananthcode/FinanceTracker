@@ -1,11 +1,13 @@
 import Link from "next/link";
 import { compareNames, DEFAULT_PREFERENCES, todayInZone } from "@ft/core";
 import { getPreferences, listAccounts, listCategories, listPayees, listTags, runInterestProposals, searchTransactions } from "@ft/db";
+import { QuickAdd } from "@/components/templates/QuickAdd";
 import { FilterPanel } from "@/components/transactions/FilterPanel";
 import { ToConfirm } from "@/components/transactions/ToConfirm";
 import { TransactionList } from "@/components/transactions/TransactionList";
 import { buttonVariants } from "@/components/ui/button";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { loadQuickAdd } from "@/lib/templates-data";
 import { filtersFromParams, namesOf } from "@/lib/transactions";
 
 /**
@@ -22,13 +24,14 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
   const todayIso = todayInZone(preferences.timezone);
   // Proposals follow edits made since the layout last ran (it does not re-render on navigation).
   await runInterestProposals(supabase).catch(() => 0);
-  const [page, toConfirm, accounts, payees, categories, tags] = await Promise.all([
+  const [page, toConfirm, accounts, payees, categories, tags, quick] = await Promise.all([
     searchTransactions(supabase, filters, null, 50),
     searchTransactions(supabase, { upcoming: true, to: todayIso, statuses: ["uncleared", "cleared", "follow_up"] }, null, 200),
     listAccounts(supabase),
     listPayees(supabase),
     listCategories(supabase),
     listTags(supabase),
+    loadQuickAdd(supabase, preferences),
   ]);
   const names = namesOf(accounts, payees, categories, tags);
   const filtered = Object.keys(filters).length > 0;
@@ -47,6 +50,31 @@ export default async function TransactionsPage({ searchParams }: { searchParams:
           Add transaction
         </Link>
       </div>
+
+      {/* R8: Quick add (US1, US3). */}
+      <section id="quick-add" aria-labelledby="quick-add-title" className="flex flex-col gap-2">
+        <div className="flex flex-wrap items-center justify-between gap-2">
+          <h2 id="quick-add-title" className="text-lg font-semibold">
+            Quick add
+          </h2>
+          <Link href="/templates" className="text-sm text-brand-strong underline dark:text-brand">
+            Manage templates
+          </Link>
+        </div>
+        {quick.templates.length > 0 ? (
+          <QuickAdd templates={quick.templates} info={quick.info} today={quick.today} currency={preferences.baseCurrency} returnTo={returnTo} />
+        ) : (
+          <div className="flex flex-col items-start gap-2 rounded-lg border border-dashed border-border p-4 text-sm">
+            <p className="text-muted-foreground">
+              A template records something you pay often — milk, fuel, a wallet top-up — in one tap, with its account, payee and
+              category filled in.
+            </p>
+            <Link href="/templates/new" className={buttonVariants({ size: "sm" })}>
+              Make a template
+            </Link>
+          </div>
+        )}
+      </section>
 
       {toConfirm.rows.length > 0 && <ToConfirm rows={toConfirm.rows} names={names} todayIso={todayIso} />}
 

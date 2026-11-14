@@ -3,6 +3,7 @@ import { notFound } from "next/navigation";
 import { DEFAULT_PREFERENCES, todayInZone } from "@ft/core";
 import { getPlanItem, getPreferences, getTransaction, listAccounts, listCategories, listPayees, listTags } from "@ft/db";
 import { TransactionForm } from "@/components/transactions/TransactionForm";
+import { buttonVariants } from "@/components/ui/button";
 import { createServerSupabase } from "@/lib/supabase/server";
 import { safeReturn } from "@/lib/transactions";
 
@@ -48,9 +49,17 @@ export default async function EditTransactionPage({
       <Link href={returnTo} className="text-sm text-brand-strong hover:underline dark:text-brand">
         ← Back
       </Link>
-      <h1 id="page-title" className="text-2xl font-semibold">
-        Edit transaction
-      </h1>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h1 id="page-title" className="text-2xl font-semibold">
+          Edit transaction
+        </h1>
+        {/* R8 FR-003: a template from this transaction's details. */}
+        {transaction.kind !== "interest" && transaction.personAction !== "adjustment" && (
+          <Link href={`/templates/new?from=${transaction.id}`} className={buttonVariants({ variant: "outline", size: "sm" })}>
+            Save as template
+          </Link>
+        )}
+      </div>
       <TransactionForm
         key={transaction.id}
         mode={{ type: "edit", transaction }}

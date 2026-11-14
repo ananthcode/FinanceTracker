@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { Change, DEMO_HLC_DEVICE, demoAccounts, demoChanges, demoLists, demoPlan, demoTransactions, parseHlc, type ChangeInput } from "../src";
+import { Change, DEMO_HLC_DEVICE, demoAccounts, demoChanges, demoLists, demoPlan, demoTemplates, demoTransactions, parseHlc, type ChangeInput } from "../src";
 
 /** R5 T003 — the demo household as sync changes (research R5-01). */
 const TODAY = "2026-11-01";
@@ -65,10 +65,10 @@ describe("demoChanges", () => {
     const { categories, tags, payees } = demoLists();
     const { transactions, rates } = demoTransactions(TODAY);
     const plan = demoPlan(TODAY, transactions);
-    expect([count("account_group"), count("account"), count("category"), count("tag"), count("payee"), count("person_rate"), count("transaction"), count("plan_item"), count("plan_occurrence")]).toEqual([
-      groups.length, accounts.length, categories.length, tags.length, payees.length, rates.length, transactions.length, plan.items.length, plan.occurrences.length,
+    expect([count("account_group"), count("account"), count("category"), count("tag"), count("payee"), count("person_rate"), count("transaction"), count("plan_item"), count("plan_occurrence"), count("template")]).toEqual([
+      groups.length, accounts.length, categories.length, tags.length, payees.length, rates.length, transactions.length, plan.items.length, plan.occurrences.length, demoTemplates(plan.items).length,
     ]);
-    expect(changes.filter((c) => (c.fields as { planItemId?: string } | undefined)?.planItemId).length).toBe(plan.links.size);
+    expect(changes.filter((c) => c.entity === "transaction" && (c.fields as { planItemId?: string } | undefined)?.planItemId).length).toBe(plan.links.size);
   });
 
   it("gives every user the same records with their own ids", () => {

@@ -14,6 +14,8 @@ import {
   TRANSACTION_KIND_TEXT,
   TRANSACTION_STATUS_TEXT,
   TRANSACTION_STATUSES,
+  TemplateCreateFields,
+  templateFitsPlan,
   TransactionCreateFields,
   type AccountView,
   type AmountInputError,
@@ -23,6 +25,8 @@ import {
   type MoneyFlow,
   type PayDraft,
   type PayeeView,
+  type PlanItem,
+  type TemplateView,
   type PersonAction,
   type TagView,
   type TransactionKind,
@@ -65,10 +69,12 @@ const REFUSALS: Record<string, string> = {
   NOT_FOUND: "This transaction no longer exists. It may have been deleted on another device.",
   NAME_TAKEN: "A payee or tag with that name already exists. Choose it from the list.",
   VALIDATION_FAILED: "Some details are not valid. Check them and try again.",
+  INVALID_TEMPLATE: "Some details can't be used in a template. Check the accounts, payee, category and the planned payment it pays.",
+  LIMIT_REACHED: "You already have 100 templates. Delete one you no longer use first.",
   INVALID_PLAN_LINK: "This transaction can't pay that planned payment. Choose None, or check the planned payment still exists.",
 };
 
-type Field = "account" | "toAccount" | "amount" | "date" | "payee" | "notes" | "reference" | "split";
+type Field = "account" | "toAccount" | "amount" | "date" | "payee" | "notes" | "reference" | "split" | "name";
 
 /** A date problem that the user fixes elsewhere: the account's or person's opening date. */
 interface OpeningProblem {
@@ -80,8 +86,21 @@ interface OpeningProblem {
 }
 
 export type TransactionFormMode =
-  | { type: "create"; kind?: Tab | "interest"; accountId?: string | null; payeeId?: string | null; draft?: PayDraft }
-  | { type: "edit"; transaction: TransactionView };
+  | { type: "create"; kind?: Tab | "interest"; accountId?: string | null; payeeId?: string | null; draft?: FormDraft }
+  | { type: "edit"; transaction: TransactionView }
+  /**
+   * R8: make or edit a quick-add template with the same form. No date, time, status or reference; the
+   * amount is optional; a name, and optionally the planned payment it pays.
+   */
+  | { type: "template"; template: TemplateView | null; seed?: FormDraft | null; seedName?: string; sortKey: string; takenNames: string[]; planItems: PlanItem[] };
+
+/** Starting values for a new transaction: from Pay (R7) or from a template (R8, which adds lines and tags). */
+export type FormDraft = Omit<PayDraft, "planItemId" | "planMonth" | "accountId" | "amountMinor"> & {
+  accountId: string | null;
+  amountMinor: bigint | null;
+  lines?: TransactionView["lines"];
+  tagIds?: string[];
+};
 
 /**
  * The planned payment this transaction pays (R7 US3): opened from Pay (`fixed`: it always links), or
@@ -153,13 +172,26 @@ export function TransactionForm({
   const defaultAccount =
     (mode.type === "create" && activeAccounts.find((a) => a.id === mode.accountId)?.id) || activeAccounts[0]?.id || "";
 
-  // Opened from Pay (R7 FR-010): the form starts filled in from the planned payment.
-  const draft = mode.type === "create" ? (mode.draft ?? null) : null;
+  // Opened from Pay (R7 FR-010) or a template (R8): the form starts filled in. In template mode the
+  // template itself (or "Save as template"'s transaction) is the starting point.
+  const tpl = mode.type === "template" ? mode.template : null;
+  const isTemplate = mode.type === "template";
+  const draft: FormDraft | null =
+    mode.type === "create"
+      ? (mode.draft ?? null)
+      : mode.type === "template"
+        ? tpl
+          ? { ...tpl, date: todayIso, notes: tpl.notes ?? "" }
+          : (mode.seed ?? null)
+        : null;
   const [kind, setKind] = useState<TransactionKind>(saved?.kind ?? draft?.kind ?? (mode.type === "create" ? (mode.kind ?? "expense") : "expense"));
-  const [accountId, setAccountId] = useState(saved?.accountId ?? (draft ? (draft.accountId ?? "") : defaultAccount));
+  const [accountId, setAccountId] = useState(saved?.accountId ?? (draft?.accountId ?? (draft && !isTemplate ? "" : defaultAccount)));
+  // R8 template fields.
+  const [name, setName] = useState(tpl?.name ?? (mode.type === "template" ? (mode.seedName ?? "") : ""));
+  const [tieId, setTieId] = useState<string>(tpl?.planItemId ?? "");
   const [toAccountId, setToAccountId] = useState(saved?.toAccountId ?? draft?.toAccountId ?? "");
   const [amount, setAmount] = useState(
-    saved ? formatAmountInput(saved.amountMinor, currency) : draft && draft.amountMinor > 0n ? formatAmountInput(draft.amountMinor, currency) : "",
+    saved ? formatAmountInput(saved.amountMinor, currency) : draft?.amountMinor && draft.amountMinor > 0n ? formatAmountInput(draft.amountMinor, currency) : "",
   );
   const [date, setDate] = useState(saved?.date ?? todayIso);
   const [time, setTime] = useState(saved?.timeOfDay ?? "");
@@ -172,8 +204,12 @@ export function TransactionForm({
   const [personAction, setPersonAction] = useState<PersonAction>(saved?.personAction ?? draft?.personAction ?? "lent");
   const [flow, setFlow] = useState<MoneyFlow>(saved?.flow ?? "out");
   const [categoryId, setCategoryId] = useState<string | null>(saved?.categoryId ?? draft?.categoryId ?? null);
-  const [lines, setLines] = useState<SplitLineDraft[] | null>(saved && saved.lines.length > 0 ? saved.lines.map((l) => lineDraft(l, currency)) : null);
-  const [tagIds, setTagIds] = useState<string[]>(saved?.tagIds ?? []);
+  const [lines, setLines] = useState<SplitLineDraft[] | null>(() => {
+    const from = saved?.lines ?? draft?.lines ?? [];
+    // A template's lines get fresh ids: they become this transaction's own.
+    return from.length > 0 ? from.map((l) => ({ ...lineDraft(l, currency), id: saved || tpl ? l.id : crypto.randomUUID() })) : null;
+  });
+  const [tagIds, setTagIds] = useState<string[]>(saved?.tagIds ?? draft?.tagIds ?? []);
   const [createdTags, setCreatedTags] = useState<TagView[]>([]);
   const [notes, setNotes] = useState(saved?.notes ?? draft?.notes ?? "");
   // R7 "Pays:" — the link is kept unless unticked; otherwise the first suggestion is ticked by default.
@@ -208,7 +244,7 @@ export function TransactionForm({
   // the user can choose another or None. Asked for (debounced) when the details that matter change.
   const payable = canPayPlan(kind, kind === "person" ? personAction : null);
   const suggestKey =
-    !planLink && payable && amountMinor !== null && date
+    !isTemplate && !planLink && payable && amountMinor !== null && date
       ? JSON.stringify({
           kind,
           toAccountId: kind === "transfer" && toAccountId ? toAccountId : null,
@@ -245,6 +281,16 @@ export function TransactionForm({
         ? { itemId: chosenSuggestion.itemId, month: chosenSuggestion.month }
         : null;
   const unpaying = saved !== null && planLink !== null && !planLink.fixed;
+
+  // R8: the planned payments this template could pay, as it is filled in now (R7's rule).
+  const tieShape = {
+    kind: kind as TemplateView["kind"],
+    payeeId: kind !== "transfer" && payee?.type === "existing" ? payee.id : null,
+    toAccountId: kind === "transfer" ? toAccountId || null : null,
+    personAction: kind === "person" ? (personAction as TemplateView["personAction"]) : null,
+  };
+  const tieOptions = mode.type === "template" ? mode.planItems.filter((i) => i.state === "active" && templateFitsPlan(tieShape, i)) : [];
+  const tie = tieOptions.some((i) => i.id === tieId) ? tieId : "";
 
   /** Accounts offered: active ones, plus the one already used (FR-006). */
   const accountOptions = (current: string) => {
@@ -294,10 +340,18 @@ export function TransactionForm({
     let problem: OpeningProblem | null = null;
     const before: ChangeInput[] = [];
 
-    if (amount.trim() === "") next.amount = "Enter the amount.";
-    else if (!parsedAmount.ok) next.amount = AMOUNT_MESSAGES[parsedAmount.error];
+    if (isTemplate) {
+      const trimmed = name.trim();
+      if (trimmed === "") next.name = "Give the template a short name, like Milk or Fuel.";
+      else if ([...trimmed].length > 40) next.name = "Use at most 40 characters.";
+      else if (mode.type === "template" && mode.takenNames.some((n) => n.toLowerCase() === trimmed.toLowerCase())) next.name = "You already have a template with this name.";
+    }
+    // A template may leave the amount empty ("amount each time"), unless it is split.
+    if (amount.trim() === "") {
+      if (!isTemplate || lines) next.amount = isTemplate ? "A split template needs its amount." : "Enter the amount.";
+    } else if (!parsedAmount.ok) next.amount = AMOUNT_MESSAGES[parsedAmount.error];
     else if (parsedAmount.minor <= 0n) next.amount = "Enter an amount greater than zero.";
-    if (!date) next.date = "Choose a date.";
+    if (!date && !isTemplate) next.date = "Choose a date.";
 
     const account = usesAccount ? accountById.get(accountId) : undefined;
     if (usesAccount && !account) next.account = "Choose an account.";
@@ -307,7 +361,7 @@ export function TransactionForm({
       else if (toAccountId === accountId) next.toAccount = "Choose two different accounts.";
     }
     // Dates before an opening balance are refused, with a link to change it (FR-002, owner 2026-10-31).
-    for (const a of [account, toAccount]) {
+    for (const a of isTemplate ? [] : [account, toAccount]) {
       if (a && date && date < a.openingBalanceDate && !problem) {
         problem = { name: a.name, date: a.openingBalanceDate, whose: "account", href: `/accounts/${a.id}` };
       }
@@ -323,7 +377,7 @@ export function TransactionForm({
     }
     if ((kind === "person" || kind === "interest") && !payeeId) next.payee = "Choose the person.";
     const person = payee?.type === "existing" ? payeeById.get(payee.id) : undefined;
-    if ((kind === "person" || kind === "interest") && person?.openingBalanceDate && date && date < person.openingBalanceDate && !problem) {
+    if (!isTemplate && (kind === "person" || kind === "interest") && person?.openingBalanceDate && date && date < person.openingBalanceDate && !problem) {
       problem = { name: person.name, date: person.openingBalanceDate, whose: "person", href: `/people/${person.id}` };
     }
 
@@ -370,6 +424,28 @@ export function TransactionForm({
     // Tags created here are saved first; only those still chosen somewhere.
     const used = new Set([...tagIds, ...wireLines.flatMap((l) => l.tagIds as string[])]);
     for (const t of createdTags) if (used.has(t.id)) before.unshift(changes.createTag(t.id, t.name));
+
+    if (isTemplate && mode.type === "template") {
+      const tplFields: Record<string, unknown> = {
+        name: name.trim(),
+        accountId,
+        toAccountId: kind === "transfer" ? toAccountId : null,
+        amountMinor: amountMinor === null ? null : amountMinor.toString(),
+        payeeId: kind === "transfer" ? null : payeeId,
+        personAction: kind === "person" ? personAction : null,
+        categoryId: isCategorised(kind) && !lines ? categoryId : null,
+        lines: wireLines,
+        tagIds,
+        notes: notes.trim() === "" ? null : notes,
+        planItemId: tie || null,
+      };
+      const check = TemplateCreateFields.safeParse({ ...tplFields, kind, sortKey: tpl?.sortKey ?? mode.sortKey });
+      if (!check.success) {
+        setFormError(check.error.issues[0]?.message ?? REFUSALS.VALIDATION_FAILED!);
+        return null;
+      }
+      return { fields: tplFields, before };
+    }
 
     const fields: Record<string, unknown> = {
       date,
@@ -446,7 +522,33 @@ export function TransactionForm({
     const built = build();
     if (!built) return;
     let change: ChangeInput;
-    if (mode.type === "create") {
+    if (mode.type === "template") {
+      if (!mode.template) {
+        change = changes.createTemplate(crypto.randomUUID(), { ...built.fields, kind, sortKey: mode.sortKey });
+      } else {
+        const t = mode.template;
+        const original: Record<string, unknown> = {
+          name: t.name,
+          accountId: t.accountId,
+          toAccountId: t.toAccountId,
+          amountMinor: t.amountMinor === null ? null : t.amountMinor.toString(),
+          payeeId: t.payeeId,
+          personAction: t.personAction,
+          categoryId: t.categoryId,
+          lines: t.lines.map((l) => ({ ...l, amountMinor: l.amountMinor.toString() })),
+          tagIds: t.tagIds,
+          notes: t.notes,
+          planItemId: t.planItemId,
+        };
+        const diff = Object.fromEntries(Object.entries(built.fields).filter(([k, v]) => JSON.stringify(original[k]) !== JSON.stringify(v)));
+        if ("amountMinor" in diff || "lines" in diff) {
+          diff.amountMinor = built.fields.amountMinor;
+          diff.lines = built.fields.lines;
+        }
+        if (Object.keys(diff).length === 0 && built.before.length === 0) return router.push(returnTo);
+        change = changes.updateTemplate(t.id, diff);
+      }
+    } else if (mode.type === "create") {
       change = changes.createTransaction(crypto.randomUUID(), { ...built.fields, kind, confirmed: !upcoming });
     } else {
       const diff = changed(built.fields, mode.transaction);
@@ -474,9 +576,11 @@ export function TransactionForm({
   }
 
   async function remove() {
-    if (mode.type !== "edit") return;
+    if (mode.type !== "edit" && !(mode.type === "template" && mode.template)) return;
     setBusy(true);
-    const outcome = await push([changes.deleteTransaction(mode.transaction.id)]);
+    const outcome = await push([
+      mode.type === "edit" ? changes.deleteTransaction(mode.transaction.id) : changes.deleteTemplate((mode as { template: TemplateView }).template.id),
+    ]);
     setBusy(false);
     setConfirmDelete(false);
     if (!outcome.ok) return setFormError(outcome.error.message);
@@ -552,7 +656,23 @@ export function TransactionForm({
         </Alert>
       )}
 
-      {mode.type === "create" && kind !== "interest" && !planLink?.fixed ? (
+      {isTemplate && (
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor={`${ids}-name`}>Template name</Label>
+          <Input
+            id={`${ids}-name`}
+            value={name}
+            maxLength={40}
+            autoComplete="off"
+            onChange={(e) => setName(e.target.value)}
+            aria-invalid={!!errors.name || undefined}
+            aria-describedby={describedBy("name")}
+          />
+          {err("name")}
+        </div>
+      )}
+
+      {((mode.type === "create" && kind !== "interest" && !planLink?.fixed) || (mode.type === "template" && !mode.template)) ? (
         <fieldset className="flex flex-col gap-2">
           <legend className="mb-1 text-sm font-medium">Type</legend>
           <div className="flex flex-wrap gap-1 rounded-lg border border-border p-1">
@@ -612,9 +732,11 @@ export function TransactionForm({
                 </option>
               ))}
             </optgroup>
-            <optgroup label="No money moved">
-              <option value="adjustment">{PERSON_ACTION_TEXT.adjustment}</option>
-            </optgroup>
+            {!isTemplate && (
+              <optgroup label="No money moved">
+                <option value="adjustment">{PERSON_ACTION_TEXT.adjustment}</option>
+              </optgroup>
+            )}
           </select>
         </div>
       )}
@@ -655,7 +777,7 @@ export function TransactionForm({
       {kind === "transfer" && accountSelect("toAccount", "To account", toAccountId, setToAccountId)}
 
       <div className="flex flex-col gap-1.5">
-        <Label htmlFor={`${ids}-amount`}>Amount</Label>
+        <Label htmlFor={`${ids}-amount`}>{isTemplate ? "Usual amount (optional)" : "Amount"}</Label>
         <Input
           id={`${ids}-amount`}
           inputMode="decimal"
@@ -664,11 +786,17 @@ export function TransactionForm({
           placeholder="0.00"
           onChange={(e) => setAmount(e.target.value)}
           aria-invalid={!!errors.amount || undefined}
-          aria-describedby={describedBy("amount")}
+          aria-describedby={describedBy("amount", isTemplate ? `${ids}-amount-hint` : undefined)}
         />
+        {isTemplate && (
+          <p id={`${ids}-amount-hint`} className="text-sm text-muted-foreground">
+            With an amount, Record uses it in one tap. Leave it empty for something that costs a different amount each time.
+          </p>
+        )}
         {err("amount")}
       </div>
 
+      {!isTemplate && (
       <div className="flex flex-wrap gap-4">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor={`${ids}-date`}>Date</Label>
@@ -687,7 +815,8 @@ export function TransactionForm({
           <Input id={`${ids}-time`} type="time" value={time} onChange={(e) => setTime(e.target.value)} />
         </div>
       </div>
-      {upcoming && (
+      )}
+      {upcoming && !isTemplate && (
         <p id={`${ids}-upcoming`} className="-mt-3 text-sm text-muted-foreground">
           Upcoming: it won&rsquo;t change any balance yet. On <DateText date={date} /> it waits in &ldquo;To confirm&rdquo;, and counts once you
           confirm it.
@@ -762,6 +891,26 @@ export function TransactionForm({
         {err("notes")}
       </div>
 
+      {isTemplate && (
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor={`${ids}-tie`}>Pays a planned payment (optional)</Label>
+          <select id={`${ids}-tie`} className={selectClass} value={tie} onChange={(e) => setTieId(e.target.value)} aria-describedby={`${ids}-tie-hint`}>
+            <option value="">None</option>
+            {tieOptions.map((i) => (
+              <option key={i.id} value={i.id}>
+                {i.name}
+              </option>
+            ))}
+          </select>
+          <p id={`${ids}-tie-hint`} className="text-sm text-muted-foreground">
+            {tieOptions.length === 0
+              ? "No planned payment is paid this way. Choose the same payee, card or person as a planned payment to tie them."
+              : "Each recording then pays that planned payment's oldest unpaid month."}
+          </p>
+        </div>
+      )}
+
+      {!isTemplate && (
       <div className="flex flex-wrap gap-4">
         <div className="flex flex-col gap-1.5">
           <Label htmlFor={`${ids}-reference`}>Reference no. (optional)</Label>
@@ -787,6 +936,7 @@ export function TransactionForm({
           </select>
         </div>
       </div>
+      )}
 
       {unpaying && planLink && (
         <div className="flex flex-col gap-1 rounded-md border border-border p-3">
@@ -840,14 +990,20 @@ export function TransactionForm({
         <Button type="button" variant="outline" onClick={() => router.push(returnTo)}>
           Cancel
         </Button>
-        {mode.type === "edit" && (
+        {(mode.type === "edit" || (mode.type === "template" && mode.template)) && (
           <Button type="button" variant="destructive" className="ml-auto" disabled={busy} onClick={() => setConfirmDelete(true)}>
             Delete
           </Button>
         )}
       </div>
 
-      {confirmDelete && (
+      {confirmDelete && isTemplate && (
+        <ConfirmDialog title="Delete this template?" confirmLabel="Delete" destructive busy={busy} onConfirm={() => void remove()} onCancel={() => setConfirmDelete(false)}>
+          It leaves the quick-add list for good. Transactions recorded from it do not change. To keep it but take it off the list,
+          hide it instead.
+        </ConfirmDialog>
+      )}
+      {confirmDelete && !isTemplate && (
         <ConfirmDialog title="Delete this transaction?" confirmLabel="Delete" destructive busy={busy} onConfirm={() => void remove()} onCancel={() => setConfirmDelete(false)}>
           It leaves every balance and total. Its history is kept.
           {unpaying && planLink && ` It pays ${planLink.name} (${monthName(planLink.month)}): that planned payment will no longer count it as paid.`}

@@ -112,6 +112,14 @@ test("the payment plan is masked too; statuses and words remain (R7 S7-b, FR-021
   await expect(page.locator("main")).toContainText("₹••••");
   await expect(page.locator("[data-plan-status]").first()).toBeVisible();
   expect((await page.locator("main").innerText()).replaceAll("₹0.00", "")).not.toMatch(/₹\s?[\d,]+\.\d{2}/);
+
+  // R8 FR-014: quick-add templates — their amounts in the list, the box and Manage templates.
+  for (const path of ["/transactions", "/templates", "/"]) {
+    await page.goto(path);
+    await expect(page.locator("main")).toContainText("₹••••");
+    expect((await page.locator("main").innerText()).replaceAll("₹0.00", ""), path).not.toMatch(/₹\s?[\d,]+\.\d{2}/);
+  }
+  await expect(page.locator("#quick-add-strip [data-template='Milk']").getByLabel("Amount for Milk")).toHaveValue("••••");
 });
 
 test("on narrow screens the toggle is in the top bar", async ({ page, request }) => {

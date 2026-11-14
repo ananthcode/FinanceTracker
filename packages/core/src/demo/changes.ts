@@ -10,6 +10,8 @@ import type { ChangeInput } from "../sync/schemas";
 import { demoAccounts } from "./accounts";
 import { demoLists } from "./lists";
 import { demoPlan } from "./plan";
+import { demoTemplates } from "./templates";
+import { templateToWire } from "../templates/rules";
 import { demoTransactions } from "./transactions";
 
 /** The device id in the demo changes' clock (a valid HLC device, not a real device). */
@@ -111,6 +113,18 @@ export function demoChanges(todayIso: string, options: DemoChangesOptions = {}):
       month: o.month,
       ...(o.amountMinor !== null ? { amountMinor: o.amountMinor.toString() } : {}),
       ...(o.skipped ? { skipped: true } : {}),
+    });
+  }
+  // R8: quick-add templates (after the plan item one of them pays).
+  for (const t of demoTemplates(plan.items)) {
+    const wire = templateToWire(t);
+    add("template", to(t.id), "create", {
+      ...wire,
+      accountId: to(t.accountId),
+      toAccountId: toNullable(t.toAccountId),
+      payeeId: toNullable(t.payeeId),
+      categoryId: toNullable(t.categoryId),
+      planItemId: toNullable(t.planItemId),
     });
   }
   for (const t of transactions) {

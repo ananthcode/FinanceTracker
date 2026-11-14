@@ -1,9 +1,11 @@
 import Link from "next/link";
-import { DEFAULT_PREFERENCES, parseMonthParam, payDraft, todayInZone, type PayDraft } from "@ft/core";
-import { getPreferences, listAccounts, listCategories, listPayees, listTags } from "@ft/db";
-import { TransactionForm, type PlanLinkProp } from "@/components/transactions/TransactionForm";
+import { DEFAULT_PREFERENCES, parseMonthParam, payDraft, templateProblems, todayInZone, visibleTemplates, type TemplateProblem } from "@ft/core";
+import { getPreferences, getTemplate, listAccounts, listCategories, listPayees, listTags, listTemplates } from "@ft/db";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { TransactionForm, type FormDraft, type PlanLinkProp } from "@/components/transactions/TransactionForm";
 import { loadPlan } from "@/lib/plan-data";
 import { createServerSupabase } from "@/lib/supabase/server";
+import { loadQuickAdd } from "@/lib/templates-data";
 import { safeReturn } from "@/lib/transactions";
 
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
@@ -34,7 +36,9 @@ export default async function NewTransactionPage({ searchParams }: { searchParam
   const payeeId = typeof params.payee === "string" && UUID.test(params.payee) ? params.payee : null;
 
   // Pay: the item-month must be one of the caller's own (RLS) live items and a month it has.
-  let draft: PayDraft | undefined;
+  let draft: FormDraft | undefined;
+  let templateName: string | null = null;
+  let missing: TemplateProblem[] = [];
   let planLink: PlanLinkProp | null = null;
   const planMonth = typeof params.month === "string" ? parseMonthParam(params.month) : null;
   if (typeof params.plan === "string" && UUID.test(params.plan) && planMonth) {
@@ -51,15 +55,89 @@ export default async function NewTransactionPage({ searchParams }: { searchParam
     }
   }
 
+  // Edit first from a template (R8 FR-010, FR-011): filled in from it; anything gone since is left empty.
+  if (!draft && typeof params.template === "string" && UUID.test(params.template)) {
+    const t = await getTemplate(supabase, params.template);
+    if (t) {
+      const live = {
+        accounts: new Set(accounts.filter((a) => a.state === "active").map((a) => a.id)),
+        payees: new Set(payees.map((p) => p.id)),
+        categories: new Set(categories.map((c) => c.id)),
+        tags: new Set(tags.map((g) => g.id)),
+      };
+      missing = templateProblems(t, live);
+      const amount = typeof params.amount === "string" && /^\d{1,12}$/.test(params.amount) ? BigInt(params.amount) : t.amountMinor;
+      templateName = t.name;
+      draft = {
+        kind: t.kind,
+        date: todayIso,
+        accountId: live.accounts.has(t.accountId) ? t.accountId : null,
+        toAccountId: t.toAccountId && live.accounts.has(t.toAccountId) ? t.toAccountId : null,
+        amountMinor: amount,
+        payeeId: t.payeeId && live.payees.has(t.payeeId) ? t.payeeId : null,
+        personAction: t.personAction,
+        categoryId: t.categoryId && live.categories.has(t.categoryId) ? t.categoryId : null,
+        notes: t.notes ?? "",
+        lines: missing.length === 0 ? t.lines : [],
+        tagIds: t.tagIds.filter((g) => live.tags.has(g)),
+      };
+      if (t.planItemId) {
+        const quick = await loadQuickAdd(supabase, prefs);
+        const pays = quick.info[t.id]?.pays;
+        if (pays) planLink = { itemId: pays.itemId, month: pays.month, name: pays.name, fixed: true };
+      }
+    }
+  }
+  // "Start from a template" (R8 US3 2): only on a plain new transaction.
+  const starters = !draft && !planLink ? visibleTemplates(await listTemplates(supabase)) : [];
+  const MISSING: Record<TemplateProblem, string> = {
+    account: "the account",
+    toAccount: "the account the money goes to",
+    payee: "the payee or person",
+    category: "the category",
+    tag: "the tags",
+  };
+
   return (
     <section aria-labelledby="page-title" className="flex flex-col gap-4">
       <Link href={returnTo} className="text-sm text-brand-strong hover:underline dark:text-brand">
         ← Back
       </Link>
       <h1 id="page-title" className="text-2xl font-semibold">
-        {planLink ? `Pay ${planLink.name}` : "Add transaction"}
+        {planLink && !templateName ? `Pay ${planLink.name}` : "Add transaction"}
       </h1>
+      {starters.length > 0 && (
+        <nav aria-label="Start from a template" className="flex flex-col gap-1.5">
+          <p className="text-sm font-medium">Start from a template</p>
+          <ul className="flex flex-wrap gap-2">
+            {starters.map((t) => (
+              <li key={t.id}>
+                <Link
+                  href={`/transactions/new?template=${t.id}&returnTo=${encodeURIComponent(returnTo)}`}
+                  className="inline-flex rounded-md border border-border px-3 py-1 text-sm hover:bg-muted"
+                >
+                  {t.name}
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </nav>
+      )}
+      {templateName && (
+        <p className="text-sm text-muted-foreground">
+          From the template <span className="font-medium text-foreground">{templateName}</span>. Nothing is recorded until you save.
+        </p>
+      )}
+      {missing.length > 0 && (
+        <Alert role="status">
+          <AlertDescription>
+            Something this template uses is no longer available. Choose {missing.map((m) => MISSING[m]).join(", ")} before saving.
+          </AlertDescription>
+        </Alert>
+      )}
       <TransactionForm
+        // A new start (another template, or Pay) on the same page must reset the form's state.
+        key={`${typeof params.template === "string" ? params.template : ""}|${typeof params.plan === "string" ? params.plan : ""}|${planMonth ?? ""}`}
         mode={{ type: "create", kind: type, accountId, payeeId, draft }}
         planLink={planLink}
         accounts={accounts}

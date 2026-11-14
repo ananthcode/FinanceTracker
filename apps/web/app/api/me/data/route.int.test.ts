@@ -38,7 +38,7 @@ describe("/api/me/data", () => {
     expect(Date.now() - started).toBeLessThan(10_000); // SC-001 (server part)
     const { loaded } = (await res.json()) as { loaded: Record<string, number> };
     const today = todayInZone(DEFAULT_PREFERENCES.timezone);
-    expect(loaded).toMatchObject({ account: 8, account_group: 2, tag: 5, payee: 18, person_rate: 2, plan_item: 9, plan_occurrence: 1, transaction: demoTransactions(today).transactions.length });
+    expect(loaded).toMatchObject({ account: 8, account_group: 2, tag: 5, payee: 18, person_rate: 2, plan_item: 9, plan_occurrence: 1, template: 5, transaction: demoTransactions(today).transactions.length });
     expect((await status(a)).empty).toBe(false);
 
     expect((await post(b, { action: "load" })).status).toBe(200);
