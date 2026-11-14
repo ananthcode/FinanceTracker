@@ -335,3 +335,52 @@ test("R7 Payment plan: month views with the nudge, the item form, the link dialo
   await expect(page).toHaveURL(/\/payment-plan\?month=/);
   await expect(planRow(page, "Home loan EMI")).toHaveAttribute("data-status", "paid");
 });
+
+test("R8 Quick add: the list, the Dashboard strip, Manage templates and the template form; Record, Undo and reorder by keyboard (T022, SC-006)", async ({ page, request }) => {
+  test.slow();
+  await ensureOwner(request);
+  const member = uniqueEmail("a11ytpl");
+  await createMember(request, member);
+  await signInUI(page, member);
+  await loadDemoFromSettings(page);
+
+  await page.goto("/templates");
+  const edit = (await page.locator("[data-manage-template='Milk']").getByRole("link", { name: "Edit Milk" }).getAttribute("href"))!;
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    for (const path of ["/transactions", "/", "/templates", "/templates/new", edit]) {
+      await page.goto(path);
+      await expectNoViolations(page, `${path} @${width}px`);
+    }
+  }
+
+  // Keyboard only: Record with Enter in the amount box, the status with Undo, then Undo.
+  await page.setViewportSize({ width: 1280, height: 844 });
+  await page.goto("/transactions");
+  const groceries = page.locator("#quick-add [data-template='Groceries']");
+  await groceries.getByLabel("Amount for Groceries").focus();
+  await page.keyboard.type("1,240.00");
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#quick-add-done")).toHaveText("Recorded Groceries, ₹1,240.00, today");
+  await expectNoViolations(page, "recorded status with Undo");
+  await page.getByRole("status").filter({ has: page.locator("#quick-add-done") }).getByRole("button", { name: "Undo" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#quick-add-done")).toHaveCount(0);
+
+  // The repeat check is a labelled dialog.
+  const milk = page.locator("#quick-add [data-template='Milk']");
+  await milk.getByRole("button", { name: "Record Milk" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#quick-add-done")).toBeVisible();
+  await milk.getByRole("button", { name: "Record Milk" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("dialog", { name: "Record it again?" })).toBeVisible();
+  await expectNoViolations(page, "record again dialog");
+  await page.keyboard.press("Escape");
+
+  // Reorder with buttons, by keyboard.
+  await page.goto("/templates");
+  await page.locator("[data-manage-template='Fuel']").getByRole("button", { name: "Move to top Fuel" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("[data-manage-template]").first()).toHaveAttribute("data-manage-template", "Fuel");
+});
