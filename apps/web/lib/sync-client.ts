@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useCallback } from "react";
-import { DEVICE_ID_PATTERN, formatHlc, nextHlc, parseHlc, type ChangeInput, type ChangeResult, type HlcParts } from "@ft/core";
+import { DEVICE_ID_PATTERN, formatHlc, nextHlc, occurrenceId, parseHlc, type ChangeInput, type ChangeResult, type HlcParts } from "@ft/core";
 import { apiFetch } from "@/lib/api/client";
 
 /**
@@ -112,6 +112,21 @@ export const changes = {
   deletePersonRate: (id: string) => newChange("person_rate", id, "delete"),
   relocateCategory: (id: string, targetId: string) => newChange("category", id, "relocate", { targetId }),
   relocatePayee: (id: string, targetId: string) => newChange("payee", id, "relocate", { targetId }),
+  // R7: plan items; one item-month has a deterministic id, so a create merges with any other device's (R7-02).
+  createPlanItem: (id: string, fields: Record<string, unknown>) => newChange("plan_item", id, "create", fields),
+  updatePlanItem: (id: string, changed: Record<string, unknown>) => newChange("plan_item", id, "update", changed),
+  deletePlanItem: (id: string) => newChange("plan_item", id, "delete"),
+  setPlanMonth: (itemId: string, month: string, changed: { amountMinor?: string | null; skipped?: boolean }) =>
+    newChange("plan_occurrence", occurrenceId(itemId, month), "create", { itemId, month, ...changed }),
+  /**
+   * Links a transaction to an item-month (R7-03). A transaction that already pays one is refused here
+   * (US3 3): it must be unlinked first; the transaction's own form moves a link on purpose.
+   */
+  linkTransaction: (tx: { id: string; planItemId: string | null }, itemId: string, month: string) => {
+    if (tx.planItemId !== null) throw new Error("ALREADY_LINKED");
+    return newChange("transaction", tx.id, "update", { planItemId: itemId, planMonth: month });
+  },
+  unlinkTransaction: (id: string) => newChange("transaction", id, "update", { planItemId: null, planMonth: null }),
 };
 
 export type PushOutcome =

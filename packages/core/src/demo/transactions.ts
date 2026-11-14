@@ -78,6 +78,8 @@ export function demoTransactions(todayIso: string): DemoTransactions {
       interestMonth: null,
       userEdited: false,
       state: "active",
+      planItemId: null,
+      planMonth: null,
       ...t,
     };
     // Planned: anything after today waits (FR-002a).
@@ -110,7 +112,7 @@ export function demoTransactions(todayIso: string): DemoTransactions {
       add({ date: at(2), kind: "transfer", flow: "out", accountId: savings, toAccountId: cash, amountMinor: 500_000n, notes: "Cash withdrawal" });
       add({ date: at(2), kind: "transfer", flow: "out", accountId: savings, toAccountId: wallet, amountMinor: 50_000n, notes: "Wallet top-up" });
     }
-    if (upTo(at(3))) add({ date: at(3), kind: "expense", flow: "out", accountId: savings, amountMinor: 2_500_000n, categoryId: category("Home › Rent"), notes: "Rent" });
+    if (upTo(at(3))) add({ date: at(3), kind: "expense", flow: "out", accountId: savings, amountMinor: 2_500_000n, payeeId: payee("Sunrise Apartments"), categoryId: category("Home › Rent"), notes: "Rent" });
     [5, 12, 19, 26].forEach((dd, w) => {
       if (!upTo(at(dd))) return;
       add({
@@ -119,7 +121,7 @@ export function demoTransactions(todayIso: string): DemoTransactions {
         tagIds: m === "2025-10-01" || m === "2025-11-01" ? [tag("Diwali 2025")] : [],
       });
     });
-    if (upTo(at(10))) add({ date: at(10), kind: "expense", flow: "out", accountId: savings, amountMinor: vary(180_000n, i, 53, 1200), payeeId: payee("City Power Board"), categoryId: category("Utilities & bills › Electricity"), reference: `CPB-${m.slice(0, 7)}` });
+    if (upTo(at(10))) add({ date: at(10), kind: "expense", flow: "out", accountId: savings, amountMinor: vary(180_000n, i, 53, 300), payeeId: payee("City Power Board"), categoryId: category("Utilities & bills › Electricity"), reference: `CPB-${m.slice(0, 7)}` });
     if (upTo(at(15))) add({ date: at(15), kind: "expense", flow: "out", accountId: card, amountMinor: 250_000n, payeeId: payee("Quick Fuel Station"), categoryId: category("Transport › Fuel") });
     if (upTo(at(20))) add({ date: at(20), kind: "expense", flow: "out", accountId: wallet, amountMinor: vary(45_000n, i, 29, 300), payeeId: payee("Corner Cafe"), categoryId: category("Food & groceries › Eating out") });
     if (upTo(at(25))) add({ date: at(25), kind: "transfer", flow: "out", accountId: savings, toAccountId: card, amountMinor: 250_000n, notes: "Card bill" });
@@ -169,7 +171,7 @@ export function demoTransactions(todayIso: string): DemoTransactions {
   if (groceries[groceries.length - 1]) groceries[groceries.length - 1]!.status = "follow_up";
   // Upcoming: next month's rent. Waiting: a school fee dated three days ago, not yet confirmed.
   const next = monthsFrom(START, `${addDays(`${todayIso.slice(0, 7)}-28`, 7)}`).at(-1)!;
-  add({ date: day(next, 3), kind: "expense", flow: "out", accountId: savings, amountMinor: 2_500_000n, categoryId: category("Home › Rent"), notes: "Rent" });
+  add({ date: day(next, 3), kind: "expense", flow: "out", accountId: savings, amountMinor: 2_500_000n, payeeId: payee("Sunrise Apartments"), categoryId: category("Home › Rent"), notes: "Rent" });
   const waiting = addDays(todayIso, -3);
   if (waiting >= START) {
     add({ date: waiting, kind: "expense", flow: "out", accountId: savings, amountMinor: 1_850_000n, payeeId: payee("Greenfield School"), categoryId: category("Education › School & college fees"), confirmed: false, notes: "Term fee" });

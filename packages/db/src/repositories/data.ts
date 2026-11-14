@@ -9,7 +9,7 @@ import type { ChangeInput } from "@ft/core";
 type Device = "web" | "android";
 export type Counts = Partial<Record<string, number>>;
 
-const TABLES = ["accounts", "account_groups", "categories", "tags", "payees", "transactions", "person_rates"] as const;
+const TABLES = ["accounts", "account_groups", "categories", "tags", "payees", "transactions", "person_rates", "plan_items", "plan_occurrences"] as const;
 
 /** True when the user has no financial rows at all (deleted ones count — the database rule). */
 export async function hasNoData(db: SupabaseClient): Promise<boolean> {

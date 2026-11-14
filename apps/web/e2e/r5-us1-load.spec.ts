@@ -16,7 +16,7 @@ test("an empty user loads the demo household from Settings and every screen show
   await loadDemoFromSettings(page);
   expect(Date.now() - started).toBeLessThan(10_000); // SC-001
   const { categories } = demoLists();
-  await expect(yourData(page).getByRole("status")).toContainText(`8 accounts, ${categories.length} categories, 13 payees and people, 5 tags`);
+  await expect(yourData(page).getByRole("status")).toContainText(`8 accounts, ${categories.length} categories, 18 payees and people, 5 tags, 2 interest rates, 9 planned payments`);
 
   // US1 4: with data, the demo is no longer offered on its own (as the server now says).
   await page.reload();

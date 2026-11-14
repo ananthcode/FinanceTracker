@@ -1,0 +1,183 @@
+{
+  "occurrenceId": [
+    { "itemId": "ffffffff-1234-4abc-8def-0123456789ab", "month": "2026-11-01", "id": "ffffa0fd-1234-4abc-8def-0123456789ab" },
+    { "itemId": "00000000-1234-4abc-8def-0123456789ab", "month": "2026-01-01", "id": "00005ef8-1234-4abc-8def-0123456789ab" },
+    { "itemId": "0f1e2d3c-aaaa-4bbb-8ccc-dddddddddddd", "month": "2027-02-01", "id": "0f1e7239-aaaa-4bbb-8ccc-dddddddddddd" },
+    { "itemId": "0F1E2D3C-AAAA-4BBB-8CCC-DDDDDDDDDDDD", "month": "2027-02-01", "id": "0f1e7239-aaaa-4bbb-8ccc-dddddddddddd" }
+  ],
+  "appliesIn": [
+    { "item": { "startMonth": "2026-09-01", "endMonth": null, "intervalMonths": 1 }, "month": "2026-08-01", "applies": false },
+    { "item": { "startMonth": "2026-09-01", "endMonth": null, "intervalMonths": 1 }, "month": "2026-09-01", "applies": true },
+    { "item": { "startMonth": "2026-09-01", "endMonth": null, "intervalMonths": 1 }, "month": "2030-01-01", "applies": true },
+    { "item": { "startMonth": "2026-09-01", "endMonth": "2026-12-01", "intervalMonths": 1 }, "month": "2026-12-01", "applies": true },
+    { "item": { "startMonth": "2026-09-01", "endMonth": "2026-12-01", "intervalMonths": 1 }, "month": "2027-01-01", "applies": false },
+    { "item": { "startMonth": "2026-04-01", "endMonth": null, "intervalMonths": 3 }, "month": "2026-07-01", "applies": true },
+    { "item": { "startMonth": "2026-04-01", "endMonth": null, "intervalMonths": 3 }, "month": "2026-08-01", "applies": false },
+    { "item": { "startMonth": "2026-04-01", "endMonth": null, "intervalMonths": 3 }, "month": "2027-01-01", "applies": true },
+    { "item": { "startMonth": "2026-11-01", "endMonth": null, "intervalMonths": 12 }, "month": "2027-11-01", "applies": true },
+    { "item": { "startMonth": "2026-03-01", "endMonth": null, "intervalMonths": 12 }, "month": "2027-03-01", "applies": true },
+    { "item": { "startMonth": "2026-03-01", "endMonth": null, "intervalMonths": 12 }, "month": "2027-02-01", "applies": false },
+    { "item": { "startMonth": "2026-11-01", "endMonth": "2026-11-01", "intervalMonths": 0 }, "month": "2026-11-01", "applies": true },
+    { "item": { "startMonth": "2026-11-01", "endMonth": "2026-11-01", "intervalMonths": 0 }, "month": "2026-12-01", "applies": false }
+  ],
+  "dueDate": [
+    { "dueDay": 31, "month": "2027-02-01", "date": "2027-02-28" },
+    { "dueDay": 31, "month": "2028-02-01", "date": "2028-02-29" },
+    { "dueDay": 31, "month": "2026-04-01", "date": "2026-04-30" },
+    { "dueDay": 30, "month": "2026-11-01", "date": "2026-11-30" },
+    { "dueDay": 1, "month": "2026-12-01", "date": "2026-12-01" }
+  ],
+  "terms": {
+    "terms": [
+      { "fromMonth": "2026-01-01", "amountMinor": "100", "dueDay": 5, "accountId": "a" },
+      { "fromMonth": "2026-06-01", "amountMinor": "200", "dueDay": 5, "accountId": "a" }
+    ],
+    "termFor": [
+      { "month": "2025-12-01", "amountMinor": "100" },
+      { "month": "2026-05-01", "amountMinor": "100" },
+      { "month": "2026-06-01", "amountMinor": "200" },
+      { "month": "2027-06-01", "amountMinor": "200" }
+    ],
+    "edits": [
+      {
+        "from": "2026-12-01", "currentMonth": "2026-11-01", "change": { "amountMinor": "300" },
+        "result": [
+          { "fromMonth": "2026-01-01", "amountMinor": "100", "dueDay": 5, "accountId": "a" },
+          { "fromMonth": "2026-06-01", "amountMinor": "200", "dueDay": 5, "accountId": "a" },
+          { "fromMonth": "2026-12-01", "amountMinor": "300", "dueDay": 5, "accountId": "a" }
+        ]
+      },
+      {
+        "from": "2026-11-01", "currentMonth": "2026-11-01", "change": { "dueDay": 10, "accountId": "b" },
+        "result": [
+          { "fromMonth": "2026-01-01", "amountMinor": "100", "dueDay": 5, "accountId": "a" },
+          { "fromMonth": "2026-06-01", "amountMinor": "200", "dueDay": 5, "accountId": "a" },
+          { "fromMonth": "2026-11-01", "amountMinor": "200", "dueDay": 10, "accountId": "b" }
+        ]
+      },
+      {
+        "from": "2026-03-01", "currentMonth": "2026-03-01", "change": { "amountMinor": "150" },
+        "result": [
+          { "fromMonth": "2026-01-01", "amountMinor": "100", "dueDay": 5, "accountId": "a" },
+          { "fromMonth": "2026-03-01", "amountMinor": "150", "dueDay": 5, "accountId": "a" }
+        ]
+      },
+      { "from": "2026-10-01", "currentMonth": "2026-11-01", "change": { "amountMinor": "300" }, "error": "TERMS_IN_PAST" }
+    ]
+  },
+  "household": {
+    "accounts": [
+      { "id": "sav", "type": "bank", "balanceMinor": "5234050", "creditLimitMinor": null, "state": "active" },
+      { "id": "card", "type": "credit_card", "balanceMinor": "2000000", "creditLimitMinor": "10000000", "state": "active" }
+    ],
+    "items": [
+      { "id": "rent", "name": "Rent", "target": "payee", "payeeId": "landlord", "frequency": "monthly", "intervalMonths": 1,
+        "startMonth": "2026-09-01", "endMonth": null, "amountVaries": false,
+        "terms": [{ "fromMonth": "2026-09-01", "amountMinor": "2500000", "dueDay": 5, "accountId": "sav" }] },
+      { "id": "emi", "name": "Home loan EMI", "target": "payee", "payeeId": "bank", "frequency": "monthly", "intervalMonths": 1,
+        "startMonth": "2026-10-01", "endMonth": null, "amountVaries": false,
+        "terms": [{ "fromMonth": "2026-10-01", "amountMinor": "4250000", "dueDay": 10, "accountId": "sav" }] },
+      { "id": "elec", "name": "Electricity", "target": "payee", "payeeId": "power", "frequency": "monthly", "intervalMonths": 1,
+        "startMonth": "2026-09-01", "endMonth": null, "amountVaries": true,
+        "terms": [{ "fromMonth": "2026-09-01", "amountMinor": "200000", "dueDay": 20, "accountId": "sav" }] },
+      { "id": "cardbill", "name": "Rewards Card bill", "target": "card", "cardAccountId": "card", "frequency": "monthly", "intervalMonths": 1,
+        "startMonth": "2026-09-01", "endMonth": null, "amountVaries": true,
+        "terms": [{ "fromMonth": "2026-09-01", "amountMinor": null, "dueDay": 18, "accountId": "sav" }] },
+      { "id": "fees", "name": "School fees", "target": "payee", "payeeId": "school", "frequency": "every_n_months", "intervalMonths": 3,
+        "startMonth": "2026-08-01", "endMonth": null, "amountVaries": false,
+        "terms": [{ "fromMonth": "2026-08-01", "amountMinor": "1500000", "dueDay": 15, "accountId": "sav" }] },
+      { "id": "ins", "name": "Car insurance", "target": "payee", "payeeId": "insurer", "frequency": "yearly", "intervalMonths": 12,
+        "startMonth": "2027-03-01", "endMonth": null, "amountVaries": false,
+        "terms": [{ "fromMonth": "2027-03-01", "amountMinor": "1800000", "dueDay": 31, "accountId": "sav" }] },
+      { "id": "gift", "name": "Wedding gift", "target": "payee", "payeeId": "friend", "frequency": "one_off", "intervalMonths": 0,
+        "startMonth": "2026-11-01", "endMonth": "2026-11-01", "amountVaries": false,
+        "terms": [{ "fromMonth": "2026-11-01", "amountMinor": "500000", "dueDay": 30, "accountId": "sav" }] },
+      { "id": "old", "name": "Old gym", "target": "payee", "payeeId": "gym", "frequency": "monthly", "intervalMonths": 1,
+        "startMonth": "2026-09-01", "endMonth": null, "amountVaries": false, "state": "deleted",
+        "terms": [{ "fromMonth": "2026-09-01", "amountMinor": "150000", "dueDay": 1, "accountId": "sav" }] }
+    ],
+    "occurrences": [
+      { "itemId": "fees", "month": "2026-11-01", "amountMinor": "1600000", "skipped": false },
+      { "itemId": "rent", "month": "2026-12-01", "amountMinor": null, "skipped": true }
+    ],
+    "links": [
+      { "id": "L1", "planItemId": "rent", "planMonth": "2026-09-01", "amountMinor": "2500000", "date": "2026-09-04" },
+      { "id": "L2", "planItemId": "rent", "planMonth": "2026-11-01", "amountMinor": "1000000", "date": "2026-11-03" },
+      { "id": "L3", "planItemId": "emi", "planMonth": "2026-10-01", "amountMinor": "4250000", "date": "2026-10-10" },
+      { "id": "L4", "planItemId": "emi", "planMonth": "2026-11-01", "amountMinor": "4250000", "date": "2026-11-10" },
+      { "id": "L5", "planItemId": "elec", "planMonth": "2026-09-01", "amountMinor": "180000", "date": "2026-09-19" },
+      { "id": "L6", "planItemId": "elec", "planMonth": "2026-10-01", "amountMinor": "215000", "date": "2026-10-21" },
+      { "id": "L7", "planItemId": "cardbill", "planMonth": "2026-10-01", "amountMinor": "1200000", "date": "2026-10-17" },
+      { "id": "L8", "planItemId": "cardbill", "planMonth": "2026-11-01", "amountMinor": "800000", "date": "2026-11-12" },
+      { "id": "L9", "planItemId": "fees", "planMonth": "2026-08-01", "amountMinor": "1500000", "date": "2026-08-14" },
+      { "id": "L10", "planItemId": "gift", "planMonth": "2026-11-01", "amountMinor": "500000", "date": "2026-11-25", "confirmed": false },
+      { "id": "L11", "planItemId": "elec", "planMonth": "2026-11-01", "amountMinor": "99999", "date": "2026-11-02", "status": "void" },
+      { "id": "L12", "planItemId": "elec", "planMonth": "2026-11-01", "amountMinor": "77777", "date": "2026-11-02", "state": "deleted" },
+      { "id": "L13", "planItemId": "old", "planMonth": "2026-09-01", "amountMinor": "150000", "date": "2026-09-01" },
+      { "id": "L14", "planItemId": "fees", "planMonth": "2026-10-01", "amountMinor": "300000", "date": "2026-10-15" }
+    ],
+    "today": "2026-11-13",
+    "views": [
+      {
+        "month": "2026-11-01",
+        "rows": [
+          { "itemId": "rent", "dueDate": "2026-11-05", "plannedMinor": "2500000", "paidMinor": "1000000", "leftMinor": "1500000", "status": "overdue", "daysLate": 8, "estimated": false },
+          { "itemId": "emi", "dueDate": "2026-11-10", "plannedMinor": "4250000", "paidMinor": "4250000", "leftMinor": "0", "status": "paid", "estimated": false },
+          { "itemId": "fees", "dueDate": "2026-11-15", "plannedMinor": "1600000", "paidMinor": "0", "leftMinor": "1600000", "status": "due", "estimated": false },
+          { "itemId": "cardbill", "dueDate": "2026-11-18", "plannedMinor": "2800000", "paidMinor": "800000", "leftMinor": "2000000", "status": "part_paid", "estimated": true },
+          { "itemId": "elec", "dueDate": "2026-11-20", "plannedMinor": "215000", "paidMinor": "0", "leftMinor": "215000", "status": "due", "estimated": true },
+          { "itemId": "gift", "dueDate": "2026-11-30", "plannedMinor": "500000", "paidMinor": "0", "leftMinor": "500000", "upcomingMinor": "500000", "status": "due", "estimated": false }
+        ],
+        "carried": [
+          { "itemId": "rent", "month": "2026-10-01", "dueDate": "2026-10-05", "plannedMinor": "2500000", "paidMinor": "0", "leftMinor": "2500000", "status": "overdue", "daysLate": 39 }
+        ],
+        "countedHere": true,
+        "totals": { "plannedMinor": "14365000", "paidMinor": "6050000", "leftMinor": "8315000", "overpaidMinor": "0" },
+        "cash": [{ "accountId": "sav", "leftMinor": "8315000", "availableMinor": "5234050", "shortMinor": "3080950" }],
+        "previous": { "plannedMinor": "8465000", "paidMinor": "5965000", "differenceMinor": "3400000", "direction": "more" },
+        "estimatedCount": 2
+      },
+      {
+        "month": "2026-12-01",
+        "rows": [
+          { "itemId": "rent", "plannedMinor": "2500000", "leftMinor": "0", "status": "skipped" },
+          { "itemId": "emi", "plannedMinor": "4250000", "leftMinor": "4250000", "status": "due" },
+          { "itemId": "cardbill", "plannedMinor": "2000000", "leftMinor": "2000000", "status": "due", "estimated": true },
+          { "itemId": "elec", "plannedMinor": "200000", "leftMinor": "200000", "status": "due", "estimated": true }
+        ],
+        "carried": [
+          { "itemId": "rent", "month": "2026-10-01", "leftMinor": "2500000" }
+        ],
+        "countedHere": false,
+        "totals": { "plannedMinor": "6450000", "paidMinor": "0", "leftMinor": "6450000", "overpaidMinor": "0" },
+        "cash": [],
+        "estimatedCount": 2
+      },
+      {
+        "month": "2026-10-01",
+        "rows": [
+          { "itemId": "rent", "plannedMinor": "2500000", "paidMinor": "0", "leftMinor": "2500000", "status": "overdue", "daysLate": 39 },
+          { "itemId": "emi", "plannedMinor": "4250000", "status": "paid" },
+          { "itemId": "fees", "plannedMinor": "300000", "paidMinor": "300000", "status": "paid", "estimated": false },
+          { "itemId": "cardbill", "plannedMinor": "1200000", "paidMinor": "1200000", "status": "paid", "estimated": false },
+          { "itemId": "elec", "plannedMinor": "215000", "paidMinor": "215000", "status": "paid", "estimated": false }
+        ],
+        "carried": [],
+        "countedHere": false,
+        "totals": { "plannedMinor": "8465000", "paidMinor": "5965000", "leftMinor": "2500000", "overpaidMinor": "0" },
+        "estimatedCount": 0
+      },
+      {
+        "month": "2026-09-01",
+        "rows": [
+          { "itemId": "old", "plannedMinor": "150000", "paidMinor": "150000", "status": "paid", "removed": true },
+          { "itemId": "rent", "plannedMinor": "2500000", "status": "paid" },
+          { "itemId": "cardbill", "plannedMinor": "0", "notSet": true, "status": "overdue", "daysLate": 56 },
+          { "itemId": "elec", "plannedMinor": "180000", "status": "paid", "estimated": false }
+        ],
+        "carried": [],
+        "totals": { "plannedMinor": "2830000", "paidMinor": "2830000", "leftMinor": "0", "overpaidMinor": "0" }
+      }
+    ]
+  }
+}

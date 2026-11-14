@@ -1,8 +1,10 @@
 import AxeBuilder from "@axe-core/playwright";
 import type { Page } from "@playwright/test";
 import { expect, test } from "./fixtures";
+import { loadDemoFromSettings } from "./helpers/data";
 import { seedAccounts, seedLists, uniqueEmail } from "./helpers/db";
 import { ensureOwner, signInUI } from "./helpers/owner";
+import { monthAfter, monthParam, openPlan, planRow, thisMonth } from "./helpers/plan";
 import { seedDemoTransactions } from "./helpers/transactions";
 import { createMember } from "./helpers/users";
 
@@ -286,4 +288,50 @@ test("R5 Settings › Your data: both states and both dialogs, keyboard only (T0
   await expect(dialog.getByRole("button", { name: "Reset my data" })).toBeEnabled();
   await page.keyboard.press("Escape");
   await expect(dialog).toBeHidden();
+});
+
+test("R7 Payment plan: month views with the nudge, the item form, the link dialog and Pay by keyboard (T037, SC-007)", async ({ page, request }) => {
+  test.slow(); // many page scans over the demo plan
+  // The 26th of this month in the browser, so the month-check nudge is on the screens scanned.
+  await page.clock.setFixedTime(new Date(`${thisMonth.slice(0, 8)}26T12:00:00+05:30`));
+  await ensureOwner(request);
+  const member = uniqueEmail("a11yplan");
+  await createMember(request, member);
+  await signInUI(page, member);
+  await loadDemoFromSettings(page);
+
+  await openPlan(page);
+  const edit = (await planRow(page, "Home loan EMI").getByRole("link", { name: "Home loan EMI", exact: true }).getAttribute("href"))!;
+  const pages = ["/payment-plan", `/payment-plan?month=${monthParam(monthAfter(1))}`, `/payment-plan?month=${monthParam(monthAfter(-1))}`, "/payment-plan/new", edit, "/"];
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    for (const path of pages) {
+      await page.goto(path);
+      if (path === "/payment-plan" || path === "/") await expect(page.locator("#plan-nudge")).toBeVisible();
+      await expectNoViolations(page, `${path} @${width}px`);
+    }
+  }
+
+  // The row's amount form and the link dialog.
+  await page.setViewportSize({ width: 1280, height: 844 });
+  await openPlan(page);
+  const emi = planRow(page, "Home loan EMI");
+  await emi.getByRole("button", { name: /^Set amount/ }).click();
+  await expectNoViolations(page, "set amount open");
+  await emi.getByRole("button", { name: /^Link existing/ }).click();
+  await expect(page.getByRole("dialog", { name: "Link a payment to Home loan EMI" })).toBeVisible();
+  await expect(page.getByRole("dialog").getByRole("status").or(page.getByRole("dialog").getByRole("list"))).toBeVisible();
+  await expectNoViolations(page, "link dialog");
+  await page.keyboard.press("Escape");
+  await expect(page.getByRole("dialog")).toHaveCount(0);
+
+  // Pay with the keyboard only: Enter on Pay, then Enter on Save.
+  await emi.getByRole("link", { name: /^Pay/ }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("heading", { level: 1, name: "Pay Home loan EMI" })).toBeVisible();
+  await expectNoViolations(page, "pay form");
+  await page.getByRole("button", { name: "Save", exact: true }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page).toHaveURL(/\/payment-plan\?month=/);
+  await expect(planRow(page, "Home loan EMI")).toHaveAttribute("data-status", "paid");
 });

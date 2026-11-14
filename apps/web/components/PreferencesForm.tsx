@@ -61,8 +61,10 @@ export function PreferencesForm({
     setStatus(null);
     const isSetup = mode === "setup";
     // categoriesStart is set only by the start choice (R3 FR-007); the preferences endpoint refuses it.
-    const { baseCurrency, categoriesStart, ...editable } = prefs;
+    // The checked month is set only by "Plan checked" (R7 FR-023), never by this form.
+    const { baseCurrency, categoriesStart, planCheckedMonth, ...editable } = prefs;
     void categoriesStart;
+    void planCheckedMonth;
     if (!isSetup) {
       const parsed = buffer.trim() === "" ? ({ ok: true, minor: 0n } as const) : parseAmountInput(buffer, { currency: baseCurrency });
       if (!parsed.ok || parsed.minor < 0n) {
@@ -207,6 +209,25 @@ export function PreferencesForm({
           />
           <p id="buffer-hint" className="text-sm text-muted-foreground">
             Kept back from what the Dashboard shows as safe to spend.
+          </p>
+        </div>
+      )}
+
+      {mode === "settings" && (
+        <div className="flex flex-col gap-1">
+          <label className="flex items-center gap-2">
+            <input
+              id="plan-nudge-setting"
+              type="checkbox"
+              checked={prefs.planNudge}
+              onChange={(e) => set("planNudge", e.target.checked)}
+              aria-describedby="plan-nudge-hint"
+            />
+            Remind me to check next month&rsquo;s plan
+          </label>
+          <p id="plan-nudge-hint" className="text-sm text-muted-foreground">
+            From the 25th to the 5th, the Dashboard and the Payment plan ask you to check the coming month until you select
+            &ldquo;Plan checked&rdquo;. Applies on every device.
           </p>
         </div>
       )}

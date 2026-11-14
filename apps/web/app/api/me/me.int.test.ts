@@ -68,6 +68,8 @@ describe("GET /api/me, POST /api/me/setup, PATCH /api/me/preferences (T081, US3)
       accountsView: "by_type", // R2 FR-009
       categoriesStart: null, // R3 FR-007
       bufferMinor: "0", // R6 FR-003
+      planNudge: true, // R7 FR-023
+      planCheckedMonth: null, // R7 FR-023
     });
   });
 

@@ -63,6 +63,9 @@ export interface TransactionView {
   interestMonth: string | null;
   userEdited: boolean;
   state: "active" | "deleted";
+  /** The plan item and month this transaction pays (R7-03), both null when unlinked. */
+  planItemId: string | null;
+  planMonth: string | null;
 }
 
 export interface PersonRateView {

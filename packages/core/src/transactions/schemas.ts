@@ -6,6 +6,7 @@
 import { z } from "zod";
 import { IsoDate, MinorString } from "../accounts/schemas";
 import { charLength } from "../schemas/text";
+import { PlanMonthString } from "../plan/schemas";
 import {
   flowOf,
   MONEY_FLOWS,
@@ -17,7 +18,7 @@ import {
 } from "./types";
 
 const MINOR = /^-?\d{1,12}$/;
-/** A positive amount: 1 … 999999999999 paise. */
+/** A positive amount: 1 â€¦ 999999999999 paise. */
 export const PositiveMinorString = MinorString.refine((s) => !MINOR.test(s) || BigInt(s) > 0n, "Must be greater than zero");
 
 const TimeOfDay = z.string().regex(/^([01]\d|2[0-3]):[0-5]\d$/, "Use HH:MM");
@@ -48,7 +49,7 @@ export const TransactionLineFields = z
     path: ["categoryId"],
   });
 
-const Lines = z.array(TransactionLineFields).refine((ls) => ls.length === 0 || (ls.length >= 2 && ls.length <= 50), "A split has 2–50 lines");
+const Lines = z.array(TransactionLineFields).refine((ls) => ls.length === 0 || (ls.length >= 2 && ls.length <= 50), "A split has 2â€“50 lines");
 
 const fields = {
   date: IsoDate,
@@ -66,6 +67,9 @@ const fields = {
   reference: text(40),
   status: z.enum(TRANSACTION_STATUSES),
   confirmed: z.boolean(),
+  /** The item-month this transaction pays (R7-03); sent together, one field version `plan`. */
+  planItemId: z.uuid().nullable(),
+  planMonth: PlanMonthString.nullable(),
 };
 
 type Create = {
@@ -81,7 +85,13 @@ type Create = {
   notes: string | null;
 };
 
-/** The shape rules of each kind (FR-001, FR-010 – FR-012). Returns a message, or null when valid. */
+/** Kinds that can pay a planned payment: money out (R7-03). */
+export function canPayPlan(kind: TransactionKind, personAction: (typeof PERSON_ACTIONS)[number] | null): boolean {
+  if (kind === "expense" || kind === "transfer") return true;
+  return kind === "person" && (personAction === "lent" || personAction === "repaid_to" || personAction === "paid_on_behalf");
+}
+
+/** The shape rules of each kind (FR-001, FR-010 â€“ FR-012). Returns a message, or null when valid. */
 export function kindProblem(t: Create): string | null {
   const implied = flowOf(t.kind, t.personAction);
   const flow = implied ?? t.flow;
@@ -138,11 +148,19 @@ export const TransactionCreateFields = z
     reference: fields.reference.default(null),
     status: fields.status.default("uncleared"),
     confirmed: fields.confirmed.default(true),
+    planItemId: fields.planItemId.default(null),
+    planMonth: fields.planMonth.default(null),
   })
   .strict()
   .superRefine((t, ctx) => {
     const problem = kindProblem(t);
     if (problem) ctx.addIssue({ code: "custom", message: problem, path: ["kind"] });
+    if ((t.planItemId === null) !== (t.planMonth === null)) {
+      ctx.addIssue({ code: "custom", message: "The plan item and month go together", path: ["planMonth"] });
+    }
+    if (t.planItemId !== null && !canPayPlan(t.kind, t.personAction)) {
+      ctx.addIssue({ code: "custom", message: "This kind of transaction cannot pay a planned payment", path: ["planItemId"] });
+    }
   });
 
 /** Any changed fields; `kind` never changes; amount and split lines travel together (R4-01). */
@@ -151,6 +169,10 @@ export const TransactionUpdateFields = z
   .partial()
   .strict()
   .refine((f) => Object.keys(f).length > 0, "Nothing to change")
+  .refine((f) => ("planItemId" in f) === ("planMonth" in f) && (f.planItemId === null) === (f.planMonth === null), {
+    message: "The plan item and month change together",
+    path: ["planMonth"],
+  })
   .refine((f) => ("amountMinor" in f) === ("lines" in f), {
     message: "The amount and the split lines change together",
     path: ["lines"],

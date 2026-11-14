@@ -15,6 +15,7 @@ export * from "./people";
 export * from "./transactions";
 export * from "./interest";
 export * from "./reports";
+export * from "./plan";
 export * from "./statements";
 export * from "./sync";
 export * from "./ordering";

@@ -41,6 +41,8 @@ export function toTransaction(t: VectorTx): TransactionView {
     interestMonth: null,
     userEdited: false,
     state: (t.state as "active" | "deleted") ?? "active",
+    planItemId: null,
+    planMonth: null,
   };
 }
 

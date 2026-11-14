@@ -16,6 +16,8 @@ export const AccountsViewSchema = z.enum(["by_type", "my_groups"]);
 export const CategoriesStartSchema = z.enum(["suggested", "empty"]);
 /** 0 … 999,999,999,999 paise. */
 export const BufferMinor = z.string().regex(/^\d{1,12}$/, "Use a whole number of paise from 0");
+/** `yyyy-MM-01` (R7 FR-023). */
+export const PlanCheckedMonth = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])-01$/, "Use the 1st of a month");
 
 export const Preferences = z.object({
   baseCurrency: CurrencyCode,
@@ -29,6 +31,10 @@ export const Preferences = z.object({
   categoriesStart: CategoriesStartSchema.nullable().default(null),
   /** Kept back from what is safe to spend (R6 FR-002, FR-003); paise as a decimal string. */
   bufferMinor: BufferMinor.default("0"),
+  /** "Remind me to check next month's plan" (R7 FR-023). */
+  planNudge: z.boolean().default(true),
+  /** The latest month marked "Plan checked" (`yyyy-MM-01`); it and earlier months count as checked. */
+  planCheckedMonth: PlanCheckedMonth.nullable().default(null),
 });
 export type Preferences = z.infer<typeof Preferences>;
 
@@ -41,6 +47,8 @@ export const DEFAULT_PREFERENCES: Preferences = {
   accountsView: "by_type",
   categoriesStart: null,
   bufferMinor: "0",
+  planNudge: true,
+  planCheckedMonth: null,
 };
 
 export const SetupRequest = Preferences.omit({ categoriesStart: true }).extend({
@@ -60,6 +68,9 @@ export const PreferencesUpdate = z
     timezone: Timezone,
     accountsView: AccountsViewSchema,
     bufferMinor: BufferMinor,
+    planNudge: z.boolean(),
+    /** The server keeps the later of the stored and the sent month (research R7-09). */
+    planCheckedMonth: PlanCheckedMonth,
   })
   .partial()
   .strict();

@@ -42,6 +42,9 @@ export function transactionFromRow(row: SyncRow): TransactionView {
     interestMonth: (row.interestMonth as string | null) ?? null,
     userEdited: row.userEdited === true,
     state: (row.state as TransactionView["state"]) ?? "active",
+    // R7 payment link (the phone screens come in the Android phase).
+    planItemId: (row.planItemId as string | null) ?? null,
+    planMonth: (row.planMonth as string | null) ?? null,
   };
 }
 

@@ -4,10 +4,12 @@
  * UUID and every reference remapped. The server applies them through the push applier in one
  * transaction, so a load is validated and recorded like the user's own changes.
  */
+import { occurrenceId } from "../plan/months";
 import { formatHlc } from "../sync/hlc";
 import type { ChangeInput } from "../sync/schemas";
 import { demoAccounts } from "./accounts";
 import { demoLists } from "./lists";
+import { demoPlan } from "./plan";
 import { demoTransactions } from "./transactions";
 
 /** The device id in the demo changes' clock (a valid HLC device, not a real device). */
@@ -83,7 +85,36 @@ export function demoChanges(todayIso: string, options: DemoChangesOptions = {}):
 
   const { transactions, rates } = demoTransactions(todayIso);
   for (const r of rates) add("person_rate", to(r.id), "create", { payeeId: to(r.payeeId), effectiveMonth: r.effectiveMonth, rateE4: r.rateE4 });
+
+  // R7: the plan before the transactions that pay it (research R7-11).
+  const plan = demoPlan(todayIso, transactions);
+  for (const i of plan.items) {
+    add("plan_item", to(i.id), "create", {
+      name: i.name,
+      target: i.target,
+      payeeId: toNullable(i.payeeId),
+      categoryId: toNullable(i.categoryId),
+      cardAccountId: toNullable(i.cardAccountId),
+      personAction: i.personAction,
+      frequency: i.frequency,
+      intervalMonths: i.intervalMonths,
+      startMonth: i.startMonth,
+      endMonth: i.endMonth,
+      amountVaries: i.amountVaries,
+      terms: i.terms.map((t) => ({ fromMonth: t.fromMonth, amountMinor: t.amountMinor?.toString() ?? null, dueDay: t.dueDay, accountId: to(t.accountId) })),
+      notes: i.notes,
+    });
+  }
+  for (const o of plan.occurrences) {
+    add("plan_occurrence", occurrenceId(to(o.itemId), o.month), "create", {
+      itemId: to(o.itemId),
+      month: o.month,
+      ...(o.amountMinor !== null ? { amountMinor: o.amountMinor.toString() } : {}),
+      ...(o.skipped ? { skipped: true } : {}),
+    });
+  }
   for (const t of transactions) {
+    const paying = plan.links.get(t.id);
     add("transaction", to(t.id), "create", {
       kind: t.kind,
       date: t.date,
@@ -109,6 +140,7 @@ export function demoChanges(todayIso: string, options: DemoChangesOptions = {}):
       reference: t.reference,
       status: t.status,
       confirmed: t.confirmed,
+      ...(paying ? { planItemId: to(paying.planItemId), planMonth: paying.planMonth } : {}),
     });
   }
   return changes;
