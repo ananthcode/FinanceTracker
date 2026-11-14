@@ -186,7 +186,8 @@ export async function seedDemoTransactions(email: string, todayIso = isoDay(0)):
  * Seeds `count` generated expenses and incomes over the last two years for a user with the demo
  * accounts and lists (performance tests, SC-003). Spread over accounts, categories and payees.
  */
-export async function seedManyTransactions(email: string, count: number): Promise<void> {
+/** `daysBack`: dates spread over that many days before today (R10 keeps them after the accounts opened). */
+export async function seedManyTransactions(email: string, count: number, daysBack = 700): Promise<void> {
   const db = admin();
   const { data: profile } = await db.from("profiles").select("user_id").eq("email", email).single();
   const userId = profile!.user_id as string;
@@ -204,7 +205,7 @@ export async function seedManyTransactions(email: string, count: number): Promis
   for (let i = 0; i < count; i++) {
     const isIncome = i % 10 === 0;
     rows.push({
-      id: crypto.randomUUID(), user_id: userId, date: isoDay(-(i % 700) - 1), time_of_day: null,
+      id: crypto.randomUUID(), user_id: userId, date: isoDay(-(i % daysBack) - 1), time_of_day: null,
       kind: isIncome ? "income" : "expense", flow: isIncome ? "in" : "out",
       account_id: accounts[i % accounts.length], to_account_id: null, amount_minor: String(1000 + ((i * 7919) % 500000)),
       payee_id: payees[i % payees.length], person_action: null,
