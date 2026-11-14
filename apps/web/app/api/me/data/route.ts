@@ -14,6 +14,9 @@ import { hitRateLimit } from "@/lib/rate-limit";
  * R9 (research R9-03): a reset also removes the user's attachment files; a demo load stores the demo
  * receipt's file first (and removes it again if the load fails).
  */
+/** Whole-household work: up to 60 s on Vercel (the Hobby default is 10 s). */
+export const maxDuration = 60;
+
 const demoAvailable = () => publicEnv.appEnv === "demo";
 
 const DataRequest = z

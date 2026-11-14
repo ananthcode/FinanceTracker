@@ -12,6 +12,9 @@ import { hitRateLimit } from "@/lib/rate-limit";
  * (the R5 reset). The client builds and checks the changes with core; the database checks every one again.
  * Nothing about the records is logged.
  */
+/** Whole-household work: up to 60 s on Vercel (the Hobby default is 10 s). */
+export const maxDuration = 60;
+
 const Month = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])-01$/);
 const Body = z.discriminatedUnion("action", [
   z.object({ action: z.literal("begin"), reset: z.literal("RESET").optional() }).strict(),
