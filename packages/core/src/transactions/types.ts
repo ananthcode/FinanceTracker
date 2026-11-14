@@ -66,6 +66,12 @@ export interface TransactionView {
   /** The plan item and month this transaction pays (R7-03), both null when unlinked. */
   planItemId: string | null;
   planMonth: string | null;
+  /** Under warranty until (R9-05), with its note; reminders dismissed 0–2 (R9-06). */
+  warrantyUntil: string | null;
+  warrantyNote: string | null;
+  warrantyDismissed: number;
+  /** Live attachments, when the reader counted them (the transaction list, R9). */
+  attachmentCount?: number;
 }
 
 export interface PersonRateView {

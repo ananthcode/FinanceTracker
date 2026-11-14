@@ -70,7 +70,24 @@ const fields = {
   /** The item-month this transaction pays (R7-03); sent together, one field version `plan`. */
   planItemId: z.uuid().nullable(),
   planMonth: PlanMonthString.nullable(),
+  /** Under warranty until (R9-05); sent with its note, one field version `warranty`. */
+  warrantyUntil: IsoDate.nullable(),
+  warrantyNote: z
+    .string()
+    .refine((s) => s === s.trim() && charLength(s) >= 1 && charLength(s) <= 200, "1 to 200 characters")
+    .nullable(),
+  /** 0 none, 1 the first reminder dismissed, 2 the second (R9-06). */
+  warrantyDismissed: z.number().int().min(0).max(2),
 };
+
+/** A warranty ends on or after the purchase and has a note only with a date (R9-05). */
+export function warrantyProblem(date: string, until: string | null, note: string | null): string | null {
+  if (until === null) return note === null ? null : "A warranty note needs an expiry date";
+  if (until < date) return "A warranty cannot end before the purchase";
+  const limit = `${Number(date.slice(0, 4)) + 30}${date.slice(4)}`;
+  if (until > limit) return "A warranty can last at most 30 years";
+  return null;
+}
 
 type Create = {
   kind: TransactionKind;
@@ -150,11 +167,19 @@ export const TransactionCreateFields = z
     confirmed: fields.confirmed.default(true),
     planItemId: fields.planItemId.default(null),
     planMonth: fields.planMonth.default(null),
+    warrantyUntil: fields.warrantyUntil.optional(),
+    warrantyNote: fields.warrantyNote.optional(),
+    warrantyDismissed: fields.warrantyDismissed.optional(),
   })
   .strict()
   .superRefine((t, ctx) => {
     const problem = kindProblem(t);
     if (problem) ctx.addIssue({ code: "custom", message: problem, path: ["kind"] });
+    if ((t.warrantyUntil === undefined) !== (t.warrantyNote === undefined)) {
+      ctx.addIssue({ code: "custom", message: "The warranty date and note go together", path: ["warrantyNote"] });
+    }
+    const warranty = warrantyProblem(t.date, t.warrantyUntil ?? null, t.warrantyNote ?? null);
+    if (warranty) ctx.addIssue({ code: "custom", message: warranty, path: ["warrantyUntil"] });
     if ((t.planItemId === null) !== (t.planMonth === null)) {
       ctx.addIssue({ code: "custom", message: "The plan item and month go together", path: ["planMonth"] });
     }
@@ -172,6 +197,10 @@ export const TransactionUpdateFields = z
   .refine((f) => ("planItemId" in f) === ("planMonth" in f) && (f.planItemId === null) === (f.planMonth === null), {
     message: "The plan item and month change together",
     path: ["planMonth"],
+  })
+  .refine((f) => ("warrantyUntil" in f) === ("warrantyNote" in f) && (f.warrantyNote == null || f.warrantyUntil != null), {
+    message: "The warranty date and note change together",
+    path: ["warrantyNote"],
   })
   .refine((f) => ("amountMinor" in f) === ("lines" in f), {
     message: "The amount and the split lines change together",

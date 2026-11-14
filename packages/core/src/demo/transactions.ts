@@ -80,6 +80,9 @@ export function demoTransactions(todayIso: string): DemoTransactions {
       state: "active",
       planItemId: null,
       planMonth: null,
+      warrantyUntil: null,
+      warrantyNote: null,
+      warrantyDismissed: 0,
       ...t,
     };
     // Planned: anything after today waits (FR-002a).

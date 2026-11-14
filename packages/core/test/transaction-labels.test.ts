@@ -33,6 +33,9 @@ function tx(partial: Partial<TransactionView>): TransactionView {
     state: "active",
     planItemId: null,
     planMonth: null,
+    warrantyUntil: null,
+    warrantyNote: null,
+    warrantyDismissed: 0,
     ...partial,
   };
 }

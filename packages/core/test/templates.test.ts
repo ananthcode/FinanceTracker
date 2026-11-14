@@ -105,7 +105,7 @@ describe("order and Save as template (FR-003, FR-004)", () => {
     const tx: TransactionView = {
       id: "tx", date: "2026-11-10", timeOfDay: "09:30", kind: "expense", flow: "out", accountId: A, toAccountId: null, amountMinor: 124_000n,
       payeeId: P, personAction: null, categoryId: C, lines: [], tagIds: [T], notes: "Weekly shop", reference: "R-1", status: "cleared",
-      confirmed: true, generated: false, interestMonth: null, userEdited: false, state: "active", planItemId: "plan", planMonth: "2026-11-01",
+      confirmed: true, generated: false, interestMonth: null, userEdited: false, state: "active", planItemId: "plan", planMonth: "2026-11-01", warrantyUntil: null, warrantyNote: null, warrantyDismissed: 0,
     };
     const draft = templateFromTransaction(tx, ["Fresh Mart"], { payee: () => "Fresh Mart" })!;
     expect(draft).toMatchObject({ name: "Fresh Mart (2)", kind: "expense", amountMinor: 124_000n, payeeId: P, categoryId: C, tagIds: [T], notes: "Weekly shop", planItemId: null });

@@ -19,6 +19,12 @@ export const BufferMinor = z.string().regex(/^\d{1,12}$/, "Use a whole number of
 /** `yyyy-MM-01` (R7 FR-023). */
 export const PlanCheckedMonth = z.string().regex(/^\d{4}-(0[1-9]|1[0-2])-01$/, "Use the 1st of a month");
 
+/** Warranty reminder days (R9-06, clarify Q3). */
+export const WARRANTY_FIRST_CHOICES = [15, 30, 60, 90] as const;
+export const WARRANTY_SECOND_CHOICES = [15, 30, 60] as const;
+export const WarrantyFirstDays = z.union([z.literal(15), z.literal(30), z.literal(60), z.literal(90)]);
+export const WarrantySecondDays = z.union([z.literal(15), z.literal(30), z.literal(60)]).nullable();
+
 export const Preferences = z.object({
   baseCurrency: CurrencyCode,
   numberFormat: NumberFormatSchema,
@@ -35,6 +41,10 @@ export const Preferences = z.object({
   planNudge: z.boolean().default(true),
   /** The latest month marked "Plan checked" (`yyyy-MM-01`); it and earlier months count as checked. */
   planCheckedMonth: PlanCheckedMonth.nullable().default(null),
+  /** The first warranty reminder, days before expiry (R9-06). */
+  warrantyFirstDays: WarrantyFirstDays.default(60),
+  /** The second, closer to expiry than the first; null = off. */
+  warrantySecondDays: WarrantySecondDays.default(30),
 });
 export type Preferences = z.infer<typeof Preferences>;
 
@@ -49,9 +59,11 @@ export const DEFAULT_PREFERENCES: Preferences = {
   bufferMinor: "0",
   planNudge: true,
   planCheckedMonth: null,
+  warrantyFirstDays: 60,
+  warrantySecondDays: 30,
 };
 
-export const SetupRequest = Preferences.omit({ categoriesStart: true }).extend({
+export const SetupRequest = Preferences.omit({ categoriesStart: true, warrantyFirstDays: true, warrantySecondDays: true }).extend({
   displayName: DisplayName,
   /** Required when the profile has no record yet (Google join path) — FR-036e. */
   privacyNoticeShown: z.boolean().optional(),
@@ -71,9 +83,20 @@ export const PreferencesUpdate = z
     planNudge: z.boolean(),
     /** The server keeps the later of the stored and the sent month (research R7-09). */
     planCheckedMonth: PlanCheckedMonth,
+    warrantyFirstDays: WarrantyFirstDays,
+    warrantySecondDays: WarrantySecondDays,
   })
   .partial()
-  .strict();
+  .strict()
+  // The two reminder days are set together, the second closer to expiry (R9-06).
+  .refine((p) => ("warrantyFirstDays" in p) === ("warrantySecondDays" in p), {
+    message: "Set both warranty reminders",
+    path: ["warrantySecondDays"],
+  })
+  .refine((p) => p.warrantySecondDays == null || p.warrantyFirstDays === undefined || p.warrantySecondDays < p.warrantyFirstDays, {
+    message: "The second reminder must be closer to expiry than the first",
+    path: ["warrantySecondDays"],
+  });
 export type PreferencesUpdate = z.infer<typeof PreferencesUpdate>;
 
 export const MeResponse = z.object({

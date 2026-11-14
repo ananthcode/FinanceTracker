@@ -48,12 +48,17 @@ export function transactionFromRow(r: Raw): TransactionView {
     state: r.state as TransactionView["state"],
     planItemId: (r.plan_item_id as string | null) ?? null,
     planMonth: (r.plan_month as string | null) ?? null,
+    warrantyUntil: (r.warranty_until as string | null) ?? null,
+    warrantyNote: (r.warranty_note as string | null) ?? null,
+    warrantyDismissed: Number(r.warranty_dismissed ?? 0),
+    ...(r.attachment_count === undefined ? {} : { attachmentCount: Number(r.attachment_count) }),
   };
 }
 
 const COLUMNS =
   "id, date, time_of_day, kind, flow, account_id, to_account_id, amount_minor::text, payee_id, person_action, " +
-  "category_id, lines, tag_ids, notes, reference, status, confirmed, generated, interest_month, user_edited, state, plan_item_id, plan_month";
+  "category_id, lines, tag_ids, notes, reference, status, confirmed, generated, interest_month, user_edited, state, plan_item_id, plan_month, " +
+  "warranty_until, warranty_note, warranty_dismissed";
 
 /** One of the caller's transactions, or null (also for deleted ones). */
 export async function getTransaction(db: SupabaseClient, id: string): Promise<TransactionView | null> {
@@ -80,6 +85,8 @@ export interface TransactionFilters {
   maxMinor?: string;
   /** true: only upcoming / awaiting confirmation; false: only confirmed. */
   upcoming?: boolean;
+  /** R9-07: only transactions under warranty (expired ones included). */
+  warranty?: boolean;
 }
 
 export interface TransactionCursor {
@@ -110,6 +117,19 @@ export async function searchTransactions(
   if (error) throw new Error(`TRANSACTIONS_SEARCH_FAILED: ${error.code ?? ""}`);
   const raw = data as { rows: Raw[]; count: number; totalMinor: string; next: TransactionCursor | null };
   return { rows: raw.rows.map(transactionFromRow), count: raw.count, totalMinor: BigInt(raw.totalMinor), next: raw.next };
+}
+
+/** Every live transaction with a warranty date, for the Warranties screen and the Dashboard (R9-07). */
+export async function listWarranties(db: SupabaseClient): Promise<TransactionView[]> {
+  const { data, error } = await db
+    .from("transactions")
+    .select(COLUMNS)
+    .eq("state", "active")
+    .not("warranty_until", "is", null)
+    .order("warranty_until")
+    .limit(1000);
+  if (error) throw new Error(`WARRANTIES_READ_FAILED: ${error.code ?? ""}`);
+  return (data as unknown as Raw[]).map(transactionFromRow);
 }
 
 /** How many transactions wait in "To confirm" (FR-002a, FR-014). */
