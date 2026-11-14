@@ -19,6 +19,7 @@ export * from "./plan";
 export * from "./templates";
 export * from "./attachments";
 export * from "./warranty";
+export * from "./export";
 export * from "./statements";
 export * from "./sync";
 export * from "./ordering";

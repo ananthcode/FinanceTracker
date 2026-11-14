@@ -1,8 +1,11 @@
 import Link from "next/link";
 import { DEFAULT_PREFERENCES } from "@ft/core";
-import { attachmentUsage, getPreferences, getProfile, hasNoData } from "@ft/db";
+import { todayInZone } from "@ft/core";
+import { attachmentUsage, getPreferences, getProfile, hasNoData, myOpenImport } from "@ft/db";
 import { DateText } from "@/components/DateText";
 import { PreferencesForm } from "@/components/PreferencesForm";
+import { ExportData } from "@/components/settings/ExportData";
+import { ImportBackup } from "@/components/settings/ImportBackup";
 import { YourData } from "@/components/settings/YourData";
 import { publicEnv } from "@/lib/env";
 import { createServerSupabase } from "@/lib/supabase/server";
@@ -23,12 +26,14 @@ export default async function SettingsPage() {
   const supabase = await createServerSupabase();
   const { data: auth } = await supabase.auth.getUser();
   const userId = auth.user?.id ?? "";
-  const [profile, preferences, empty, usage] = await Promise.all([
+  const [profile, preferences, empty, usage, openImport] = await Promise.all([
     getProfile(supabase, userId),
     getPreferences(supabase, userId),
     hasNoData(supabase),
     attachmentUsage(supabase).catch(() => null),
+    myOpenImport(supabase).catch(() => null),
   ]);
+  const prefs = preferences ?? DEFAULT_PREFERENCES;
   const { data } = await supabase
     .from("audit_events")
     .select("id, occurred_at, action, device_type, details")
@@ -82,6 +87,20 @@ export default async function SettingsPage() {
         demoAvailable={publicEnv.appEnv === "demo"}
         usage={usage && { files: usage.files, bytes: usage.bytes.toString(), allowance: usage.allowance.toString() }}
       />
+
+      {/* R10: export and import a backup. */}
+      <section aria-labelledby="export-import-title" className="flex flex-col gap-3">
+        <h2 id="export-import-title" className="text-lg font-medium">
+          Export and import
+        </h2>
+        <ExportData
+          today={todayInZone(prefs.timezone)}
+          fyStartMonth={prefs.fyStartMonth}
+          numberFormat={prefs.numberFormat}
+          usage={usage && { files: usage.files, bytes: usage.bytes.toString() }}
+        />
+        <ImportBackup empty={empty} baseCurrency={prefs.baseCurrency} openImport={openImport} />
+      </section>
 
       <section aria-labelledby="activity-title" className="flex flex-col gap-2">
         <h2 id="activity-title" className="text-lg font-medium">

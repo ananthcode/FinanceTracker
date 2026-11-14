@@ -56,6 +56,10 @@ export const ERROR_CODES = [
   // R9 — attachments (specs/009-attachments-warranty/contracts/attachments.md)
   "INVALID_ATTACHMENT",
   "QUOTA_EXCEEDED",
+  // R10 — export and import (specs/010-data-export/contracts/export-import.md)
+  "IMPORT_NOT_OPEN",
+  "IMPORT_REJECTED",
+  "IMPORT_OPEN",
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];

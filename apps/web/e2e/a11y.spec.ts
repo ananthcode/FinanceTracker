@@ -418,3 +418,39 @@ test("R9 Warranties, the Dashboard reminders, a transaction with attachments and
   await page.keyboard.press("Escape");
   await expect(page.locator("#attachments [data-attachment]")).toHaveCount(1);
 });
+
+test("R10 Export and import: both panels, the password fields, a locked backup's unlock and the Reset and import dialog; keyboard only (T020, SC-006)", async ({ page, request }) => {
+  test.slow();
+  await ensureOwner(request);
+  const member = uniqueEmail("a11yexp");
+  await createMember(request, member);
+  await signInUI(page, member);
+  await loadDemoFromSettings(page);
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    await page.goto("/settings");
+    await page.locator("#export").getByText("Excel workbook", { exact: true }).click();
+    await page.locator("#export").getByLabel("Transactions").selectOption({ label: "Choose dates" });
+    await expectNoViolations(page, `export options @${width}px`);
+  }
+  await page.setViewportSize({ width: 1280, height: 844 });
+  await page.goto("/settings");
+  const panel = page.locator("#export");
+  await panel.getByLabel("Lock with a password").focus();
+  await page.keyboard.press("Space");
+  await expect(panel.getByLabel("Password", { exact: true })).toBeVisible();
+  await expectNoViolations(page, "lock with a password");
+  await panel.getByLabel("Password", { exact: true }).fill("violet-kettle-27");
+  await panel.getByLabel("Password again").fill("violet-kettle-27");
+  const [download] = await Promise.all([page.waitForEvent("download", { timeout: 60_000 }), panel.getByRole("button", { name: "Export" }).press("Enter")]);
+  await page.locator("#import").getByLabel("Backup file").setInputFiles(await download.path());
+  await expect(page.locator("#import").getByLabel("This backup is locked. Password")).toBeVisible();
+  await expectNoViolations(page, "unlock a backup");
+  await page.locator("#import").getByLabel("This backup is locked. Password").fill("violet-kettle-27");
+  await page.keyboard.press("Enter");
+  await page.locator("#import").getByRole("button", { name: "Reset and import" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("dialog", { name: "Reset and import?" })).toBeVisible();
+  await expectNoViolations(page, "reset and import dialog");
+  await page.keyboard.press("Escape");
+});
