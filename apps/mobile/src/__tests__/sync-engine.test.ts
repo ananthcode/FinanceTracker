@@ -15,6 +15,16 @@ class FakeServer implements SyncTransport {
   failNextPush = false;
   pageSize = 500;
   pushes = 0;
+  resetSeq = 0;
+  resetHlc = "";
+
+  /** R5: the user reset their data on another device. */
+  resetData(hlc: string) {
+    this.rows.clear();
+    this.seq += 1;
+    this.resetSeq = this.seq;
+    this.resetHlc = hlc;
+  }
 
   private key(entity: SyncEntity, id: string) {
     return `${entity}:${id}`;
@@ -27,6 +37,7 @@ class FakeServer implements SyncTransport {
       throw new Error("You appear to be offline.");
     }
     return request.changes.map((c) => {
+      if (c.hlc < this.resetHlc) return { changeId: c.changeId, appliedFields: [], ignoredFields: [], clamped: false, status: "rejected" as const, code: "DATA_RESET" as const };
       const stored = this.results.get(c.changeId);
       if (stored) return { ...stored, status: "duplicate" as const };
       const result = this.apply(c as unknown as ChangeInput);
@@ -74,6 +85,9 @@ class FakeServer implements SyncTransport {
   }
 
   async pull(cursor: string): Promise<PullResponse> {
+    if (Number(cursor) > 0 && Number(cursor) < this.resetSeq) {
+      return { reset: true, cursor: "0", hasMore: true, rows: Object.fromEntries(SYNC_ENTITIES.map((e) => [e, []])) as unknown as PullResponse["rows"] };
+    }
     const changed = [...this.rows.values()]
       .filter((r) => Number(r.serverSeq) > Number(cursor))
       .sort((a, b) => Number(a.serverSeq) - Number(b.serverSeq));
@@ -244,5 +258,24 @@ describe("applyLocally", () => {
       changeId: "x", entity: "category", entityId: "c1", kind: "merge", fields: { targetId: "c2" }, hlc: "1793011200000.0000.phone0001",
     } as ChangeInput);
     expect(row).toMatchObject({ state: "deleted", mergedInto: "c2" });
+  });
+});
+
+describe("SyncEngine after a data reset (R5 US4)", () => {
+  it("wipes the local copy, pulls from 0, and drops pre-reset changes without a notice", async () => {
+    const { server, store, engine } = setup();
+    await engine.record({ entity: "account", entityId: "a1", kind: "create", fields: account("Old cash") });
+    await engine.sync();
+    expect((await liveRows(store, "account")).length).toBe(1);
+
+    // Offline edit, then the data is reset on the web and a new account is made there.
+    await engine.record({ entity: "account", entityId: "a1", kind: "update", fields: { name: "Stale" } });
+    server.resetData("9999999999999.0000.web00001");
+    server.rows.set("account:n1", { id: "n1", ...account("New cash"), state: "active", fieldVersions: {}, serverSeq: String(++server.seq), entity: "account" } as never);
+
+    await engine.sync();
+    expect((await liveRows(store, "account")).map((r) => r.name)).toEqual(["New cash"]);
+    expect(await store.pending()).toEqual([]);
+    expect(await store.notices()).toEqual([]);
   });
 });
