@@ -31,7 +31,4 @@
 
 ## Notes
 
-- Choices made with defaults and open to clarify: Undo for 10 seconds and a confirm on a second tap
-  within 10 seconds (FR-008, FR-009); one-tap recordings never link to a planned payment (FR-012);
-  quick-add on the Transactions screen and the add form, not the Dashboard (FR-013); 100 templates per
-  user (FR-005).
+- Clarified 2026-11-14 (4 questions): tie to a planned payment; Undo + "Record it again?"; Dashboard strip; amount box beside Record.
