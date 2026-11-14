@@ -62,8 +62,8 @@ Migration names are `20261114000NNN_*` (`<ts>`), in the listed order.
 
 - [X] T022 [P] Accessibility in `apps/web/e2e/a11y.spec.ts` (quick add, Dashboard strip, manage, form at 1280 and 390 px; Record and reorder by keyboard) and `us7-hide-balances` (template amounts masked) (SC-006, FR-014)
 - [X] T023 Write `specs/008-quick-add-templates/review-notes.md` (explicit-review items from the plan)
-- [ ] T024 Run every suite; write `specs/008-quick-add-templates/validation.md`, including SC-004 (quick add with 100 seeded templates timed in the e2e run)
-- [ ] T025 Converge: contracts as built, `ROADMAP.md` R8 status, Android task carried to the Android phase
+- [X] T024 Run every suite; write `specs/008-quick-add-templates/validation.md`, including SC-004 (quick add with 100 seeded templates timed in the e2e run)
+- [X] T025 Converge: contracts as built, `ROADMAP.md` R8 status, Android task carried to the Android phase
 
 ## Dependencies
 

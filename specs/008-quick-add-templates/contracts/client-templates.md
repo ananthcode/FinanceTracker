@@ -29,3 +29,16 @@ tiedPlanMonth(itemId, view: PlanMonthView): PlanRow | null                     /
 recordFromTemplate(t, { amountMinor, today, pays: { itemId; month } | null }): TransactionCreateFields   // R8-03
 amountBoxProblem(t, text, currency): string | null       // empty / invalid / split amount changed
 ```
+
+### As built (2026-11-14)
+
+- "Edit first" and "Start from a template" open `/transactions/new?template=<id>` (plus `&amount=<paise>` when
+  the box held another amount); the form is the R4 form filled in, keyed so a new start resets it.
+- The template form is the R4 `TransactionForm` in a `template` mode (no date, time, status or reference; a
+  name; an optional usual amount; "Pays a planned payment" listing only fitting items).
+- Core names as built: `readAmountBox` (was `amountBoxProblem`; returns the amount, a message, or
+  "open the form"), `tiedPlanMonth(template, item, view)` → `TieOutcome` with `tieMessage`,
+  `orderedTemplates` (Manage) and `visibleTemplates` (quick add), `freeTemplateName`, `templateToWire`.
+- Test ids: `[data-template]` (quick add), `#quick-add`, `#quick-add-strip`, `#quick-add-done` (the status
+  with Undo), `[data-manage-template]`; amount boxes are labelled "Amount for <name>".
+- Hide-balances: the amount box shows `••••` for a usual amount until the user types.
