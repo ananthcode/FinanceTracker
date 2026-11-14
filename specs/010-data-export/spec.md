@@ -212,8 +212,9 @@ Export to a file and share it from the phone; import a backup on the phone.
 
 - **SC-001**: Export → reset → import of the demo household gives back identical balances, person balances,
   report totals for every month, plan statuses and templates (checked automatically).
-- **SC-002**: A backup of 20,000 transactions is exported in under 30 seconds and imported in under 60 seconds;
-  the screen stays responsive with progress shown.
+- **SC-002**: A backup of 20,000 transactions is exported in under 30 seconds and imported in under 2 minutes
+  (every record passes the same checks as entering it; planning measured about 4 ms a record); the screen stays
+  responsive with progress shown.
 - **SC-003**: For any date range, the Excel / CSV transaction totals (income, spending) equal the Reports
   totals for the same range.
 - **SC-004**: A damaged, foreign or rule-breaking file never changes any data (tested with a set of bad
