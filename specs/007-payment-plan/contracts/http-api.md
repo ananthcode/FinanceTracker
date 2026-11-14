@@ -7,7 +7,7 @@ Two optional fields; a form sends only what it edits (R3 lesson).
 | Field | Type | Rules |
 |-------|------|-------|
 | `planNudge` | boolean | "Remind me to check next month's plan" |
-| `planCheckedMonth` | `yyyy-MM-01` string or null | Marks a month's plan checked. The server stores the later of the stored month and the sent month, so an old device cannot move it back |
+| `planCheckedMonth` | `yyyy-MM-01` string (null is refused) | Marks a month's plan checked. The server stores the later of the stored month and the sent month, so an old device cannot move it back, and a client cannot clear it (only a data reset does) |
 
 `GET /api/me` returns both inside `preferences` (`planNudge: true`, `planCheckedMonth: null` by default).
 

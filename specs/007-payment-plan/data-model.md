@@ -18,8 +18,8 @@ Money is `bigint` paise; months are `date` values on the 1st (`yyyy-MM-01`), and
 |------|--------|
 | `public.plan_frequency` | `monthly`, `every_n_months`, `yearly`, `one_off` |
 | `public.plan_target` | `payee`, `card`, `person` |
-| `public.audit_action` (added) | `plan_item_created`, `plan_item_edited`, `plan_item_deleted`, `plan_month_edited` |
-| `audit_events.target_type` (added) | `plan_item`, `plan_occurrence` |
+| `public.audit_action` (added) | `plan_item_created`, `plan_item_edited`, `plan_item_deleted`, `plan_month_created`, `plan_month_edited` |
+| `audit_events.target_type` (added) | `plan_item`, `plan_month` (the item-month rows' history family) |
 
 ## Entity: Plan item — `public.plan_items` (synced)
 

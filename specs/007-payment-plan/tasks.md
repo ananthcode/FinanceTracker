@@ -217,10 +217,10 @@ Migration names are `20261113000NNN_*` (`<ts>`), in the listed order.
 ## Phase 10: Polish
 
 - [X] T037 [P] Accessibility in `apps/web/e2e/a11y.spec.ts`. Covered: the plan month, the item form, the link dialog and the nudge, at 1280 and 390 px, plus a keyboard Pay flow (SC-007).
-- [ ] T038 [P] Performance `apps/web/e2e/r7-performance.spec.ts` (E2E_PRODUCTION): 100 items, 24 months of links — plan < 2 s, month change < 1 s (SC-003)
-- [ ] T039 Write `specs/007-payment-plan/review-notes.md`. List the explicit-review items from the plan's post-design re-check.
-- [ ] T040 Run every suite and write `specs/007-payment-plan/validation.md`, including the manual rows from quickstart.md and the SC-004 timing (a monthly item set up in under 1 minute).
-- [ ] T041 Converge: contracts as built, `ROADMAP.md` R7 status, Android task carried to the Android phase
+- [X] T038 [P] Performance `apps/web/e2e/r7-performance.spec.ts` (E2E_PRODUCTION): 100 items, 24 months of links — plan < 2 s, month change < 1 s (SC-003)
+- [X] T039 Write `specs/007-payment-plan/review-notes.md`. List the explicit-review items from the plan's post-design re-check.
+- [X] T040 Run every suite and write `specs/007-payment-plan/validation.md`, including the manual rows from quickstart.md and the SC-004 timing (a monthly item set up in under 1 minute).
+- [X] T041 Converge: contracts as built, `ROADMAP.md` R7 status, Android task carried to the Android phase
 
 ## Dependencies
 

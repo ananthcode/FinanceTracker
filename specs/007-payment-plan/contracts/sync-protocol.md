@@ -23,7 +23,7 @@ Extends R2 ([sync-protocol](../../002-accounts-balances/contracts/sync-protocol.
 | `cardAccountId` | Required for `card`; else absent |
 | `personAction` | Required for `person`: `lent` \| `repaid_to` \| `paid_on_behalf` |
 | `frequency` | `monthly` \| `every_n_months` \| `yearly` \| `one_off` |
-| `intervalMonths` | 2–12, only with `every_n_months`; derived otherwise |
+| `intervalMonths` | 1 monthly, 2–12 every N months, 12 yearly, 0 one-off. Always sent with `frequency` (both share the `frequency` field version) |
 | `startMonth`, `endMonth` | `yyyy-MM-01`; `endMonth` nullable |
 | `amountVaries` | boolean |
 | `terms` | `[{ fromMonth, amountMinor (decimal string or null), dueDay, accountId }]`, one field version |
@@ -34,7 +34,9 @@ Server-controlled: `userId`, `state`, timestamps, `fieldVersions`, `serverSeq`.
 ## Plan occurrence fields
 
 `itemId` (create only), `month` (create only, `yyyy-MM-01`), `amountMinor` (decimal string or null),
-`skipped` (boolean). The `entityId` must equal core `occurrenceId(itemId, month)`.
+`skipped` (boolean). The `entityId` must equal core `occurrenceId(itemId, month)`. A create carries only
+the fields the user changed (at least one of `amountMinor`, `skipped`): there are no defaults, so two
+devices creating the same item-month merge per field.
 
 ## Transaction fields (added)
 

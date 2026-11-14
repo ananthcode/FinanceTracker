@@ -49,3 +49,51 @@ export async function addPlanItem(page: Page, month: Month, item: ItemInput): Pr
   await page.getByRole("button", { name: "Save" }).click();
   await expect(page).toHaveURL(/\/payment-plan\?month=/);
 }
+
+/**
+ * Seeds `count` monthly plan items for a user who has the demo accounts and lists (seedAccounts /
+ * seedLists with demo), each started `months` months ago and paid every month through a linked
+ * transaction — straight into the LOCAL database (R7 T038, SC-003 volume).
+ */
+export async function seedManyPlanItems(email: string, count: number, months: number): Promise<void> {
+  const { admin } = await import("./db");
+  const db = admin();
+  const { data: profile } = await db.from("profiles").select("user_id").eq("email", email).single();
+  const userId = profile!.user_id as string;
+  const one = async (table: string, name: string) => {
+    const { data, error } = await db.from(table).select("id").eq("user_id", userId).eq("name", name).single();
+    if (error) throw new Error(`seedManyPlanItems: ${table} ${name}: ${error.message}`);
+    return data!.id as string;
+  };
+  const [account, payee] = await Promise.all([one("accounts", "Everyday Savings"), one("payees", "Fresh Mart")]);
+  const start = monthAfter(-months);
+  const items = Array.from({ length: count }, (_, i) => ({
+    id: crypto.randomUUID(),
+    user_id: userId,
+    name: `Planned payment ${i + 1}`,
+    target: "payee",
+    payee_id: payee,
+    frequency: "monthly",
+    interval_months: 1,
+    start_month: start,
+    terms: [{ fromMonth: start, amountMinor: String(10_000 + i * 100), dueDay: 1 + (i % 28), accountId: account }],
+    server_seq: 0,
+  }));
+  const { error } = await db.from("plan_items").insert(items);
+  if (error) throw new Error(`seedManyPlanItems items: ${error.message}`);
+  const links: Record<string, unknown>[] = [];
+  for (const item of items) {
+    for (let m = 0; m < months; m++) {
+      const month = monthAfter(m - months);
+      links.push({
+        id: crypto.randomUUID(), user_id: userId, date: `${month.slice(0, 8)}05`, kind: "expense", flow: "out", account_id: account,
+        amount_minor: item.terms[0]!.amountMinor, payee_id: payee, status: "cleared", confirmed: true, state: "active",
+        plan_item_id: item.id, plan_month: month, server_seq: 0,
+      });
+    }
+  }
+  for (let i = 0; i < links.length; i += 1000) {
+    const { error: e } = await db.from("transactions").insert(links.slice(i, i + 1000));
+    if (e) throw new Error(`seedManyPlanItems links: ${e.message}`);
+  }
+}

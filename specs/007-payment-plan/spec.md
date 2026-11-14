@@ -380,6 +380,10 @@ Android phase.
   in the add-transaction form (clarified 2026-11-13).
 - Deleting an item that has paid months keeps those months' records (shown under the item's old name);
   deleting one with none removes it entirely.
+- Once a varying item-month has a payment linked (and no amount set), the paid amount stands in for the
+  estimate, so the month shows Paid rather than a small difference left over; a varying card bill is not
+  carried into later months, because what was left is already in what the card owes (decided while
+  building, 2026-11-14; listed in the PR for confirmation).
 - Card-bill items marked "amount varies" are estimated from the card's current amount owed (plus what
   is already paid that month) until the month's amount is set; other varying items from last month's paid amount (clarified 2026-11-13).
 - The month-check nudge (FR-023) is an in-app prompt on web and Android; phone notifications and

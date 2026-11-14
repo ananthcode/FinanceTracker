@@ -54,9 +54,24 @@ planMonth(input: {
 likelyMatches(row: PlanRow, item: PlanItem, candidates: TransactionView[]): TransactionView[]   // R7-07
 paysSuggestions(draft: TransactionDraft, rows: PlanRow[], items: PlanItem[]): PlanRow[]
 payDraft(row: PlanRow, item: PlanItem, today: string, accounts): TransactionDraft            // R7-10
-planUnpaidForSafeToSpend(view: PlanMonthView, items, countedAccountIds): bigint             // R7-08
+planUnpaidForSafeToSpend(view: PlanMonthView, items, countedAccountIds, monthEnd): bigint   // R7-08
 nudgeFor(today: string, prefs: { planNudge: boolean; planCheckedMonth: Month | null }): Month | null  // R7-09
 ```
 
 All pure, with no DOM or React; tested on `test/vectors/plan.json`, which covers frequencies, month
 ends, terms, estimates, part payments, overpaid, carry-forward, timezone "today" and the nudge window.
+
+### As built (2026-11-14)
+
+- `planMonth` takes no `candidates`: the screen marks "Looks paid — link?" with
+  `withLikely(rows, items, candidates)` (each transaction offered to one row only).
+- `payDraft(row, item, today, live)` takes the sets of live account, payee and category ids, so anything
+  archived or deleted since is left empty.
+- Also exported: `nudgeWindowMonth`, `planCheckMonth` (the one month "Plan checked" is offered for),
+  `isPlanChecked`, `isNudgeSnoozed`, `moveStart` (terms for a new start month), `monthName`,
+  `parseMonthParam`, `amountNear`, `paysTarget`, `isVarying`, `statusOf`.
+- `PlanRow.links` carry `counted`; `PlanMonthView` carries `currentMonth`.
+- Extra test ids: `[data-plan-row]` also has `data-name`, `data-month`, `data-due`; `[data-plan-status]`,
+  `#plan-carried`, `[data-cash-account]`, `#plan-compare-*`, `[data-compare-row]`, `#plan-people-*`,
+  `[data-plan-person]`, `#plan-checked`, `[data-looks-paid]`, `[data-link-candidate]`, `#pays-plan`,
+  `#safe-plan` (Dashboard), `#plan-nudge-setting` (Settings).

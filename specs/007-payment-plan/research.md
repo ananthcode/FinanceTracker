@@ -105,6 +105,14 @@ day (US2 6). The term for a month is the last entry with `fromMonth ≤ month`.
 **Rationale**: the "plus paid" correction keeps a ₹20,000 card bill at ₹20,000 after an ₹8,000 part
 payment (₹12,000 left), matching US3 4.
 
+**As built (2026-11-14)**, two refinements:
+- A varying item-month that has a payment (and no amount set) shows **the paid amount** as planned, so
+  a ₹1,800 bill paid against a ₹2,000 estimate is Paid rather than ₹200 overdue forever. The card
+  estimate (owed + paid) still applies in the current and coming month.
+- A varying card bill is **not carried over**: what was left unpaid is already in what the card owes
+  now, which the current month's estimate uses, so carrying it would count it twice.
+- A removed item's paid month, and a linked month the item no longer has, show planned = paid.
+
 ## R7-06 Status, totals and carry-forward
 
 **Decision**: core `planMonth(input)` returns rows and totals for one month (contract
