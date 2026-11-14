@@ -49,7 +49,7 @@ export const TransactionLineFields = z
     path: ["categoryId"],
   });
 
-const Lines = z.array(TransactionLineFields).refine((ls) => ls.length === 0 || (ls.length >= 2 && ls.length <= 50), "A split has 2â€“50 lines");
+export const TransactionLines = z.array(TransactionLineFields).refine((ls) => ls.length === 0 || (ls.length >= 2 && ls.length <= 50), "A split has 2â€“50 lines");
 
 const fields = {
   date: IsoDate,
@@ -61,7 +61,7 @@ const fields = {
   personAction: z.enum(PERSON_ACTIONS).nullable(),
   flow: z.enum(MONEY_FLOWS).nullable(),
   categoryId: z.uuid().nullable(),
-  lines: Lines,
+  lines: TransactionLines,
   tagIds: TagIds,
   notes: text(1000),
   reference: text(40),

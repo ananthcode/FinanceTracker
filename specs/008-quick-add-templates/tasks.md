@@ -21,22 +21,22 @@ Migration names are `20261114000NNN_*` (`<ts>`), in the listed order.
 
 ## Phase 1: Setup (schema and shapes)
 
-- [ ] T001 Migration `<ts>_tpl_enums.sql`: audit actions `template_created`, `template_edited`, `template_deleted`, `template_hidden`, `template_unhidden`, `template_reordered`; target type `template`; the audit action derivation learns `hidden` and `sort_key` changes for the `template` family
-- [ ] T002 Migration `<ts>_tpl_tables.sql`: `public.transaction_templates` per data-model.md (name 1–40 trimmed; kind not interest; `person_action` not adjustment; amount 1…999999999999 or null; lines array; notes ≤ 1000; shape per kind check; composite FKs to accounts, payees, categories, plan items); unique `lower(name)` where not deleted; sync index; RLS select-own, SELECT-only grants; stamp and audit triggers
-- [ ] T003 [P] Core `packages/core/src/templates/schemas.ts`: `TemplateCreateFields` / `TemplateUpdateFields` (reusing R4 field shapes and `kindProblem`; amount and lines together on update; split needs an amount), `TemplateView`; sync entity `template` and code `INVALID_TEMPLATE` in `packages/core/src/sync/schemas.ts`; export from `packages/core/src/index.ts`
-- [ ] T004 [P] `packages/db/src/repositories/templates.ts` (`listTemplates`, `getTemplate`, `templateFromRow`), data-status table list, sync pull rows; `pnpm db:types`
-- [ ] T005 [P] Mobile `apps/mobile/src/lib/sync/templates.ts` row mapper (no screens)
+- [X] T001 Migration `<ts>_tpl_enums.sql`: audit actions `template_created`, `template_edited`, `template_deleted`, `template_hidden`, `template_unhidden`, `template_reordered`; target type `template`; the audit action derivation learns `hidden` and `sort_key` changes for the `template` family
+- [X] T002 Migration `<ts>_tpl_tables.sql`: `public.transaction_templates` per data-model.md (name 1–40 trimmed; kind not interest; `person_action` not adjustment; amount 1…999999999999 or null; lines array; notes ≤ 1000; shape per kind check; composite FKs to accounts, payees, categories, plan items); unique `lower(name)` where not deleted; sync index; RLS select-own, SELECT-only grants; stamp and audit triggers
+- [X] T003 [P] Core `packages/core/src/templates/schemas.ts`: `TemplateCreateFields` / `TemplateUpdateFields` (reusing R4 field shapes and `kindProblem`; amount and lines together on update; split needs an amount), `TemplateView`; sync entity `template` and code `INVALID_TEMPLATE` in `packages/core/src/sync/schemas.ts`; export from `packages/core/src/index.ts`
+- [X] T004 [P] `packages/db/src/repositories/templates.ts` (`listTemplates`, `getTemplate`, `templateFromRow`), data-status table list, sync pull rows; `pnpm db:types`
+- [X] T005 [P] Mobile `apps/mobile/src/lib/sync/templates.ts` row mapper (no screens)
 
 ## Phase 2: Foundational (core rules, applier, sync)
 
-- [ ] T006 [P] Core vectors `packages/core/test/templates.test.ts`: schemas per kind (transfer two accounts, person needs a person, no adjustment or interest, split amount rule), `recordFromTemplate` (today, box amount, link fields), `amountBoxProblem` (empty, invalid, split changed), `templateProblems` (archived account, deleted payee/category/tag; hidden payee fine), `templateFitsPlan` (payee, card, person items), `tiedPlanMonth` (carried first, this month, none), `templateFromTransaction` (no date/status/reference/link; free name), `visibleTemplates` order
-- [ ] T007 Core `packages/core/src/templates/rules.ts` — passes T006
-- [ ] T008 [P] pgTAP `supabase/tests/tpl_apply.test.sql` and `tpl_rls.test.sql`: own data only; another user's account/payee/category/tag/plan item refused (`INVALID_TEMPLATE`); shape per kind; split lines add up; `NAME_TAKEN`; `LIMIT_REACHED` at 100; tie fit; per-field merge (amount + lines together); hide, reorder, delete; audit actions
-- [ ] T009 Migration `<ts>_tpl_apply.sql`: `app._apply_template` and `_apply_one` dispatch — passes T008
-- [ ] T010 [P] pgTAP `supabase/tests/tpl_data.test.sql`: payee, category and tag merges / relocate / tag delete reach templates (versions bumped); pull returns templates; reset and erasure remove them; demo-load emptiness counts them
-- [ ] T011 Migration `<ts>_tpl_repoint_pull_reset.sql`: `_repoint_payee`, `_repoint_category`, `_repoint_tag` also update templates; `pull_changes`, `_reset_user_data`, `_load_demo`, `scrub_user_from_audit` include them — passes T010
-- [ ] T012 [P] Integration `apps/web/lib/templates-sync.int.test.ts`: push/pull round trip; a recording from a tied template (R4 create with R7 link fields) links; demo load counts templates
-- [ ] T013 Change builders in `apps/web/lib/sync-client.ts` (`createTemplate`, `updateTemplate`, `deleteTemplate`) — passes T012
+- [X] T006 [P] Core vectors `packages/core/test/templates.test.ts`: schemas per kind (transfer two accounts, person needs a person, no adjustment or interest, split amount rule), `recordFromTemplate` (today, box amount, link fields), `amountBoxProblem` (empty, invalid, split changed), `templateProblems` (archived account, deleted payee/category/tag; hidden payee fine), `templateFitsPlan` (payee, card, person items), `tiedPlanMonth` (carried first, this month, none), `templateFromTransaction` (no date/status/reference/link; free name), `visibleTemplates` order
+- [X] T007 Core `packages/core/src/templates/rules.ts` — passes T006
+- [X] T008 [P] pgTAP `supabase/tests/tpl_apply.test.sql` and `tpl_rls.test.sql`: own data only; another user's account/payee/category/tag/plan item refused (`INVALID_TEMPLATE`); shape per kind; split lines add up; `NAME_TAKEN`; `LIMIT_REACHED` at 100; tie fit; per-field merge (amount + lines together); hide, reorder, delete; audit actions
+- [X] T009 Migration `<ts>_tpl_apply.sql`: `app._apply_template` and `_apply_one` dispatch — passes T008
+- [X] T010 [P] pgTAP `supabase/tests/tpl_data.test.sql`: payee, category and tag merges / relocate / tag delete reach templates (versions bumped); pull returns templates; reset and erasure remove them; demo-load emptiness counts them
+- [X] T011 Migration `<ts>_tpl_repoint_pull_reset.sql`: `_repoint_payee`, `_repoint_category`, `_repoint_tag` also update templates; `pull_changes`, `_reset_user_data`, `_load_demo`, `scrub_user_from_audit` include them — passes T010
+- [X] T012 [P] Integration `apps/web/lib/templates-sync.int.test.ts`: push/pull round trip; a recording from a tied template (R4 create with R7 link fields) links; demo load counts templates
+- [X] T013 Change builders in `apps/web/lib/sync-client.ts` (`createTemplate`, `updateTemplate`, `deleteTemplate`) — passes T012
 
 ## Phase 3: User Story 1 — Record in one tap (P1) 🎯 MVP
 
@@ -62,7 +62,7 @@ Migration names are `20261114000NNN_*` (`<ts>`), in the listed order.
 
 - [ ] T022 [P] Accessibility in `apps/web/e2e/a11y.spec.ts` (quick add, Dashboard strip, manage, form at 1280 and 390 px; Record and reorder by keyboard) and `us7-hide-balances` (template amounts masked) (SC-006, FR-014)
 - [ ] T023 Write `specs/008-quick-add-templates/review-notes.md` (explicit-review items from the plan)
-- [ ] T024 Run every suite; write `specs/008-quick-add-templates/validation.md`
+- [ ] T024 Run every suite; write `specs/008-quick-add-templates/validation.md`, including SC-004 (quick add with 100 seeded templates timed in the e2e run)
 - [ ] T025 Converge: contracts as built, `ROADMAP.md` R8 status, Android task carried to the Android phase
 
 ## Dependencies

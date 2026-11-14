@@ -127,6 +127,10 @@ export const changes = {
     return newChange("transaction", tx.id, "update", { planItemId: itemId, planMonth: month });
   },
   unlinkTransaction: (id: string) => newChange("transaction", id, "update", { planItemId: null, planMonth: null }),
+  // R8: quick-add templates. A recording is an ordinary createTransaction.
+  createTemplate: (id: string, fields: Record<string, unknown>) => newChange("template", id, "create", fields),
+  updateTemplate: (id: string, changed: Record<string, unknown>) => newChange("template", id, "update", changed),
+  deleteTemplate: (id: string) => newChange("template", id, "delete"),
 };
 
 export type PushOutcome =
