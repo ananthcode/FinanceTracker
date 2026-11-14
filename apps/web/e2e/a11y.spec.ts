@@ -384,3 +384,36 @@ test("R8 Quick add: the list, the Dashboard strip, Manage templates and the temp
   await page.keyboard.press("Enter");
   await expect(page.locator("[data-manage-template]").first()).toHaveAttribute("data-manage-template", "Fuel");
 });
+
+test("R9 Warranties, the Dashboard reminders, a transaction with attachments and warranty, and Settings; Got it and Delete by keyboard (T029, SC-006)", async ({ page, request }) => {
+  test.slow();
+  await ensureOwner(request);
+  const member = uniqueEmail("a11yatt");
+  await createMember(request, member);
+  await signInUI(page, member);
+  await loadDemoFromSettings(page);
+
+  await page.goto("/warranties");
+  const fridge = (await page.locator("#warranties-active").getByRole("link", { name: "Refrigerator" }).getAttribute("href"))!;
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    for (const path of ["/warranties", "/", fridge, "/transactions?warranty=1", "/settings"]) {
+      await page.goto(path);
+      await expectNoViolations(page, `${path} @${width}px`);
+    }
+  }
+
+  // Keyboard only: Got it on the Dashboard reminder; Delete an attachment through its dialog.
+  await page.setViewportSize({ width: 1280, height: 844 });
+  await page.goto("/");
+  await page.locator("#warranty-reminders").getByRole("button", { name: "Got it for Refrigerator" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#warranty-reminders")).toHaveCount(0);
+  await page.goto(fridge);
+  await page.locator("#attachments").getByRole("button", { name: /^Delete Refrigerator receipt/ }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("dialog", { name: "Delete this attachment?" })).toBeVisible();
+  await expectNoViolations(page, "delete attachment dialog");
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#attachments [data-attachment]")).toHaveCount(1);
+});

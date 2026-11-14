@@ -114,12 +114,16 @@ test("the payment plan is masked too; statuses and words remain (R7 S7-b, FR-021
   expect((await page.locator("main").innerText()).replaceAll("₹0.00", "")).not.toMatch(/₹\s?[\d,]+\.\d{2}/);
 
   // R8 FR-014: quick-add templates — their amounts in the list, the box and Manage templates.
-  for (const path of ["/transactions", "/templates", "/"]) {
+  // R9 FR-013: the Warranties list masks amounts; names and the time left stay.
+  for (const path of ["/warranties", "/transactions", "/templates", "/"]) {
     await page.goto(path);
     await expect(page.locator("main")).toContainText("₹••••");
     expect((await page.locator("main").innerText()).replaceAll("₹0.00", ""), path).not.toMatch(/₹\s?[\d,]+\.\d{2}/);
   }
   await expect(page.locator("#quick-add-strip [data-template='Milk']").getByLabel("Amount for Milk")).toHaveValue("••••");
+  await page.goto("/warranties");
+  await expect(page.locator("#warranties-active")).toContainText("Refrigerator");
+  await expect(page.locator("#warranties-active")).toContainText("expires in 50 days");
 });
 
 test("on narrow screens the toggle is in the top bar", async ({ page, request }) => {
