@@ -1,6 +1,6 @@
 import Link from "next/link";
 import { DEFAULT_PREFERENCES } from "@ft/core";
-import { getPreferences, getProfile, hasNoData } from "@ft/db";
+import { attachmentUsage, getPreferences, getProfile, hasNoData } from "@ft/db";
 import { DateText } from "@/components/DateText";
 import { PreferencesForm } from "@/components/PreferencesForm";
 import { YourData } from "@/components/settings/YourData";
@@ -23,7 +23,12 @@ export default async function SettingsPage() {
   const supabase = await createServerSupabase();
   const { data: auth } = await supabase.auth.getUser();
   const userId = auth.user?.id ?? "";
-  const [profile, preferences, empty] = await Promise.all([getProfile(supabase, userId), getPreferences(supabase, userId), hasNoData(supabase)]);
+  const [profile, preferences, empty, usage] = await Promise.all([
+    getProfile(supabase, userId),
+    getPreferences(supabase, userId),
+    hasNoData(supabase),
+    attachmentUsage(supabase).catch(() => null),
+  ]);
   const { data } = await supabase
     .from("audit_events")
     .select("id, occurred_at, action, device_type, details")
@@ -72,7 +77,11 @@ export default async function SettingsPage() {
         </ul>
       </section>
 
-      <YourData empty={empty} demoAvailable={publicEnv.appEnv === "demo"} />
+      <YourData
+        empty={empty}
+        demoAvailable={publicEnv.appEnv === "demo"}
+        usage={usage && { files: usage.files, bytes: usage.bytes.toString(), allowance: usage.allowance.toString() }}
+      />
 
       <section aria-labelledby="activity-title" className="flex flex-col gap-2">
         <h2 id="activity-title" className="text-lg font-medium">

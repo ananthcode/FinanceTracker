@@ -17,6 +17,7 @@ import {
   TemplateCreateFields,
   templateFitsPlan,
   TransactionCreateFields,
+  warrantyProblem,
   type AccountView,
   type AmountInputError,
   type CategoriesStart,
@@ -42,6 +43,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { attachFile, cleanupAttachmentFiles } from "@/lib/attachments";
 import { changes, useSyncPush } from "@/lib/sync-client";
 import { PayeeCombobox, type PayeeChoice } from "./PayeeCombobox";
 import { emptyLine, linesTotal, SplitEditor, type SplitLineDraft } from "./SplitEditor";
@@ -148,8 +150,11 @@ export function TransactionForm({
   currency,
   returnTo,
   planLink = null,
+  attachmentCount = 0,
 }: {
   planLink?: PlanLinkProp | null;
+  /** R9: live attachments of the transaction being edited (they are deleted with it, clarify Q2). */
+  attachmentCount?: number;
   mode: TransactionFormMode;
   accounts: AccountView[];
   payees: PayeeView[];
@@ -225,6 +230,12 @@ export function TransactionForm({
   const [formError, setFormError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  // R9-05: under warranty until a date, with an optional note.
+  const [warrantyOn, setWarrantyOn] = useState(saved?.warrantyUntil != null);
+  const [warrantyUntil, setWarrantyUntil] = useState(saved?.warrantyUntil ?? "");
+  const [warrantyNote, setWarrantyNote] = useState(saved?.warrantyNote ?? "");
+  // R9 US1 6: receipts picked while adding are attached once the transaction is saved.
+  const [pendingFiles, setPendingFiles] = useState<File[]>([]);
 
   const accountById = useMemo(() => new Map(accounts.map((a) => [a.id, a])), [accounts]);
   const payeeById = useMemo(() => new Map(payees.map((p) => [p.id, p])), [payees]);
@@ -517,10 +528,22 @@ export function TransactionForm({
     return diff;
   }
 
+  /** The warranty as it will be saved, or a message when it cannot be. */
+  function warrantyFields(): { warrantyUntil: string | null; warrantyNote: string | null } | string {
+    if (!warrantyOn) return { warrantyUntil: null, warrantyNote: null };
+    if (!warrantyUntil) return "Choose the date the warranty ends.";
+    const note = warrantyNote.trim() === "" ? null : warrantyNote.trim();
+    if (note !== null && [...note].length > 200) return "Keep the warranty note to 200 characters.";
+    return warrantyProblem(date, warrantyUntil, note) ?? { warrantyUntil, warrantyNote: note };
+  }
+
   async function save(confirmNow: boolean) {
     setFormError(null);
     const built = build();
     if (!built) return;
+    const warranty = isTemplate ? { warrantyUntil: null, warrantyNote: null } : warrantyFields();
+    if (typeof warranty === "string") return setFormError(warranty);
+    const newId = crypto.randomUUID();
     let change: ChangeInput;
     if (mode.type === "template") {
       if (!mode.template) {
@@ -549,10 +572,19 @@ export function TransactionForm({
         change = changes.updateTemplate(t.id, diff);
       }
     } else if (mode.type === "create") {
-      change = changes.createTransaction(crypto.randomUUID(), { ...built.fields, kind, confirmed: !upcoming });
+      change = changes.createTransaction(newId, {
+        ...built.fields,
+        kind,
+        confirmed: !upcoming,
+        ...(warranty.warrantyUntil !== null ? warranty : {}),
+      });
     } else {
       const diff = changed(built.fields, mode.transaction);
       if (confirmNow) diff.confirmed = true;
+      if (warranty.warrantyUntil !== mode.transaction.warrantyUntil || warranty.warrantyNote !== mode.transaction.warrantyNote) {
+        diff.warrantyUntil = warranty.warrantyUntil;
+        diff.warrantyNote = warranty.warrantyNote;
+      }
       if (Object.keys(diff).length === 0 && built.before.length === 0) return router.push(returnTo);
       change = changes.updateTransaction(mode.transaction.id, diff);
     }
@@ -565,6 +597,14 @@ export function TransactionForm({
       return;
     }
     const rejected = outcome.results.find((r) => r.status === "rejected");
+    if (!rejected && mode.type === "create" && pendingFiles.length > 0) {
+      setBusy(true);
+      let failed = 0;
+      for (const file of pendingFiles) if (!(await attachFile(newId, file, push)).ok) failed++;
+      setBusy(false);
+      // Saved either way; a receipt that did not go can be attached again on the transaction's page.
+      if (failed > 0) return router.push(`/transactions/${newId}?attach=failed&returnTo=${encodeURIComponent(returnTo)}`);
+    }
     if (!rejected) return router.push(returnTo);
     // Whatever was created before the refusal now exists: choose it rather than add it again.
     list.forEach((c, i) => {
@@ -586,6 +626,8 @@ export function TransactionForm({
     if (!outcome.ok) return setFormError(outcome.error.message);
     const result = outcome.results[0];
     if (result?.status === "rejected") return setFormError((result.code && REFUSALS[result.code]) || "It could not be deleted.");
+    // R9 clarify Q2: its attachments' records went with it; now their files go.
+    if (mode.type === "edit" && attachmentCount > 0) void cleanupAttachmentFiles();
     router.push(returnTo);
   }
 
@@ -938,6 +980,55 @@ export function TransactionForm({
       </div>
       )}
 
+      {!isTemplate && (
+        <fieldset id="warranty" className="flex flex-col gap-2 rounded-md border border-border p-3">
+          <legend className="px-1 text-sm font-medium">Warranty</legend>
+          <label className="flex items-center gap-2 text-sm">
+            <input type="checkbox" checked={warrantyOn} onChange={(e) => setWarrantyOn(e.target.checked)} />
+            Under warranty
+          </label>
+          {warrantyOn && (
+            <div className="grid gap-3 sm:grid-cols-[12rem_1fr]">
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor={`${ids}-warranty-until`}>Until</Label>
+                <Input id={`${ids}-warranty-until`} type="date" min={date || undefined} value={warrantyUntil} onChange={(e) => setWarrantyUntil(e.target.value)} />
+              </div>
+              <div className="flex flex-col gap-1.5">
+                <Label htmlFor={`${ids}-warranty-note`}>Warranty note (optional)</Label>
+                <Input
+                  id={`${ids}-warranty-note`}
+                  value={warrantyNote}
+                  maxLength={200}
+                  placeholder="2 years, brand service centre"
+                  onChange={(e) => setWarrantyNote(e.target.value)}
+                />
+              </div>
+            </div>
+          )}
+          {saved?.warrantyUntil && !warrantyOn && (
+            <p className="text-sm text-muted-foreground">Saving turns the warranty off. Attachments stay.</p>
+          )}
+        </fieldset>
+      )}
+
+      {mode.type === "create" && (
+        <div className="flex flex-col gap-1.5">
+          <Label htmlFor={`${ids}-receipts`}>Attach a receipt (optional)</Label>
+          <input
+            id={`${ids}-receipts`}
+            type="file"
+            multiple
+            accept="image/jpeg,image/png,image/webp,image/heic,image/heif,application/pdf,.heic,.heif,.pdf"
+            className="text-sm"
+            aria-describedby={`${ids}-receipts-hint`}
+            onChange={(e) => setPendingFiles(Array.from(e.target.files ?? []).slice(0, 10))}
+          />
+          <p id={`${ids}-receipts-hint`} className="text-sm text-muted-foreground">
+            Photos or PDFs, stored when you save.{pendingFiles.length > 0 ? ` ${pendingFiles.length} chosen.` : ""}
+          </p>
+        </div>
+      )}
+
       {unpaying && planLink && (
         <div className="flex flex-col gap-1 rounded-md border border-border p-3">
           <label className="flex items-center gap-2 text-sm">
@@ -1006,6 +1097,7 @@ export function TransactionForm({
       {confirmDelete && !isTemplate && (
         <ConfirmDialog title="Delete this transaction?" confirmLabel="Delete" destructive busy={busy} onConfirm={() => void remove()} onCancel={() => setConfirmDelete(false)}>
           It leaves every balance and total. Its history is kept.
+          {attachmentCount > 0 && ` Its ${attachmentCount === 1 ? "attachment is" : `${attachmentCount} attachments are`} deleted too.`}
           {unpaying && planLink && ` It pays ${planLink.name} (${monthName(planLink.month)}): that planned payment will no longer count it as paid.`}
         </ConfirmDialog>
       )}

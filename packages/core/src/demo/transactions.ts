@@ -9,6 +9,8 @@
  * adjustment, manual interest). Ravi Kumar has automatic interest at 1% a month (rates); the app
  * proposes it. Older entries are Cleared; one is Void, one Follow-up; next month's rent is upcoming
  * and one bill waits in "To confirm".
+ * R9: two purchases under warranty — a refrigerator whose warranty ends in 50 days (inside its first
+ * reminder; its synthetic receipt is attached by the loader) and a phone with about eight months left.
  */
 import { categoryPath, indexCategories } from "../categories/tree";
 import type { PersonRateView, TransactionLine, TransactionView } from "../transactions/types";
@@ -178,6 +180,24 @@ export function demoTransactions(todayIso: string): DemoTransactions {
   const waiting = addDays(todayIso, -3);
   if (waiting >= START) {
     add({ date: waiting, kind: "expense", flow: "out", accountId: savings, amountMinor: 1_850_000n, payeeId: payee("Greenfield School"), categoryId: category("Education › School & college fees"), confirmed: false, notes: "Term fee" });
+  }
+
+  // R9 (FR-014): warranties. About 18 months on the refrigerator (50 days left), a year on the phone.
+  const plusYears = (iso: string, years: number) => `${Number(iso.slice(0, 4)) + years}${iso.slice(4)}`;
+  const fridgeUntil = addDays(todayIso, 50);
+  const fridgeDate = addDays(fridgeUntil, -548);
+  if (fridgeDate >= START) {
+    add({
+      date: fridgeDate, kind: "expense", flow: "out", accountId: savings, amountMinor: 4_200_000n, categoryId: category("Shopping › Electronics"),
+      notes: "Refrigerator", warrantyUntil: fridgeUntil, warrantyNote: "18 months, brand service centre",
+    });
+  }
+  const phoneDate = addDays(todayIso, -120);
+  if (phoneDate >= START) {
+    add({
+      date: phoneDate, kind: "expense", flow: "out", accountId: card, amountMinor: 1_850_000n, categoryId: category("Shopping › Electronics"),
+      notes: "Mobile phone", warrantyUntil: plusYears(phoneDate, 1), warrantyNote: null,
+    });
   }
 
   const rates: PersonRateView[] = [

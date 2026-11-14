@@ -54,6 +54,7 @@ export function FilterPanel({
   const [tag, setTag] = useState(filters.tagId ?? "");
   const [kinds, setKinds] = useState<string[]>(filters.kinds ?? []);
   const [statuses, setStatuses] = useState<string[]>(filters.statuses ?? []);
+  const [warranty, setWarranty] = useState(filters.warranty === true);
   const [min, setMin] = useState(filters.minMinor ? formatAmountInput(BigInt(filters.minMinor), currency) : "");
   const [max, setMax] = useState(filters.maxMinor ? formatAmountInput(BigInt(filters.maxMinor), currency) : "");
   const [error, setError] = useState<string | null>(null);
@@ -78,6 +79,7 @@ export function FilterPanel({
     if (tag) params.set("tag", tag);
     if (kinds.length) params.set("type", kinds.join(","));
     if (statuses.length) params.set("status", statuses.join(","));
+    if (warranty) params.set("warranty", "1");
     if (!amount(min, "min") || !amount(max, "max")) return setError("Enter amounts like 1,000.00.");
     setError(null);
     const query = params.toString();
@@ -191,6 +193,10 @@ export function FilterPanel({
               ))}
             </div>
           </fieldset>
+          <label className="flex items-center gap-1.5 self-end text-sm">
+            <input type="checkbox" checked={warranty} onChange={(e) => setWarranty(e.target.checked)} />
+            Under warranty
+          </label>
         </div>
         {error && (
           <p role="alert" className="mt-2 text-sm text-red-700 dark:text-red-300">

@@ -131,6 +131,15 @@ export const changes = {
   createTemplate: (id: string, fields: Record<string, unknown>) => newChange("template", id, "create", fields),
   updateTemplate: (id: string, changed: Record<string, unknown>) => newChange("template", id, "update", changed),
   deleteTemplate: (id: string) => newChange("template", id, "delete"),
+  // R9: an attachment's record, pushed once its file is stored (R9-02); only the name changes later.
+  createAttachment: (id: string, fields: { transactionId: string; name: string; contentType: string; sizeBytes: string }) =>
+    newChange("attachment", id, "create", fields),
+  renameAttachment: (id: string, name: string) => newChange("attachment", id, "update", { name }),
+  deleteAttachment: (id: string) => newChange("attachment", id, "delete"),
+  // R9-05: the expiry and its note change together; "Got it" records the reminder dismissed (R9-06).
+  setWarranty: (id: string, until: string | null, note: string | null) =>
+    newChange("transaction", id, "update", { warrantyUntil: until, warrantyNote: until === null ? null : note }),
+  dismissWarrantyReminder: (id: string, reminder: 1 | 2) => newChange("transaction", id, "update", { warrantyDismissed: reminder }),
 };
 
 export type PushOutcome =

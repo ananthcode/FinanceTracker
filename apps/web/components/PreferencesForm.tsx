@@ -2,7 +2,7 @@
 
 import { useRouter } from "next/navigation";
 import { useMemo, useState } from "react";
-import { DATE_FORMATS, fiscalYearOf, formatAmountInput, parseAmountInput, type Preferences } from "@ft/core";
+import { DATE_FORMATS, fiscalYearOf, formatAmountInput, parseAmountInput, WARRANTY_FIRST_CHOICES, WARRANTY_SECOND_CHOICES, type Preferences } from "@ft/core";
 import { DateText } from "@/components/DateText";
 import { Money } from "@/components/Money";
 import { PrivacyNotice } from "@/components/PrivacyNotice";
@@ -230,6 +230,60 @@ export function PreferencesForm({
             &ldquo;Plan checked&rdquo;. Applies on every device.
           </p>
         </div>
+      )}
+
+      {mode === "settings" && (
+        <fieldset id="warranty-reminders-settings" className="flex flex-col gap-2">
+          <legend className="mb-1 text-sm font-medium">Warranty reminders</legend>
+          <div className="flex flex-wrap gap-4">
+            <div className="flex flex-col gap-1">
+              <label htmlFor="warranty-first" className="text-sm">
+                First reminder
+              </label>
+              <select
+                id="warranty-first"
+                className={selectClass}
+                value={prefs.warrantyFirstDays}
+                onChange={(e) => {
+                  const first = Number(e.target.value) as Preferences["warrantyFirstDays"];
+                  set("warrantyFirstDays", first);
+                  // The second stays closer to expiry than the first.
+                  if (prefs.warrantySecondDays !== null && prefs.warrantySecondDays >= first) {
+                    const below = WARRANTY_SECOND_CHOICES.filter((d) => d < first);
+                    set("warrantySecondDays", below.length > 0 ? below[below.length - 1]! : null);
+                  }
+                }}
+              >
+                {WARRANTY_FIRST_CHOICES.map((d) => (
+                  <option key={d} value={d}>
+                    {d} days before
+                  </option>
+                ))}
+              </select>
+            </div>
+            <div className="flex flex-col gap-1">
+              <label htmlFor="warranty-second" className="text-sm">
+                Second reminder
+              </label>
+              <select
+                id="warranty-second"
+                className={selectClass}
+                value={prefs.warrantySecondDays ?? "off"}
+                onChange={(e) => set("warrantySecondDays", e.target.value === "off" ? null : (Number(e.target.value) as 15 | 30 | 60))}
+              >
+                {WARRANTY_SECOND_CHOICES.filter((d) => d < prefs.warrantyFirstDays).map((d) => (
+                  <option key={d} value={d}>
+                    {d} days before
+                  </option>
+                ))}
+                <option value="off">Off</option>
+              </select>
+            </div>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            The Dashboard reminds you before a warranty ends. &ldquo;Got it&rdquo; hides a reminder until the next one. Applies on every device.
+          </p>
+        </fieldset>
       )}
 
       <section id="format-preview" aria-labelledby="preview-title" className="rounded-md border border-border p-3 text-sm">

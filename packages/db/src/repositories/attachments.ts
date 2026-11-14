@@ -67,16 +67,16 @@ export async function orphanAttachmentFiles(db: SupabaseClient): Promise<string[
 }
 
 /**
- * Removes every file in a user's folder. Server only, with the service role (data reset and erasure,
- * research R9-03). Returns how many were removed.
+ * Removes every file in a user's folder (but the attachment ids in `keep`). Server only, with the service
+ * role (data reset and erasure, research R9-03). Returns how many were removed.
  */
-export async function removeUserAttachmentFiles(service: SupabaseClient, userId: string): Promise<number> {
+export async function removeUserAttachmentFiles(service: SupabaseClient, userId: string, keep: ReadonlySet<string> = new Set()): Promise<number> {
   const bucket = service.storage.from(ATTACHMENTS_BUCKET);
   let removed = 0;
   for (let round = 0; round < 50; round++) {
-    const { data, error } = await bucket.list(userId, { limit: 100 });
+    const { data, error } = await bucket.list(userId, { limit: 1000 });
     if (error) throw new Error("ATTACHMENT_FILES_LIST_FAILED");
-    const names = (data ?? []).filter((o) => o.id !== null).map((o) => `${userId}/${o.name}`);
+    const names = (data ?? []).filter((o) => o.id !== null && !keep.has(o.name)).map((o) => `${userId}/${o.name}`);
     if (names.length === 0) return removed;
     const { error: removeError } = await bucket.remove(names);
     if (removeError) throw new Error("ATTACHMENT_FILES_REMOVE_FAILED");

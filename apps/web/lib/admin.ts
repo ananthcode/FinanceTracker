@@ -4,6 +4,7 @@ import { ApiError } from "@/lib/api/errors";
 import { audit } from "@/lib/audit";
 import { isExpired, type InvitationRow } from "@/lib/invitations";
 import { adminSupabase, appRpc } from "@/lib/supabase/admin";
+import { removeAllFilesOf } from "@/lib/attachments-server";
 
 /**
  * Owner-admin operations (US4). Callers must already have verified that the requester is the
@@ -108,6 +109,8 @@ export async function eraseUser(userId: string, confirmEmail: string, actor: Act
     throw new ApiError(422, "CONFIRMATION_MISMATCH", "The email you typed doesn't match this user.");
   }
 
+  // 0. R9: remove their attachment files first (storage is not part of the cascade, research R9-03).
+  await removeAllFilesOf(userId);
   // 1. Remove identifiers from the audit trail and delete invitations/lockout records.
   const { data: ref, error } = await appRpc<string>("scrub_user_from_audit", { p_user: userId, p_email: target.email });
   if (error || !ref) throw error ? rpcError(error.message) : new Error("SCRUB_FAILED");
