@@ -1,7 +1,8 @@
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import { DEFAULT_PREFERENCES, todayInZone } from "@ft/core";
-import { getPlanItem, getPreferences, getTransaction, listAccounts, listCategories, listPayees, listTags } from "@ft/db";
+import { getPlanItem, getPreferences, getTransaction, listAccounts, listAttachments, listCategories, listPayees, listTags } from "@ft/db";
+import { Attachments } from "@/components/attachments/Attachments";
 import { TransactionForm } from "@/components/transactions/TransactionForm";
 import { buttonVariants } from "@/components/ui/button";
 import { createServerSupabase } from "@/lib/supabase/server";
@@ -13,6 +14,7 @@ const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
  * Edit, confirm or delete a transaction (R4 FR-020, FR-002a). Only the caller's own, non-deleted ones are found (RLS).
  * R7 FR-020: a transaction that pays a planned payment says so, can be unlinked, and warns before it is
  * deleted or voided that the planned payment becomes unpaid.
+ * R9: its receipts (attachments) and warranty; deleting it deletes its attachments (clarify Q2).
  */
 export default async function EditTransactionPage({
   params,
@@ -26,13 +28,14 @@ export default async function EditTransactionPage({
   const query = await searchParams;
   const supabase = await createServerSupabase();
   const { data } = await supabase.auth.getUser();
-  const [transaction, accounts, payees, categories, tags, preferences] = await Promise.all([
+  const [transaction, accounts, payees, categories, tags, preferences, attachments] = await Promise.all([
     getTransaction(supabase, id),
     listAccounts(supabase),
     listPayees(supabase),
     listCategories(supabase),
     listTags(supabase),
     getPreferences(supabase, data.user?.id ?? ""),
+    listAttachments(supabase, id),
   ]);
   if (!transaction) notFound();
   // The item may have been deleted since; its paid month is kept under its name (FR-008).
@@ -72,7 +75,9 @@ export default async function EditTransactionPage({
         todayIso={todayInZone(prefs.timezone)}
         currency={prefs.baseCurrency}
         returnTo={returnTo}
+        attachmentCount={attachments.length}
       />
+      <Attachments transactionId={transaction.id} attachments={attachments} attachFailed={query.attach === "failed"} />
     </section>
   );
 }

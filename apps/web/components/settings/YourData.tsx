@@ -8,6 +8,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { formatBytes } from "@ft/core";
 import { apiFetch } from "@/lib/api/client";
 
 type Action = "load" | "reset" | "reset_and_load";
@@ -49,7 +50,16 @@ function describe(counts: Counts, kind: "loaded" | "removed"): string {
  * empty data, reset (permanently clear) your own data, or both. Resetting asks for the word RESET.
  * Outcomes are stated in words; every screen shows the new state at once (the page refreshes).
  */
-export function YourData({ empty: serverEmpty, demoAvailable }: { empty: boolean; demoAvailable: boolean }) {
+export function YourData({
+  empty: serverEmpty,
+  demoAvailable,
+  usage = null,
+}: {
+  empty: boolean;
+  demoAvailable: boolean;
+  /** R9 US3: attachment files and bytes stored, against the allowance (bytes as decimal strings). */
+  usage?: { files: number; bytes: string; allowance: string } | null;
+}) {
   const ids = useId();
   const router = useRouter();
   // What the last action left, shown at once; the server's answer takes over on the next render.
@@ -78,13 +88,16 @@ export function YourData({ empty: serverEmpty, demoAvailable }: { empty: boolean
       return;
     }
     const { loaded, removed } = res.data;
+    // R9: receipts are counted on their own, so the sentence above stays as it was.
+    const files = action === "reset" ? (removed?.attachments ?? 0) : (loaded?.attachment ?? 0);
+    const filesText = files > 0 ? ` ${plural(files, "attachment", "attachments")} ${action === "reset" ? "removed" : "added"} with ${files === 1 ? "its file" : "their files"}.` : "";
     const text =
       action === "load"
         ? `Demo data loaded: ${describe(loaded ?? {}, "loaded")}.`
         : action === "reset"
           ? `Your data was reset: ${describe(removed ?? {}, "removed")} removed.`
           : `Your data was replaced with fresh demo data: ${describe(loaded ?? {}, "loaded")}.`;
-    setOutcome({ ok: true, text });
+    setOutcome({ ok: true, text: text + filesText });
     setAfterAction({ empty: action === "reset", from: serverEmpty });
     router.refresh();
   }
@@ -101,6 +114,11 @@ export function YourData({ empty: serverEmpty, demoAvailable }: { empty: boolean
           ? "Demo data is a made-up household — accounts, categories, people and about two years of transactions — for trying every screen. It is added to your own data, and you can reset it at any time."
           : "Reset removes everything you have recorded, so you can start again."}
       </p>
+      {usage && (
+        <p id="attachment-usage" className="text-sm">
+          Attachments: {plural(usage.files, "file", "files")}, {formatBytes(BigInt(usage.bytes))} of {formatBytes(BigInt(usage.allowance))}
+        </p>
+      )}
       {outcome && (
         <Alert variant={outcome.ok ? "default" : "destructive"} role={outcome.ok ? "status" : "alert"}>
           <AlertDescription>{outcome.text}</AlertDescription>

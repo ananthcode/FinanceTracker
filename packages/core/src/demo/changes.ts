@@ -13,6 +13,8 @@ import { demoPlan } from "./plan";
 import { demoTemplates } from "./templates";
 import { templateToWire } from "../templates/rules";
 import { demoTransactions } from "./transactions";
+import { DEMO_RECEIPT_NAME, demoReceiptPdf } from "./receipt";
+import { formatMoney } from "../money/format";
 
 /** The device id in the demo changes' clock (a valid HLC device, not a real device). */
 export const DEMO_HLC_DEVICE = "demodata";
@@ -155,7 +157,33 @@ export function demoChanges(todayIso: string, options: DemoChangesOptions = {}):
       status: t.status,
       confirmed: t.confirmed,
       ...(paying ? { planItemId: to(paying.planItemId), planMonth: paying.planMonth } : {}),
+      ...(t.warrantyUntil ? { warrantyUntil: t.warrantyUntil, warrantyNote: t.warrantyNote } : {}),
+    });
+  }
+  // R9: the refrigerator's synthetic receipt. The loader stores the file first (demoReceipt below).
+  const receipt = demoReceipt(todayIso, transactions);
+  if (receipt) {
+    add("attachment", to(DEMO_RECEIPT_ID), "create", {
+      transactionId: to(receipt.transactionId),
+      name: DEMO_RECEIPT_NAME,
+      contentType: "application/pdf",
+      sizeBytes: String(receipt.bytes.length),
     });
   }
   return changes;
+}
+
+const DEMO_RECEIPT_ID = "00000000-0000-4000-8000-0000000000d1";
+
+/** The demo receipt's bytes and the (demo) transaction it belongs to, or null before the purchase existed. */
+export function demoReceipt(todayIso: string, transactions = demoTransactions(todayIso).transactions): { transactionId: string; bytes: Uint8Array } | null {
+  const fridge = transactions.find((t) => t.notes === "Refrigerator" && t.warrantyUntil !== null);
+  if (!fridge) return null;
+  const amount = formatMoney(fridge.amountMinor, "INR", { numberFormat: "indian" }).replace(/[^\d,.]/g, "");
+  return { transactionId: fridge.id, bytes: demoReceiptPdf(fridge.date, amount, fridge.warrantyUntil!) };
+}
+
+/** The attachment changes in a list of demo changes: the loader stores each one's file under its id. */
+export function demoAttachmentIds(changes: readonly ChangeInput[]): string[] {
+  return changes.filter((c) => c.entity === "attachment" && c.kind === "create").map((c) => c.entityId);
 }

@@ -53,6 +53,9 @@ export const ERROR_CODES = [
   "NOT_AVAILABLE",
   "DEMO_REJECTED",
   "DATA_RESET",
+  // R9 — attachments (specs/009-attachments-warranty/contracts/attachments.md)
+  "INVALID_ATTACHMENT",
+  "QUOTA_EXCEEDED",
 ] as const;
 
 export type ErrorCode = (typeof ERROR_CODES)[number];

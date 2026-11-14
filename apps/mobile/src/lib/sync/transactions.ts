@@ -45,6 +45,9 @@ export function transactionFromRow(row: SyncRow): TransactionView {
     // R7 payment link (the phone screens come in the Android phase).
     planItemId: (row.planItemId as string | null) ?? null,
     planMonth: (row.planMonth as string | null) ?? null,
+    warrantyUntil: (row.warrantyUntil as string | null | undefined) ?? null,
+    warrantyNote: (row.warrantyNote as string | null | undefined) ?? null,
+    warrantyDismissed: Number(row.warrantyDismissed ?? 0),
   };
 }
 

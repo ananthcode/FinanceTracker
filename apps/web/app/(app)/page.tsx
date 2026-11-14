@@ -28,10 +28,12 @@ import { SafeToSpendCard } from "@/components/dashboard/SafeToSpendCard";
 import { Money } from "@/components/Money";
 import { PlanNudge } from "@/components/plan/PlanNudge";
 import { QuickAdd } from "@/components/templates/QuickAdd";
+import { WarrantyReminders } from "@/components/warranty/WarrantyReminders";
 import { buttonVariants } from "@/components/ui/button";
 import { publicEnv } from "@/lib/env";
 import { loadPlan } from "@/lib/plan-data";
 import { loadQuickAdd } from "@/lib/templates-data";
+import { loadWarranties } from "@/lib/warranty-data";
 import { createServerSupabase } from "@/lib/supabase/server";
 
 function Figure({ id, label, href, children }: { id: string; label: string; href: string; children: React.ReactNode }) {
@@ -58,7 +60,7 @@ export default async function DashboardPage() {
   const month = periodOf("this_month", todayIso, prefs.fyStartMonth);
   await runInterestProposals(supabase).catch(() => 0);
   const planMonthNow = monthOf(todayIso);
-  const [accounts, groups, people, totals, months, upcoming, waiting, plan, quick] = await Promise.all([
+  const [accounts, groups, people, totals, months, upcoming, waiting, plan, quick, warranties] = await Promise.all([
     listAccounts(supabase),
     listGroups(supabase),
     listPayees(supabase, "person"),
@@ -70,6 +72,8 @@ export default async function DashboardPage() {
     loadPlan(supabase, prefs, [planMonthNow, addMonths(planMonthNow, 1)]),
     // R8: the first few quick-add templates.
     loadQuickAdd(supabase, prefs),
+    // R9: warranty reminders due today.
+    loadWarranties(supabase, prefs),
   ]);
   const currency = prefs.baseCurrency;
 
@@ -133,6 +137,10 @@ export default async function DashboardPage() {
           </div>
           <QuickAdd templates={quick.templates} info={quick.info} today={quick.today} currency={currency} limit={6} returnTo="/" />
         </section>
+      )}
+
+      {warranties.due.length > 0 && (
+        <WarrantyReminders due={warranties.due.map((w) => ({ id: w.id, item: w.item, daysLeft: w.daysLeft, reminder: w.reminder! }))} />
       )}
 
       {plan.items.some((i) => i.state === "active") && (

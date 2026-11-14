@@ -44,6 +44,9 @@ describe("matching and Pay (R7-07, R7-10)", () => {
     state: "active",
     planItemId: null,
     planMonth: null,
+    warrantyUntil: null,
+    warrantyNote: null,
+    warrantyDismissed: 0,
     ...c,
   });
 

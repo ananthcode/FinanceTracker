@@ -1,5 +1,5 @@
 import { demoAccounts, demoLists, keysBetween } from "@ft/core";
-import { createServiceRoleClient } from "@ft/db";
+import { createServiceRoleClient, removeUserAttachmentFiles } from "@ft/db";
 import { newInvitationToken, toByteaHex } from "@ft/db/server";
 
 /**
@@ -28,7 +28,10 @@ export async function resetSyntheticData(): Promise<void> {
   const db = admin();
   const { data } = await db.auth.admin.listUsers({ perPage: 1000 });
   for (const u of data?.users ?? []) {
-    if (u.email?.endsWith("@example.com")) await db.auth.admin.deleteUser(u.id);
+    if (!u.email?.endsWith("@example.com")) continue;
+    // R9: their attachment files too (storage is not part of the cascade).
+    await removeUserAttachmentFiles(db, u.id).catch(() => 0);
+    await db.auth.admin.deleteUser(u.id);
   }
   await db.from("invitations").delete().like("email", "%@example.com");
 }

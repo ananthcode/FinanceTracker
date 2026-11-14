@@ -22,6 +22,7 @@ import {
   PlanOccurrenceUpdateFields,
 } from "../plan/schemas";
 import { TemplateCreateFields, TemplateUpdateFields } from "../templates/schemas";
+import { AttachmentCreateFields, AttachmentUpdateFields } from "../attachments/schemas";
 import { HLC_PATTERN } from "./hlc";
 
 export const SYNC_ENTITIES = [
@@ -35,6 +36,7 @@ export const SYNC_ENTITIES = [
   "plan_item",
   "plan_occurrence",
   "template",
+  "attachment",
 ] as const;
 export type SyncEntity = (typeof SYNC_ENTITIES)[number];
 
@@ -58,6 +60,7 @@ const FIELD_SCHEMAS: Record<SyncEntity, Partial<Record<ChangeKind, z.ZodType>>> 
   plan_item: { create: PlanItemCreateFields, update: PlanItemUpdateFields },
   plan_occurrence: { create: PlanOccurrenceCreateFields, update: PlanOccurrenceUpdateFields },
   template: { create: TemplateCreateFields, update: TemplateUpdateFields },
+  attachment: { create: AttachmentCreateFields, update: AttachmentUpdateFields },
 };
 
 /** Groups are only created, renamed, reordered and deleted (FR-009a); R3 lists merge; R4 relocates. */
@@ -73,6 +76,8 @@ const ALLOWED_KINDS: Record<SyncEntity, readonly ChangeKind[]> = {
   // A create for an existing (deterministic) id merges as an update (R7-02).
   plan_occurrence: ["create", "update"],
   template: ["create", "update", "delete"],
+  // R9: the file never changes; only the name can be edited.
+  attachment: ["create", "update", "delete"],
 };
 
 export const Change = z
@@ -145,6 +150,10 @@ export const REJECTION_CODES = [
   "INVALID_PLAN_LINK",
   // R8
   "INVALID_TEMPLATE",
+  // R9
+  "INVALID_ATTACHMENT",
+  "QUOTA_EXCEEDED",
+  "INVALID_WARRANTY",
 ] as const;
 export type RejectionCode = (typeof REJECTION_CODES)[number];
 
@@ -182,6 +191,7 @@ export const PullResponse = z.object({
     plan_item: z.array(PulledRow).default([]),
     plan_occurrence: z.array(PulledRow).default([]),
     template: z.array(PulledRow).default([]),
+    attachment: z.array(PulledRow).default([]),
   }),
 });
 export type PullResponse = z.output<typeof PullResponse>;

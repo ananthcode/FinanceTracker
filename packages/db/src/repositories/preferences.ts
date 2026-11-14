@@ -16,9 +16,11 @@ interface PreferencesRow {
   buffer_minor: string;
   plan_nudge: boolean;
   plan_checked_month: string | null;
+  warranty_first_days: Preferences["warrantyFirstDays"];
+  warranty_second_days: Preferences["warrantySecondDays"];
 }
 
-const COLUMNS = "base_currency, number_format, date_format, fy_start_month, timezone, accounts_view, categories_start, buffer_minor::text, plan_nudge, plan_checked_month";
+const COLUMNS = "base_currency, number_format, date_format, fy_start_month, timezone, accounts_view, categories_start, buffer_minor::text, plan_nudge, plan_checked_month, warranty_first_days, warranty_second_days";
 
 function fromRow(row: PreferencesRow): Preferences {
   return {
@@ -32,6 +34,8 @@ function fromRow(row: PreferencesRow): Preferences {
     bufferMinor: String(row.buffer_minor),
     planNudge: row.plan_nudge,
     planCheckedMonth: row.plan_checked_month,
+    warrantyFirstDays: row.warranty_first_days,
+    warrantySecondDays: row.warranty_second_days,
   };
 }
 
@@ -48,6 +52,9 @@ function toRow(patch: Partial<Preferences>): Partial<PreferencesRow> {
   if (patch.planNudge !== undefined) row.plan_nudge = patch.planNudge;
   // The database keeps the later month (research R7-09).
   if (patch.planCheckedMonth) row.plan_checked_month = patch.planCheckedMonth;
+  // R9-06: set together; the database checks the order.
+  if (patch.warrantyFirstDays !== undefined) row.warranty_first_days = patch.warrantyFirstDays;
+  if (patch.warrantySecondDays !== undefined) row.warranty_second_days = patch.warrantySecondDays;
   return row;
 }
 

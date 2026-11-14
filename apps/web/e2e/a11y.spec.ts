@@ -49,13 +49,14 @@ test("keyboard only: Tab reaches the navigation in order and Enter opens a secti
   await page.goto("/");
 
   const order: string[] = [];
-  for (let i = 0; i < 8; i++) {
+  for (let i = 0; i < 9; i++) {
     await page.keyboard.press("Tab");
     order.push(await page.evaluate(() => document.activeElement?.getAttribute("aria-label") ?? document.activeElement?.textContent?.trim() ?? ""));
   }
-  expect(order.slice(0, 8)).toEqual(["Hide balances", "Dashboard", "Accounts", "People", "Transactions", "Reports", "Payment plan", "Settings"]);
+  expect(order.slice(0, 9)).toEqual(["Hide balances", "Dashboard", "Accounts", "People", "Transactions", "Reports", "Payment plan", "Warranties", "Settings"]);
   // Focus is visibly outlined (not colour of text alone).
-  // Focus is on stop 8; one Shift+Tab goes back to stop 7, "Payment plan" (R3 added People, R6 Reports).
+  // Focus is on stop 9; two Shift+Tabs go back to stop 7, "Payment plan" (R3 added People, R6 Reports, R9 Warranties).
+  await page.keyboard.press("Shift+Tab");
   await page.keyboard.press("Shift+Tab");
   await expect(page.locator(":focus")).toHaveText("Payment plan");
   const outline = await page.evaluate(() => getComputedStyle(document.activeElement!).outlineStyle);
@@ -383,4 +384,37 @@ test("R8 Quick add: the list, the Dashboard strip, Manage templates and the temp
   await page.locator("[data-manage-template='Fuel']").getByRole("button", { name: "Move to top Fuel" }).focus();
   await page.keyboard.press("Enter");
   await expect(page.locator("[data-manage-template]").first()).toHaveAttribute("data-manage-template", "Fuel");
+});
+
+test("R9 Warranties, the Dashboard reminders, a transaction with attachments and warranty, and Settings; Got it and Delete by keyboard (T029, SC-006)", async ({ page, request }) => {
+  test.slow();
+  await ensureOwner(request);
+  const member = uniqueEmail("a11yatt");
+  await createMember(request, member);
+  await signInUI(page, member);
+  await loadDemoFromSettings(page);
+
+  await page.goto("/warranties");
+  const fridge = (await page.locator("#warranties-active").getByRole("link", { name: "Refrigerator" }).getAttribute("href"))!;
+  for (const width of [1280, 390]) {
+    await page.setViewportSize({ width, height: 844 });
+    for (const path of ["/warranties", "/", fridge, "/transactions?warranty=1", "/settings"]) {
+      await page.goto(path);
+      await expectNoViolations(page, `${path} @${width}px`);
+    }
+  }
+
+  // Keyboard only: Got it on the Dashboard reminder; Delete an attachment through its dialog.
+  await page.setViewportSize({ width: 1280, height: 844 });
+  await page.goto("/");
+  await page.locator("#warranty-reminders").getByRole("button", { name: "Got it for Refrigerator" }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.locator("#warranty-reminders")).toHaveCount(0);
+  await page.goto(fridge);
+  await page.locator("#attachments").getByRole("button", { name: /^Delete Refrigerator receipt/ }).focus();
+  await page.keyboard.press("Enter");
+  await expect(page.getByRole("dialog", { name: "Delete this attachment?" })).toBeVisible();
+  await expectNoViolations(page, "delete attachment dialog");
+  await page.keyboard.press("Escape");
+  await expect(page.locator("#attachments [data-attachment]")).toHaveCount(1);
 });

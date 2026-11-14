@@ -10,3 +10,4 @@ export * from "./repositories/data";
 export * from "./repositories/reports";
 export * from "./repositories/plan";
 export * from "./repositories/templates";
+export * from "./repositories/attachments";

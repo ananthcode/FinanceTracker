@@ -70,6 +70,8 @@ describe("GET /api/me, POST /api/me/setup, PATCH /api/me/preferences (T081, US3)
       bufferMinor: "0", // R6 FR-003
       planNudge: true, // R7 FR-023
       planCheckedMonth: null, // R7 FR-023
+      warrantyFirstDays: 60, // R9 clarify Q3
+      warrantySecondDays: 30,
     });
   });
 

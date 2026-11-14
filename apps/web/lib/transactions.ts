@@ -20,6 +20,8 @@ export const FiltersSchema = z
     minMinor: z.string().regex(/^\d{1,12}$/).optional(),
     maxMinor: z.string().regex(/^\d{1,12}$/).optional(),
     upcoming: z.boolean().optional(),
+    // R9-07: only what is under warranty.
+    warranty: z.boolean().optional(),
   })
   .strict();
 
@@ -55,6 +57,7 @@ export function filtersFromParams(params: Record<string, string | string[] | und
     if (shape.safeParse(value).success) filters[key] = value;
   }
   if (one("exact") === "1" && filters.categoryId) filters.categoryExact = true;
+  if (one("warranty") === "1") filters.warranty = true;
   return filters as TransactionFilters;
 }
 

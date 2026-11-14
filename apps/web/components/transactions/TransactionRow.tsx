@@ -60,6 +60,17 @@ export function TransactionRow({
         {tx.tagIds.length > 0 && <span>· {tx.tagIds.map((id) => `#${names.tags[id] ?? "tag"}`).join(" ")}</span>}
         {tx.status !== "uncleared" && <span>· {TRANSACTION_STATUS_TEXT[tx.status]}</span>}
         {tx.notes && <span className="truncate">· {tx.notes}</span>}
+        {(tx.attachmentCount ?? 0) > 0 && (
+          <span data-has-attachments>
+            · <span aria-hidden="true">📎</span>
+            {tx.attachmentCount === 1 ? "1 attachment" : `${tx.attachmentCount} attachments`}
+          </span>
+        )}
+        {tx.warrantyUntil && (
+          <span data-under-warranty>
+            · Under warranty until <DateText date={tx.warrantyUntil} />
+          </span>
+        )}
       </p>
     </div>
   );
