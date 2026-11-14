@@ -64,6 +64,7 @@ function Gate() {
         <Stack.Screen name="transaction/[id]" />
         <Stack.Screen name="dashboard" options={{ headerShown: true, title: "Dashboard" }} />
         <Stack.Screen name="settings/reminders" options={{ headerShown: true, title: "Reminders" }} />
+        <Stack.Screen name="settings/your-data" options={{ headerShown: true, title: "Your data" }} />
         <Stack.Screen name="settings/app-lock" options={{ headerShown: true, title: "App lock" }} />
       </Stack.Protected>
       <Stack.Protected guard={isOwner}>

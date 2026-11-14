@@ -106,6 +106,8 @@ export class SyncEngine {
       await this.store.transaction(async () => {
         for (const [i, result] of results.entries()) {
           const pending = batch[i]!.change;
+          // R5: a change made before the user reset their data is simply dropped, without a notice.
+          if (result.code === "DATA_RESET") continue;
           if (result.status === "renamed" || result.status === "converted" || result.status === "rejected") {
             await this.store.addNotice({
               changeId: result.changeId,
@@ -130,6 +132,17 @@ export class SyncEngine {
     let cursor = (await this.store.getState(STATE_CURSOR)) ?? "0";
     for (;;) {
       const page = await this.transport.pull(cursor);
+      if (page.reset) {
+        // R5: the data was reset elsewhere. Start again from 0; keep unsent changes and the clock.
+        await this.store.transaction(async () => {
+          const clock = await this.store.getState(STATE_HLC);
+          await this.store.wipeExceptPending();
+          if (clock) await this.store.setState(STATE_HLC, clock);
+          await this.store.setState(STATE_CURSOR, "0");
+        });
+        cursor = "0";
+        continue;
+      }
       await this.store.transaction(async () => {
         const waiting = await this.store.pending();
         let seen: HlcParts | null = null;

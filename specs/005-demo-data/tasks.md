@@ -59,7 +59,7 @@ Migration names `YYYYMMDDHHMMSS_*` (`<ts>`), in the listed order.
 
 ## Phase 6: User Story 4 — Android (P3)
 
-- [ ] T022 [US4] *Deferred* Android: Settings actions; wipe the local store on `reset: true`; drop `DATA_RESET` results
+- [X] T022 [US4] Android: Settings actions; wipe the local store on `reset: true`; drop `DATA_RESET` results
 
 ## Phase 7: Polish
 
